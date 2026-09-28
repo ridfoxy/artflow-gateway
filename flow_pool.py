@@ -67,6 +67,11 @@ ASSET_VERIFY = os.environ.get("FLOW_ASSET_VERIFY", "1") != "0"
 ATTACH_SERIALIZE = os.environ.get("FLOW_ATTACH_SERIALIZE", "0") == "1"
 USE_PER_JOB_PROJECT = os.environ.get("FLOW_USE_PER_JOB_PROJECT", "1") != "0"
 ATTACH_VERIFY_TRIES = int(os.environ.get("FLOW_ATTACH_VERIFY_TRIES", "3"))
+# Utamakan kandidat dari lalu lintas jaringan HALAMAN INI (per-halaman, tidak
+# bisa tercampur dengan job lain) alih-alih galeri proyek bersama. Terbukti:
+# DOM-dulu membuat 8 dari 192 media terpakai dua job (berkas identik), termasuk
+# "prompt ayam -> hasil orang pakai serum".
+NET_FIRST = os.environ.get("FLOW_NET_FIRST", "1") != "0"
 PROJECT_OPEN_TRIES = int(os.environ.get("FLOW_PROJECT_OPEN_TRIES", "5"))
 PROJECT_URL_TPL = os.environ.get("FLOW_PROJECT_URL", "https://flow.google.com/")
 # Proyek baru belum ada di daftar "recent", jadi dibuat lewat tombol di beranda.
@@ -740,7 +745,13 @@ class FlowPool:
             # Let the gallery finish its initial loads, then start listening.
             await asyncio.sleep(2)
             captured_seen, captured_order = self._collector(page, exclude=input_media)
-            before_net = set(captured_seen)
+            # CATATAN: dulu di sini ada `before_net = set(captured_seen)` yang
+            # membuang SEMUA id yang terlihat sebelum submit. Akibatnya jalur
+            # jaringan hampir selalu kosong dan atribusi jatuh ke galeri bersama
+            # (sumber salah-ambil). Kolektor ini hanya mendengar respons HALAMAN
+            # INI, jadi id apa pun yang tercatat di sini memang milik halaman ini
+            # — termasuk yang muncul sebelum submit (mis. hasil generate ini yang
+            # sudah termuat lebih dulu, tepat kasus yang dulu merusak).
             # Atribusi utama: pelacak DOM (kemunculan baru setelah submit).
             dom_tracker = await self._dom_tracker(page)
             # `before` is the DOM snapshot the original computed but never used:
@@ -795,27 +806,37 @@ class FlowPool:
                     last_pct = pct
                     self._set_progress(job_id, min(pct, 99))
 
-                # Candidates: network ids seen since attach, minus the pre-existing
-                # DOM gallery, minus permanently-rejected ids. Appearance order.
-                fresh = (captured_seen - before_net) - rejected
-                candidates = [m for m in captured_order
-                              if m in fresh and m not in before_dom]
-                # Kandidat GABUNGAN: id yang baru muncul di DOM lebih
-                # diutamakan (atribusi per-halaman), lalu kandidat jaringan.
-                try:
-                    dom_new = await dom_tracker()
-                except Exception:
-                    dom_new = []
-                dom_new = [m for m in dom_new
-                           if m not in rejected and m not in input_media
-                           and m not in before_dom]
-                gabung = dom_new + [m for m in candidates if m not in dom_new]
+                # Kandidat dari LALU LINTAS JARINGAN halaman ini (per-halaman,
+                # tidak bisa tercampur). Semua id yang pernah terlihat halaman
+                # ini dianggap milik halaman ini — TIDAK dibuang karena muncul
+                # sebelum submit, karena hasil generate ini bisa termuat sebelum
+                # submit dikonfirmasi (itulah yang dulu membuatnya tertukar).
+                net_ids = [m for m in captured_order
+                           if m in captured_seen
+                           and m not in rejected
+                           and m not in input_media]
+                # Cadangan: DOM. Galeri BERSAMA, jadi hanya dipakai kalau
+                # jaringan tidak memberi kandidat apa pun.
+                dom_new = []
+                if not net_ids or not NET_FIRST:
+                    try:
+                        dom_new = await dom_tracker()
+                    except Exception:
+                        dom_new = []
+                    dom_new = [m for m in dom_new
+                               if m not in rejected and m not in input_media]
+                if NET_FIRST:
+                    # jaringan dulu, DOM cadangan
+                    gabung = net_ids + [m for m in dom_new if m not in net_ids]
+                else:
+                    # perilaku lama: DOM dulu, jaringan cadangan
+                    gabung = dom_new + [m for m in net_ids if m not in dom_new]
                 candidates_seen_total += len(gabung)
                 if (not gabung and candidates_seen_total == 0
                         and time.time() - started > no_candidate_grace):
                     raise Exception(
                         f"tidak ada kandidat media setelah {time.time()-started:.0f}s "
-                        f"(galeri awal={len(before_dom)}, lalu lintas baru={len(fresh)}) "
+                        f"(lalu lintas halaman={len(captured_seen)}, DOM baru={len(dom_new)}) "
                         f"— hasil tidak bisa diatribusikan ke job ini")
                 for cand in gabung:
                     try:
