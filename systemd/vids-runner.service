@@ -9,6 +9,8 @@ WorkingDirectory=/root/api-google-flow
 Environment=DISPLAY=:99
 Environment=PYTHONUNBUFFERED=1
 Environment=VIDS_MAX_CONCURRENT=3
+Environment=VIDS_PARALLEL=2
+Environment=VIDS_SESSION_AGE=1200
 Environment=VIDS_MAX_CONTEXTS=3
 Environment=VIDS_MIN_FREE_MB=300
 Environment=VIDS_ZERO_UI=1

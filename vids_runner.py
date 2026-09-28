@@ -1024,6 +1024,559 @@ def ensure_xvfb():
     return ok
 
 
+# ─────────────────────────────────────────────────────────────
+# SESI EDITOR DIPAKAI ULANG (tanpa antri antar job)
+# ─────────────────────────────────────────────────────────────
+IMAGE_RECORD = APP / "data" / "with_image_payload.json"
+SESSION_MAX_JOBS = int(os.environ.get("VIDS_SESSION_JOBS", "12"))
+# Berapa generate dikirim SERENTAK dari satu sesi. Uji: 3 serentak ->
+# 3 video berbeda dalam 36,6s (kalau berurutan 93s).
+PARALLEL_PER_SESSION = int(os.environ.get("VIDS_PARALLEL", "3"))
+SESSION_MAX_AGE = int(os.environ.get("VIDS_SESSION_AGE", "1200"))
+_TRIES = {}          # job_id -> berapa kali dikembalikan ke antrian
+
+
+def _pick_job():
+    """Ambil satu job queued secara ATOMIK. Kembalikan dict atau None."""
+    with db() as c:
+        row = c.execute("""SELECT job_id FROM vids_jobs
+                           WHERE status='queued' ORDER BY rowid LIMIT 1""").fetchone()
+        if not row:
+            return None
+        jid = row["job_id"]
+        cur = c.execute("""UPDATE vids_jobs SET status='running', updated_at=?
+                           WHERE job_id=? AND status='queued'""",
+                        (int(time.time()), jid))
+        if cur.rowcount != 1:
+            return None
+    info = {"job_id": jid, "prompt": "", "aspect": "landscape", "images": []}
+    with db() as c2:
+        try:
+            r = c2.execute("""SELECT prompt, aspect, images FROM vids_jobs
+                              WHERE job_id=?""", (jid,)).fetchone()
+        except Exception:
+            r = c2.execute("SELECT prompt FROM vids_jobs WHERE job_id=?",
+                           (jid,)).fetchone()
+        if r:
+            try:
+                info["prompt"] = r["prompt"] or ""
+            except Exception:
+                info["prompt"] = ""
+            try:
+                info["aspect"] = r["aspect"] or "landscape"
+            except Exception:
+                info["aspect"] = "landscape"
+            try:
+                info["images"] = json.loads(r["images"] or "[]")
+            except Exception:
+                info["images"] = []
+    return info
+
+
+def _set_status(job_id, status, **kw):
+    fields = ["status=?", "updated_at=?"]
+    vals = [status, int(time.time())]
+    for k, v in kw.items():
+        fields.append(f"{k}=?")
+        vals.append(v)
+    vals.append(job_id)
+    with db() as c:
+        c.execute(f"UPDATE vids_jobs SET {', '.join(fields)} WHERE job_id=?", vals)
+
+
+def _requeue(job_id, why):
+    """Kembalikan job ke antrian untuk dicoba dengan akun/sesi lain."""
+    n = _TRIES.get(job_id, 0) + 1
+    _TRIES[job_id] = n
+    if n > MAX_ACCOUNT_TRIES:
+        _set_status(job_id, "failed",
+                    error=f"gagal setelah {n} percobaan: {why[:150]}")
+        log(f"[{job_id[:8]}] menyerah setelah {n} percobaan")
+        return False
+    _set_status(job_id, "queued", error=f"dicoba ulang ({why[:120]})")
+    return True
+
+
+async def xhr_post_many(page, url, bodies, hdrs, timeout_ms=200000):
+    """Kirim BEBERAPA payload generate SERENTAK dari satu halaman.
+
+    Bukti: 3 permintaan serentak -> 3 video BERBEDA (sha256 unik) dalam 36,6s.
+    Render dikerjakan server Google, jadi menunggu paralel hampir gratis.
+    """
+    raw = await page.evaluate("""async ([url, bodies, hdrs, tmo]) => {
+        const jobs = bodies.map((body, i) => new Promise((res) => {
+            const x = new XMLHttpRequest();
+            const t = performance.now();
+            x.open('POST', url, true); x.withCredentials = true; x.timeout = tmo;
+            Object.keys(hdrs||{}).forEach(k => { try { x.setRequestHeader(k, hdrs[k]); } catch(e){} });
+            x.onload = () => res({i, status: x.status, ms: Math.round(performance.now()-t),
+                                  text: String(x.responseText)});
+            x.onerror = () => res({i, status: -1, ms: Math.round(performance.now()-t), text: ''});
+            x.ontimeout = () => res({i, status: -2, ms: Math.round(performance.now()-t), text: ''});
+            x.send(body);
+        }));
+        return JSON.stringify(await Promise.all(jobs));
+    }""", [url, bodies, hdrs, timeout_ms])
+    out = json.loads(raw)
+    return {r["i"]: (r["status"], r.get("text") or "") for r in out}
+
+
+async def upload_media_xhr(page, path):
+    """Unggah gambar TANPA UI. Kembalikan token AVL_ atau None.
+
+    Bukti: POST /upload/temporaryblob/videos (resumable start) -> PUT finalize
+    membalas JSON berisi token AVL_0q... yang dipakai payload generate.
+    """
+    import base64 as _b64
+    data = Path(path).read_bytes()
+    low = str(path).lower()
+    mime = "image/jpeg" if low.endswith((".jpg", ".jpeg")) else (
+        "image/webp" if low.endswith(".webp") else "image/png")
+    b64 = _b64.b64encode(data).decode()
+    txt = await page.evaluate("""async ([b64, mime]) => {
+        const bin = atob(b64); const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        const blob = new Blob([bytes], {type: mime});
+        const s = await fetch('/upload/temporaryblob/videos?authuser=0', {
+            method:'POST', credentials:'include',
+            headers:{'X-Goog-Upload-Protocol':'resumable',
+                     'X-Goog-Upload-Command':'start',
+                     'Content-Type':'application/x-www-form-urlencoded;charset=utf-8'},
+            body:''});
+        const u = s.headers.get('X-Goog-Upload-URL') ||
+                  s.headers.get('x-goog-upload-url');
+        if (!u) return '';
+        const f = await fetch(u, {method:'PUT', credentials:'include',
+            headers:{'X-Goog-Upload-Command':'upload, finalize',
+                     'X-Goog-Upload-Offset':'0',
+                     'Content-Type':'application/octet-stream'},
+            body: blob});
+        return await f.text();
+    }""", [b64, mime]) or ""
+    m = re.search(r"(AVL_0[A-Za-z0-9_\-]{30,})", txt)
+    return m.group(1) if m else None
+
+
+def build_image_body(prompt, token):
+    """Payload generate dengan SATU gambar, memakai rekaman nyata sebagai basis.
+
+    WAJIB memakai basis rekaman bergambar: template polos merujuk dokumen proyek
+    lama, sehingga payload hasil rakitan selalu ditolak 400 walau strukturnya
+    benar. Rekaman ini memuat id dokumen flix yang dibuat aplikasi.
+    """
+    try:
+        rec = json.loads(IMAGE_RECORD.read_text())
+    except Exception:
+        return None, None
+    body = rec.get("body") or ""
+    olds = re.findall(r"(AVL_0[A-Za-z0-9_\-]{30,})", body)
+    if not olds:
+        return None, None
+    body = body.replace(olds[0], token)
+    body = body.replace('"capture payload with one image"', json.dumps(prompt))
+    return rec.get("url"), body
+
+
+def mark_dead_session(email, hours=168):
+    """Tandai akun sesi-mati langsung (7 hari), jangan lewat has_login_cookies.
+
+    Cookie bisa masih ADA tapi tidak sah, sehingga pemeriksaan cookie tidak
+    menangkapnya — akibatnya akun berputar (istirahat 900s -> dicoba -> gagal).
+    """
+    until = int(time.time()) + hours * 3600
+    with db() as c:
+        c.execute("""INSERT INTO vids_accounts (email, state, note, until, updated_at)
+                     VALUES (?, 'no_login', 'sesi mati (perlu login ulang)', ?, ?)
+                     ON CONFLICT(email) DO UPDATE SET
+                       state='no_login', note='sesi mati (perlu login ulang)',
+                       until=excluded.until, updated_at=excluded.updated_at""",
+                  (email, until, int(time.time())))
+
+
+async def open_session(cm, pool, email):
+    """Buka editor satu akun + panen token, untuk dipakai BANYAK job."""
+    try:
+        ctx = await cm.get(email)
+        page = await ctx.new_page()
+        await page.add_init_script(HOOK_JS)
+        await page.goto(UPLOAD_DIR, wait_until="domcontentloaded", timeout=90000)
+        await wait_until(page,
+                         """() => !!document.querySelector('button') &&
+                                  (document.body.innerText||'').length > 200""",
+                         timeout=25)
+        # Akun yang sesinya mati mendarat di halaman login Google. Deteksi lebih
+        # awal: kalau tidak, akun itu cuma "istirahat 900s" dan dicoba terus
+        # tanpa pernah bisa berhasil (pool menipis, job menunggu).
+        try:
+            cur = page.url or ""
+        except Exception:
+            cur = ""
+        if "accounts.google.com" in cur:
+            try:
+                txt = (await page.evaluate("() => document.body.innerText") or "")[:300]
+            except Exception:
+                txt = ""
+            log(f"{email}: sesi mati (mendarat di halaman login Google)")
+            mark_dead_session(email)
+            try:
+                await page.close()
+            except Exception:
+                pass
+            return {"email": email, "no_login": True}
+
+        for attempt in range(3):
+            try:
+                await page.locator('button:has-text("Create AI videos")').first.click(
+                    timeout=12000)
+            except Exception:
+                pass
+            hdrs = await harvest_token(page, timeout=UI_PROBE_SECONDS,
+                                       settle=2.0 if attempt == 0 else 1.2)
+            if hdrs:
+                return {"email": email, "page": page, "hdrs": hdrs,
+                        "t0": time.time(), "n": 0}
+            # mendarat di login setelah klik?
+            try:
+                cur = page.url or ""
+            except Exception:
+                cur = ""
+            if "accounts.google.com" in cur:
+                log(f"{email}: sesi mati (pindah ke halaman login)")
+                mark_dead_session(email)
+                try:
+                    await page.close()
+                except Exception:
+                    pass
+                return {"email": email, "no_login": True}
+            await asyncio.sleep(2)
+        try:
+            await page.close()
+        except Exception:
+            pass
+        return None
+    except Exception as e:
+        log(f"gagal buka sesi {email}: {str(e)[:110]}")
+        return None
+
+
+async def close_session(sess):
+    try:
+        await sess["page"].close()
+    except Exception:
+        pass
+
+
+async def generate_in_session(sess, info):
+    """Kirim satu job memakai token sesi. Kembalikan (status, detail)."""
+    job_id = info["job_id"]
+    prompt = normalize_prompt(info["prompt"])
+    page = sess["page"]
+    if page.is_closed():
+        return "retry_account", "halaman sesi sudah tertutup"
+
+    images = [u for u in (info["images"] or []) if u]
+    urls = []
+    if images:
+        # unggah tiap gambar via XHR (tanpa UI)
+        for i, u in enumerate(images[:2], 1):
+            p = await download_media(u, job_id, i)
+            if not p:
+                log(f"[{job_id[:8]}] gambar {i} tidak bisa diunduh")
+                break
+            t = await upload_media_xhr(page, p)
+            if not t:
+                log(f"[{job_id[:8]}] unggah XHR gambar {i} gagal")
+                break
+            urls.append(t)
+        if len(urls) != len(images[:2]):
+            return "ui_fallback", "gambar tidak siap via XHR"
+        if len(urls) > 1:
+            # struktur payload 2 gambar belum terbukti -> pakai jalur UI
+            return "ui_fallback", "2 gambar: struktur payload belum terbukti"
+
+    want_portrait = str(info["aspect"] or "").lower().startswith("port")
+    if urls and want_portrait:
+        # Gambar + portrait: rasio portrait hidup di dokumen proyek Vids yang
+        # dibuat lewat UI. Jalur zero-UI gambar memakai dokumen landscape, jadi
+        # hasilnya akan 1280x720 — lebih baik pindah ke jalur UI (terbukti
+        # 720x1280) daripada mengirim rasio yang salah tanpa memberi tahu.
+        return "ui_fallback", "gambar + portrait: perlu dokumen proyek (UI)"
+    if urls:
+        url, body = build_image_body(prompt, urls[0])
+        if not url or not body:
+            return "ui_fallback", "template bergambar tidak tersedia"
+    else:
+        tpl = load_aspect_template("portrait" if want_portrait else "landscape")
+        if not tpl:
+            return "ui_fallback", "template tidak tersedia"
+        url, body = tpl["url"], build_body(tpl.get("body") or "", prompt)
+
+    last = ""
+    for attempt in range(3):
+        hdrs = sess.get("hdrs") or await harvest_token(page, timeout=20, settle=1.5)
+        if not hdrs:
+            return "retry_account", "token tidak tersedia"
+        st, text = await xhr_post(page, url, body, hdrs)
+        if st == 200:
+            m = re.search(r"https://contribution-rt[^\"\\]+", text)
+            if not m:
+                last = "200 tanpa URL video"
+                continue
+            vurl = m.group(0).replace("\u0026", "&")
+            data = await download_url(page, vurl)
+            if not data:
+                last = "stream tidak bisa diunduh"
+                continue
+            if len(data) < 50000:
+                last = f"file terlalu kecil ({len(data)} B)"
+                continue
+            path = OUT / f"vids_{job_id[:8]}.mp4"
+            path.write_bytes(data)
+            log(f"[{job_id[:8]}] tersimpan {path.name} {len(data)} byte "
+                f"(botol sesi ke-{sess['n'] + 1})")
+            return "completed", str(path)
+        last = f"status={st} {text[:110]}"
+        if st in (401, 403):
+            sess["hdrs"] = None            # token mati -> panen ulang
+            continue
+        if st == 400:
+            sess["hdrs"] = None
+            await asyncio.sleep(1.5)
+            continue
+        return "failed", last
+    return "failed", last or "gagal tanpa keterangan"
+
+
+async def generate_many_in_session(sess, infos):
+    """Kirim BEBERAPA job sekaligus dari satu sesi. Kembalikan {job_id: (st, detail)}.
+
+    - Job teks: dikirim SERENTAK (maks PARALLEL_PER_SESSION).
+    - Job bergambar / portrait: disisihkan, ditangani berurutan lewat
+      generate_in_session (yang otomatis beralih ke jalur UI bila perlu).
+    """
+    page = sess["page"]
+    hasil = {}
+    if page.is_closed():
+        return {i["job_id"]: ("retry_account", "halaman sesi tertutup") for i in infos}
+
+    fast, slow = [], []
+    for info in infos:
+        imgs = [u for u in (info.get("images") or []) if u]
+        port = str(info.get("aspect") or "").lower().startswith("port")
+        (slow if (imgs or port) else fast).append(info)
+
+    if fast:
+        hdrs = sess.get("hdrs") or await harvest_token(page, timeout=20, settle=1.5)
+        if not hdrs:
+            galat = ("retry_account", "token tidak tersedia")
+            for info in fast:
+                hasil[info["job_id"]] = galat
+        else:
+            tpl = load_aspect_template("landscape")
+            if not tpl:
+                for info in fast:
+                    hasil[info["job_id"]] = ("ui_fallback", "template tidak tersedia")
+            else:
+                bodies = [build_body(tpl.get("body") or "", normalize_prompt(i["prompt"]))
+                          for i in fast]
+                t0 = time.time()
+                resp = await xhr_post_many(page, tpl["url"], bodies, hdrs)
+                dt = time.time() - t0
+                log(f"paralel x{len(bodies)} dalam {dt:.1f}s")
+                retry = []
+                for n, info in enumerate(fast):
+                    st, text = resp.get(n, (-3, ""))
+                    m = re.search(r"https://contribution-rt[^\"\\]+", text or "")
+                    if st == 200 and m:
+                        vurl = m.group(0).replace("\\u0026", "&")
+                        data = await download_url(page, vurl)
+                        if data and len(data) >= 50000:
+                            p = OUT / f"vids_{info['job_id'][:8]}.mp4"
+                            p.write_bytes(data)
+                            log(f"[{info['job_id'][:8]}] paralel tersimpan {p.name} "
+                                f"{len(data)} byte")
+                            hasil[info["job_id"]] = ("completed", str(p))
+                            continue
+                        hasil[info["job_id"]] = ("failed", "stream gagal/kecil")
+                        continue
+                    if st in (400, 401, 403):
+                        retry.append(info)       # token perlu dipanen ulang
+                        continue
+                    hasil[info["job_id"]] = ("failed", f"status={st} {(text or '')[:110]}")
+                if retry:
+                    sess["hdrs"] = None
+                    await asyncio.sleep(1.5)
+                    h2 = await harvest_token(page, timeout=20, settle=1.5)
+                    if h2:
+                        bodies2 = [build_body(tpl.get("body") or "",
+                                              normalize_prompt(i["prompt"])) for i in retry]
+                        resp2 = await xhr_post_many(page, tpl["url"], bodies2, h2)
+                        for n, info in enumerate(retry):
+                            st, text = resp2.get(n, (-3, ""))
+                            m = re.search(r"https://contribution-rt[^\"\\]+", text or "")
+                            if st == 200 and m:
+                                data = await download_url(
+                                    page, m.group(0).replace("\\u0026", "&"))
+                                if data and len(data) >= 50000:
+                                    p = OUT / f"vids_{info['job_id'][:8]}.mp4"
+                                    p.write_bytes(data)
+                                    hasil[info["job_id"]] = ("completed", str(p))
+                                    continue
+                            hasil[info["job_id"]] = ("ui_fallback",
+                                                     f"ulang gagal status={st}")
+
+    for info in slow:
+        try:
+            st, detail = await asyncio.wait_for(generate_in_session(sess, info),
+                                                timeout=JOB_HARD_TIMEOUT)
+        except asyncio.TimeoutError:
+            st, detail = "failed", f"batas waktu {JOB_HARD_TIMEOUT}s"
+        except Exception as e:
+            st, detail = "failed", str(e)[:200]
+        hasil[info["job_id"]] = (st, detail)
+    return hasil
+
+
+async def run_batch(name, cm, pool):
+    """SATU sesi editor menuntaskan BANYAK job — tanpa antri.
+
+    Permintaan user: "tidak perlu antri, di vids tidak ada cooldown".
+    Yang dibayar mahal hanya membuka editor (~26s) + panen token; itu dibayar
+    SEKALI per sesi. Sesudahnya tiap job cuma POST generate:
+      - teks  -> dikirim SERENTAK (maks PARALLEL_PER_SESSION). Bukti uji:
+                 3 serentak = 3 video BERBEDA (sha256 unik) dalam 36,6s,
+                 sedangkan berurutan butuh 93s.
+      - gambar / portrait -> berurutan lewat generate_in_session (otomatis
+                 memakai jalur UI bila perlu, karena rasio portrait & payload
+                 bergambar bergantung dokumen proyek yang dibuat lewat UI).
+    """
+    sess = None
+    idle_since = None
+    try:
+        while True:
+            batch = []
+            for _ in range(max(1, PARALLEL_PER_SESSION)):
+                it = _pick_job()
+                if not it:
+                    break
+                batch.append(it)
+
+            if not batch:
+                # Antrian kosong: JANGAN buru-buru menutup sesi — buka editor
+                # memakan ~26s, jadi sesi ditahan sampai IDLE_CLOSE_SECONDS.
+                if sess is None:
+                    return
+                if idle_since is None:
+                    idle_since = time.time()
+                if time.time() - idle_since > IDLE_CLOSE_SECONDS:
+                    log(f"sesi {sess['email']} ditutup (antrian kosong "
+                        f"{IDLE_CLOSE_SECONDS}s)")
+                    await close_session(sess)
+                    sess = None
+                    idle_since = None
+                    return
+                await asyncio.sleep(2)
+                continue
+            idle_since = None
+            log(f"{name}: ambil {len(batch)} job "
+                + " ".join(f"[{i['job_id'][:8]}]" for i in batch))
+
+            # sesi kedaluwarsa / sudah terlalu banyak dipakai -> tutup
+            if sess and (time.time() - sess["t0"] > SESSION_MAX_AGE
+                         or sess["n"] >= SESSION_MAX_JOBS):
+                log(f"sesi {sess['email']} ditutup (dipakai {sess['n']}x)")
+                await close_session(sess)
+                sess = None
+
+            if sess is None:
+                for _ in range(MAX_ACCOUNT_TRIES):
+                    cand = pool.next_account()
+                    if not cand:
+                        break
+                    s = await open_session(cm, pool, cand)
+                    if s and s.get("no_login"):
+                        # sesi mati: open_session sudah menandai 7 hari.
+                        # Jangan istirahat 900s (itu membuat akun berputar).
+                        continue
+                    if s:
+                        sess = s
+                        log(f"sesi baru: {cand}")
+                        break
+                    pool.mark_ui_retry(cand)
+                if sess is None:
+                    for it in batch:
+                        _requeue(it["job_id"], "tidak ada akun yang bisa membuka sesi")
+                    await asyncio.sleep(3)
+                    continue
+
+            email = sess["email"]
+            try:
+                hasil = await asyncio.wait_for(
+                    generate_many_in_session(sess, batch),
+                    timeout=JOB_HARD_TIMEOUT * 2)
+            except asyncio.TimeoutError:
+                hasil = {i["job_id"]: ("failed", "batas waktu batch") for i in batch}
+            except Exception as e:
+                hasil = {i["job_id"]: ("failed", str(e)[:200]) for i in batch}
+
+            limit_hit = False
+            for it in batch:
+                jid = it["job_id"]
+                status, detail = hasil.get(jid, ("failed", "tidak ada hasil"))
+                log(f"[{jid[:8]}] akun={email} -> {status}: {str(detail)[:90]}")
+
+                if status == "completed":
+                    sess["n"] += 1
+                    pool.mark_ok(email)
+                    _set_status(jid, "completed", account=email, progress=100,
+                                result_path=str(detail))
+                    continue
+
+                if status == "ui_fallback":
+                    # jalur UI lama (terbukti) menangani job ini
+                    log(f"[{jid[:8]}] beralih ke jalur UI: {str(detail)[:70]}")
+                    try:
+                        st2, d2 = await asyncio.wait_for(
+                            run_job(cm, pool, jid, email, it["prompt"],
+                                    aspect=it["aspect"], images=it["images"]),
+                            timeout=JOB_HARD_TIMEOUT)
+                    except asyncio.TimeoutError:
+                        st2, d2 = "failed", f"batas waktu {JOB_HARD_TIMEOUT}s (UI)"
+                    except Exception as e:
+                        st2, d2 = "failed", str(e)[:200]
+                    log(f"[{jid[:8]}] jalur UI -> {st2}: {str(d2)[:80]}")
+                    sess["n"] += 1
+                    if st2 == "completed":
+                        pool.mark_ok(email)
+                        _set_status(jid, "completed", account=email, progress=100,
+                                    result_path=str(d2))
+                    elif st2 == "limited":
+                        pool.mark_limited(email)
+                        limit_hit = True
+                        _requeue(jid, "limit (UI)")
+                    else:
+                        _set_status(jid, "failed", account=email, error=str(d2)[:300])
+                    continue
+
+                if status == "limited":
+                    pool.mark_limited(email)
+                    limit_hit = True
+                    _requeue(jid, "akun limit")
+                    continue
+
+                if status == "retry_account":
+                    _requeue(jid, str(detail))
+                    continue
+
+                _set_status(jid, "failed", account=email, error=str(detail)[:300])
+
+            if limit_hit:
+                await close_session(sess)
+                sess = None
+    finally:
+        if sess:
+            await close_session(sess)
+
 async def main():
     from playwright.async_api import async_playwright
     init_db()
@@ -1057,7 +1610,7 @@ async def main():
                 if n == 0:
                     await asyncio.sleep(5)
                     continue
-                await asyncio.gather(*[worker(f"w{i}", cm, pool, sem)
+                await asyncio.gather(*[run_batch(f"b{i}", cm, pool)
                                        for i in range(MAX_CONCURRENT)])
         finally:
             await cm.close_all()

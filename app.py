@@ -2986,6 +2986,127 @@ async def api_vids_accounts_purge(req: VidsPurgeRequest):
             "dry_run": req.dry_run}
 
 
+class VidsAccountEntry(BaseModel):
+    email: str
+    password: str = ""
+
+
+class VidsAccountsImport(BaseModel):
+    entries: List[VidsAccountEntry]
+    mode: str = "replace"          # "replace" (ganti total) | "append" (tambah)
+
+
+def _accounts_path() -> str:
+    return "/root/api-google-flow/accounts.txt"
+
+
+def _read_accounts_file():
+    """Kembalikan (list baris akun, list baris lain) dari accounts.txt."""
+    p = _accounts_path()
+    acc, other = [], []
+    if not os.path.exists(p):
+        return acc, other
+    for line in open(p, encoding="utf-8").read().splitlines():
+        s = line.strip()
+        if s and not s.startswith("#") and "|" in s and "@" in s.split("|")[0]:
+            acc.append(s)
+        else:
+            other.append(line)
+    return acc, other
+
+
+@app.post("/v1/vids/accounts/import", dependencies=[Depends(verify_api_key)])
+async def api_vids_accounts_import(req: VidsAccountsImport):
+    """Setor daftar akun (email|password) ke accounts.txt.
+
+    Dipakai panel admin bot. WAJIB punya password untuk tiap email: pool tidak
+    bisa login tanpa itu, dan menyimpan baris tanpa password membuat akun
+    terlihat ada padahal tidak bisa dipakai.
+    """
+    p = _accounts_path()
+    entries = []
+    seen = set()
+    skipped = []
+    for e in req.entries:
+        email = (e.email or "").strip()
+        password = (e.password or "").strip()
+        if "@" not in email:
+            skipped.append({"email": email, "reason": "email tidak valid"})
+            continue
+        if not password:
+            skipped.append({"email": email, "reason": "password kosong"})
+            continue
+        if email.lower() in seen:
+            skipped.append({"email": email, "reason": "duplikat"})
+            continue
+        seen.add(email.lower())
+        entries.append(f"{email}|{password}")
+
+    if not entries:
+        return {"status": "error", "written": 0, "skipped": skipped,
+                "message": "tidak ada baris valid untuk ditulis"}
+
+    mode = (req.mode or "replace").strip().lower()
+    old_acc, other = _read_accounts_file()
+
+    # cadangan sebelum menyentuh berkas.
+    # `import shutil` LOKAL: app.py mengimpor shutil di dalam fungsi lain,
+    # jadi memakai nama global di sini = NameError yang tertelan `except` dan
+    # cadangan tidak pernah terbentuk (bug nyata: penyetoran menimpa berkas
+    # tanpa jejak untuk dipulihkan).
+    import shutil as _shutil
+    if os.path.exists(p):
+        bak = f"{p}.bak-import-{int(time.time())}"
+        try:
+            _shutil.copy2(p, bak)
+            logger.info(f"cadangan accounts.txt: {bak}")
+        except Exception as exc:
+            logger.warning(f"gagal membuat cadangan accounts.txt: {exc}")
+
+    if mode == "append" and old_acc:
+        have = {ln.split("|")[0].strip().lower() for ln in old_acc}
+        merged = list(old_acc)
+        added = 0
+        for ln in entries:
+            if ln.split("|")[0].strip().lower() not in have:
+                merged.append(ln)
+                added += 1
+        body = merged
+        result_mode = f"append (+{added})"
+    else:
+        body = entries
+        result_mode = "replace"
+
+    header = ("# Kredensial pool GSuite — dikelola lewat panel admin bot\n"
+              "# Format: email|password\n")
+    tmp = f"{p}.tmp-{int(time.time())}"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        fh.write(header)
+        fh.write("\n".join(body) + "\n")
+    os.chmod(tmp, 0o600)
+    os.replace(tmp, p)
+
+    logger.info(f"accounts.txt disetor: {len(body)} akun (mode {result_mode})")
+    return {"status": "ok", "mode": result_mode, "written": len(body),
+            "added": len(entries) if result_mode == "replace" else None,
+            "skipped": skipped,
+            "total_in_file": len(body),
+            "path": p}
+
+
+@app.get("/v1/vids/accounts/template", dependencies=[Depends(verify_api_key)])
+async def api_vids_accounts_template():
+    """Contoh isi file akun, supaya bot bisa menjelaskan format ke admin."""
+    acc, _ = _read_accounts_file()
+    return {
+        "format": "email|password  (satu akun per baris)",
+        "tanpa_password": "email saja — bot akan menanyakan passwordnya",
+        "contoh": "akun1@domain.com|sandi1\nakun2@domain.com|sandi2",
+        "jumlah_sekarang": len(acc),
+        "punya_password": sum(1 for a in acc if a.split("|", 1)[1].strip()),
+    }
+
+
 @app.get("/v1/vids/accounts", dependencies=[Depends(verify_api_key)])
 async def api_vids_accounts():
     """Keadaan pool akun Vids: mana yang siap, mana yang limit."""
@@ -3027,4 +3148,4 @@ async def api_vids_accounts():
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy", "version": "3.0.0-XHR", "queue_length": job_queue.qsize()}
+    return {"status": "healthy", "version": "3.1.0-accounts", "queue_length": job_queue.qsize()}

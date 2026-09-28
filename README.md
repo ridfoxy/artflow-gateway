@@ -78,3 +78,51 @@ Repo ini **tidak** memuat kredensial. Yang sengaja tidak disertakan:
 - API key dan bot token (diredaksi menjadi `REDACTED` di kode)
 
 Untuk menjalankan: siapkan berkas-berkas itu sendiri.
+
+## Panel admin: setor akun pool (endpoint)
+
+Dua endpoint supaya bot bisa mengelola daftar akun dari panel admin:
+
+```
+GET  /v1/vids/accounts/template   -> contoh format + jumlah akun sekarang
+POST /v1/vids/accounts/import     -> {"entries":[{"email","password"}],
+                                      "mode":"replace"|"append"}
+```
+
+Aturan yang dipakai endpoint import:
+
+- Setiap email **wajib** punya password. Akun tanpa password ditolak dan
+  dilaporkan di `skipped`, karena pool tidak bisa login tanpanya — menyimpannya
+  hanya membuat akun terlihat ada padahal tidak bisa dipakai.
+- Email tidak valid / duplikat juga masuk `skipped`, bukan gagal total.
+- Berkas ditulis lewat berkas sementara lalu `os.replace` (atomik) dan
+  `chmod 600`.
+- **Cadangan dibuat setiap penyetoran** (`accounts.txt.bak-import-<epoch>`).
+  PENTING: `app.py` mengimpor `shutil` di dalam fungsi lain, jadi endpoint ini
+  WAJIB memakai `import shutil` lokal — memakai nama global menghasilkan
+  `NameError` yang tertelan `except` sehingga cadangan tidak pernah terbentuk
+  dan berkas tertimpa tanpa jejak pemulihan.
+
+Memulihkan setelah penyetoran yang salah: jangan menyamakan berkas utuh. Ambil
+keanggotaan yang benar dari DB (`SELECT email FROM vids_accounts`) lalu ambil
+baris `email|password` yang cocok dari cadangan terbaru.
+
+## Memilih mesin: Flow atau Vids
+
+Keduanya hidup berdampingan dan dipilih pemanggil, bukan oleh gateway:
+
+- **Flow** (`/v1/google-flow/*`) — mendukung `aspectRatio`, `referenceImages`,
+  `startImage`, `endImage` sebagai parameter API.
+- **Vids** (`/v1/vids/*`) — hanya `prompt`, `aspect`, `images` (1 = referensi,
+  2 = awal+akhir). Rasio tidak ada di payload generate; rasio hidup di dokumen
+  proyek Vids, jadi portrait dibuat lewat dokumen proyek hasil rekaman.
+
+Bot memilih mesin lewat `VIDEO_BACKEND`, bisa diubah admin dari panel admin.
+
+## Beban: PARALLEL dikali MAX_CONCURRENT
+
+`VIDS_PARALLEL` mengalikan jumlah generate serentak: total yang terbang =
+`VIDS_MAX_CONCURRENT x VIDS_PARALLEL`. Di host 2 core / ~4 GB, `3 x 3 = 9`
+membuat semua sesi gagal dibuka dan proses Chrome menumpuk (55 proses sisa).
+Setelan aman: `3 x 2 = 6`. Buka editor ~27s dibayar SEKALI per sesi, lalu tiap
+video ~31s; satu token hasil panen sah untuk banyak generate.
