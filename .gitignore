@@ -1,0 +1,33 @@
+# ── RAHASIA: jangan pernah dimasukkan ──────────────────────────
+accounts.txt
+*.accounts
+chrome_profiles/
+cookies*.json
+sessions.json
+users.json
+.env
+.env.*
+*.key
+*.pem
+token*.json
+
+# Basis data (memuat email akun)
+data/*.db
+data/*.db-journal
+data/*.sqlite
+
+# Keluaran & berkas besar
+output/
+temp_output/
+media/
+data/uploads/
+*.mp4
+*.log
+uvicorn.log
+
+# Cache / lingkungan
+__pycache__/
+*.pyc
+.venv/
+venv/
+backups/

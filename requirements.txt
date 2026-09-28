@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+playwright
+requests
+httpx
+pillow
+pydantic
+python-multipart
