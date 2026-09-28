@@ -22,6 +22,7 @@ import base64
 import json
 import logging
 import os
+import re
 import sqlite3
 import time
 
@@ -40,9 +41,73 @@ JOB_TIMEOUT = float(os.environ.get("FLOW_JOB_TIMEOUT", "540"))
 
 # ── reference images / frames (start frame, end frame, references) ───────────
 ENABLE_FRAME_ATTACH = os.environ.get("FLOW_ENABLE_FRAME_ATTACH", "0") == "1"
-FRAME_UPLOAD_WAIT = float(os.environ.get("FLOW_FRAME_UPLOAD_WAIT", "8"))
+# Waktu tunggu DI DEPAN picker. Loop deteksi kondisi setelahnya
+# (memantau nama berkas + penanda sibuk, batas 60s) yang benar-benar
+# menunggu unggahan siap, jadi menunggu lama di muka hanya membuang waktu.
+FRAME_UPLOAD_WAIT = float(os.environ.get("FLOW_FRAME_UPLOAD_WAIT", "2"))
 FRAME_DIR = os.environ.get("FLOW_FRAME_DIR", "/root/api-google-flow/output/frames")
-POOL_BUILD = "ref-attach-v5"
+POOL_BUILD = "ref-attach-v5+isolasi"
+
+# ── isolasi proyek + verifikasi aset (perbaikan salah-ambil gambar) ──────────
+# Terukur: video job 7c724ce7 paling mirip gambar milik JOB LAIN, dan job
+# 057ef9c2 memakai gambar ke-2 (harusnya frame akhir) sebagai frame awal.
+# Sebabnya tiga hal bertumpuk:
+#   (a) satu PROJECT_ID untuk semua job -> satu perpustakaan aset bersama
+#   (b) POOL_SIZE job memasang gambar paralel ke perpustakaan itu
+#   (c) _attach_one mengandalkan asumsi "picker otomatis memilih aset terbaru"
+#       tanpa memverifikasi aset terpilih = berkas kita
+# Tiga lapis perbaikan di bawah menutup ketiganya. Semua bisa dimatikan:
+#   FLOW_ASSET_VERIFY=0, FLOW_ATTACH_SERIALIZE=0, FLOW_USE_PER_JOB_PROJECT=0
+ASSET_VERIFY = os.environ.get("FLOW_ASSET_VERIFY", "1") != "0"
+# Kunci attach DIMATIKAN secara bawaan: mengukur produksi menunjukkan
+# kunci menahan ~21,9 detik per job berfoto (18,6s di dalam kunci), dan
+# itu memangkas daya angkat jadi ~2,7 job berfoto/menit. Yang menjamin
+# gambar tidak tertukar adalah VERIFIKASI; kunci hanya mengurangi
+# percobaan ulang. Set FLOW_ATTACH_SERIALIZE=1 untuk menyalakannya lagi.
+ATTACH_SERIALIZE = os.environ.get("FLOW_ATTACH_SERIALIZE", "0") == "1"
+USE_PER_JOB_PROJECT = os.environ.get("FLOW_USE_PER_JOB_PROJECT", "1") != "0"
+ATTACH_VERIFY_TRIES = int(os.environ.get("FLOW_ATTACH_VERIFY_TRIES", "3"))
+PROJECT_OPEN_TRIES = int(os.environ.get("FLOW_PROJECT_OPEN_TRIES", "5"))
+PROJECT_URL_TPL = os.environ.get("FLOW_PROJECT_URL", "https://flow.google.com/")
+# Proyek baru belum ada di daftar "recent", jadi dibuat lewat tombol di beranda.
+NEW_PROJECT_LABELS = [t.strip() for t in os.environ.get(
+    "FLOW_NEW_PROJECT_LABELS",
+    "Proyek baru,New project,Buat proyek,Proyek kosong,Blank project").split(",")]
+
+_PROJECT_LOCKS = {}
+_PROJECT_LOCKS_GUARD = None
+
+
+async def _project_lock(key):
+    """Kunci per proyek: satu job memasang gambar pada satu proyek sekaligus."""
+    global _PROJECT_LOCKS_GUARD
+    if _PROJECT_LOCKS_GUARD is None:
+        _PROJECT_LOCKS_GUARD = asyncio.Lock()
+    async with _PROJECT_LOCKS_GUARD:
+        lock = _PROJECT_LOCKS.get(key)
+        if lock is None:
+            lock = asyncio.Lock()
+            _PROJECT_LOCKS[key] = lock
+        return lock
+
+
+def _name_core(name):
+    """Bentuk pembanding nama aset: tanpa ekstensi, huruf kecil."""
+    return str(name or "").strip().lower().rsplit(".", 1)[0]
+
+
+def _same_asset(a, b):
+    """True bila dua nama menunjuk aset yang sama (UI kadang memotong nama)."""
+    ca, cb = _name_core(a), _name_core(b)
+    if not ca or not cb:
+        return False
+    return ca == cb or ca in cb or cb in ca
+
+
+def _ts_of(name):
+    """Stempel waktu pada nama berkas kita (mis. 1790595143622_img_xxx.jpg)."""
+    m = re.match(r"(\d{10,})_", str(name or ""))
+    return int(m.group(1)) if m else 0
 
 
 def _db():
@@ -58,6 +123,9 @@ class FlowPool:
         self.stats = {"submitted": 0, "completed": 0, "failed": 0}
         # Page loading is the expensive step; cap how many run at once.
         self._load_sem = None
+        # Berapa kali berturut-turut proyek baru gagal dibuat. Setelah beberapa
+        # kali, berhenti mencoba supaya tidak memperlambat setiap job berfoto.
+        self._proj_fail = 0
 
     # ── page helpers ────────────────────────────────────────────────────────
     def _ctx(self):
@@ -173,9 +241,15 @@ class FlowPool:
                 out.add(m)
         return out
 
-    async def _open_project(self, page):
-        if "flow.google.com/project/" not in (page.url or ""):
-            await page.goto(f"https://flow.google.com/project/{PROJECT_ID}",
+    async def _open_project(self, page, project_id=None):
+        """Siapkan composer pada proyek yang diminta.
+
+        `project_id` dipakai untuk ISOLASI PER JOB: proyek sendiri = perpustakaan
+        aset sendiri, jadi gambar job lain tidak mungkin tertukar.
+        """
+        pid = project_id or PROJECT_ID
+        if f"/project/{pid}" not in (page.url or ""):
+            await page.goto(f"https://flow.google.com/project/{pid}",
                             wait_until="domcontentloaded", timeout=60000)
         for _ in range(120):  # up to 60s
             if await page.evaluate("() => !!document.querySelector('.ProseMirror')") and \
@@ -306,78 +380,240 @@ class FlowPool:
             return dest
         return src if os.path.exists(src) else None
 
-    async def _attach_one(self, page, path, filename):
-        """Verified attach sequence for one image.
+    async def _open_new_project(self, page):
+        """Buat proyek Flow BARU untuk job ini. Kembalikan id proyek atau None.
 
-        1. add-media menu -> Upload inside expect_file_chooser (the only way to
-           open the picker; a JS click carries no user activation)
-        2. wait for Google to finish ingesting ('Mengupload ...' disappears)
-        3. 'Tambahkan bahan' -> 'File yang diupload' tab -> confirm with
-           'Tambahkan ke perintah'. The picker auto-selects the newest asset
-           (our upload); clicking a tile COLLAPSES the popover, so never do it.
-        4. verify a chip landed in the composer.
+        Isolasi per job: proyek sendiri berarti perpustakaan aset sendiri, jadi
+        gambar milik job lain tidak mungkin tertukar.
+
+        Kalau proyek baru tidak bisa dibuat, kembalikan None supaya pemanggil
+        memakai proyek dasar + kunci attach. Job berfoto TIDAK boleh gagal
+        hanya karena proyek baru tidak tersedia.
         """
-        await page.click('button[aria-label*="tambahkan media"]', timeout=10000)
-        await asyncio.sleep(2)
-        async with page.expect_file_chooser(timeout=15000) as fc:
-            await page.get_by_role("menuitem", name="Upload").click(timeout=10000)
-        chooser = await fc.value
-        await chooser.set_files(path)
-        await asyncio.sleep(FRAME_UPLOAD_WAIT)
+        if self._proj_fail >= PROJECT_OPEN_TRIES:
+            return None
+        try:
+            await page.goto(PROJECT_URL_TPL, wait_until="domcontentloaded",
+                            timeout=60000)
+        except Exception as e:
+            self._proj_fail += 1
+            logger.warning(f"buka beranda Flow gagal: {str(e)[:90]}")
+            return None
+        await asyncio.sleep(4)
 
-        await page.click('button[aria-label*="Tambahkan bahan"]', timeout=10000)
-        await asyncio.sleep(3)
-        await page.evaluate("""() => {
-            const ov = document.querySelector('.cdk-overlay-container');
-            if (!ov) return;
-            const els = Array.from(ov.querySelectorAll('*'))
-                .filter(e => e.children.length === 0 && /file yang diupload/i.test(e.innerText || ''));
-            if (els.length) els[0].click();
-        }""")
-        await asyncio.sleep(2.5)
+        for label in NEW_PROJECT_LABELS:
+            label = (label or "").strip()
+            if not label:
+                continue
+            try:
+                await page.get_by_role("button", name=label, exact=False).first.click(
+                    timeout=6000)
+            except Exception:
+                continue
+            for _ in range(60):
+                await asyncio.sleep(1)
+                url = page.url or ""
+                m = re.search(r"/project/([0-9a-fA-F-]{36})", url)
+                try:
+                    ready = bool(await page.evaluate(
+                        "() => !!document.querySelector('.ProseMirror')"))
+                except Exception:
+                    ready = False
+                if m and ready:
+                    self._proj_fail = 0
+                    return m.group(1)
+            logger.info(f"tombol '{label}' diklik tapi editor proyek baru tidak siap")
+            break
 
-        # wait for ingestion to finish
-        deadline = time.time() + 60
-        while time.time() < deadline:
-            st = await page.evaluate("""(fn) => {
-                const ov = document.querySelector('.cdk-overlay-container');
-                if (!ov) return 'no-overlay';
-                const t = (ov.innerText || '');
-                if (t.includes('Mengupload')) return 'uploading';
-                return t.includes(fn) ? 'ready' : 'absent';
-            }""", filename)
-            if st == 'ready':
-                break
-            if st == 'no-overlay':
-                break
+        self._proj_fail += 1
+        logger.info(f"proyek baru tidak bisa dibuat (gagal {self._proj_fail}x) "
+                    f"-> pakai proyek dasar + kunci attach")
+        return None
+
+    @staticmethod
+    async def _picker_state(page):
+        """Isi picker: nama berkas terlihat, penanda sibuk, ada tidaknya tombol konfirmasi."""
+        try:
+            return await page.evaluate("""() => {
+                const sels = ['.cdk-overlay-container .cdk-overlay-pane',
+                              '[role="dialog"]', '.cdk-overlay-container'];
+                for (const s of sels) {
+                    const root = document.querySelector(s);
+                    if (!root) continue;
+                    const txt = root.innerText || '';
+                    if (!txt.trim()) continue;
+                    const names = (txt.match(/[\w\-]{3,}\.(?:png|jpe?g|webp)/gi) || [])
+                        .map(n => n.toLowerCase());
+                    const busy = /mengupload|uploading|memproses|menyiapkan|memuat/i.test(txt);
+                    const confirm = Array.from(root.querySelectorAll('button'))
+                        .some(b => /tambahkan ke perintah/i.test(b.innerText || ''));
+                    return {found: true, names: [...new Set(names)], busy,
+                            confirm, head: txt.slice(0, 220)};
+                }
+                return {found: false, names: [], busy: false, confirm: false, head: ''};
+            }""") or {}
+        except Exception:
+            return {}
+
+    @staticmethod
+    async def _selected_names(page):
+        """Nama berkas yang BENAR-BENAR terpilih di picker (penanda terpilih).
+
+        Kalau UI tidak menandai pilihannya, kembalikan himpunan kosong supaya
+        pemanggil memakai jalur cadangan berbasis stempel waktu.
+        """
+        try:
+            raw = await page.evaluate("""() => {
+                const out = [];
+                const sels = ['.cdk-overlay-container .cdk-overlay-pane',
+                              '[role="dialog"]'];
+                for (const s of sels) {
+                    const root = document.querySelector(s);
+                    if (!root) continue;
+                    root.querySelectorAll('*').forEach(el => {
+                        const al = (el.getAttribute && el.getAttribute('aria-label')) || '';
+                        const ap = (el.getAttribute && el.getAttribute('aria-pressed')) || '';
+                        const ast = (el.getAttribute && el.getAttribute('aria-selected')) || '';
+                        const txt = (el.innerText || '').slice(0, 120);
+                        if (!/terpilih|dipilih|selected|checked|centang/i.test(al + ' ' + txt))
+                            if (ap !== 'true' && ast !== 'true')
+                                return;
+                        const m = (al + ' ' + txt).match(/[\w\-]{3,}\.(?:png|jpe?g|webp)/i);
+                        if (m) out.push(m[0].toLowerCase());
+                    });
+                }
+                return out;
+            }""") or []
+            return {str(n).lower() for n in raw}
+        except Exception:
+            return set()
+
+    @staticmethod
+    async def _close_picker(page):
+        """Tutup picker tanpa memilih apa pun (dipakai saat verifikasi gagal)."""
+        for fn in (lambda: page.keyboard.press("Escape"),
+                   lambda: page.mouse.click(20, 20)):
+            try:
+                await fn()
+            except Exception:
+                pass
+            await asyncio.sleep(0.7)
+
+    async def _attach_one(self, page, path, filename, job_id=""):
+        """Pasang satu gambar KE PROYEK YANG BENAR — dengan VERIFIKASI ASET.
+
+        Perbedaan penting dari versi lama: pemilihan aset DIVERIFIKASI. Versi lama
+        mengandalkan asumsi "picker otomatis memilih aset terbaru" dan hanya
+        memeriksa bahwa ada chip muncul — kalau aset yang terpilih milik job lain,
+        chip TETAP muncul dan video dibuat dari gambar yang salah (terbukti di
+        produksi). Sekarang nama aset terpilih dibandingkan dengan berkas kita;
+        kalau tidak cocok, picker ditutup lalu diulang.
+        """
+        tag = (job_id or "?")[:8]
+        expect = os.path.basename(path)
+
+        for attempt in range(1, ATTACH_VERIFY_TRIES + 1):
+            # 1. buka picker lewat menu "tambahkan media"
+            try:
+                await page.click('button[aria-label*="tambahkan media"]', timeout=10000)
+            except Exception:
+                await self._close_picker(page)
+                await page.click('button[aria-label*="tambahkan media"]', timeout=10000)
             await asyncio.sleep(2)
+            async with page.expect_file_chooser(timeout=15000) as fc:
+                await page.get_by_role("menuitem", name="Upload").click(timeout=10000)
+            chooser = await fc.value
+            await chooser.set_files(path)
+            await asyncio.sleep(FRAME_UPLOAD_WAIT)
 
-        if not await self._press_add_to_prompt(page):
-            raise Exception("'Tambahkan ke perintah' button not found")
-        await asyncio.sleep(3)
+            # 2. buka tab "File yang diupload"
+            await page.click('button[aria-label*="Tambahkan bahan"]', timeout=10000)
+            await asyncio.sleep(3)
+            await page.evaluate("""() => {
+                const ov = document.querySelector('.cdk-overlay-container');
+                if (!ov) return;
+                const els = Array.from(ov.querySelectorAll('*'))
+                    .filter(e => e.children.length === 0 && /file yang diupload/i.test(e.innerText || ''));
+                if (els.length) els[0].click();
+            }""")
+            await asyncio.sleep(2.5)
 
-        for attempt in range(3):
+            # 3. tunggu unggahan selesai DAN picker siap
+            deadline = time.time() + 60
+            while time.time() < deadline:
+                st = await self._picker_state(page)
+                if not st.get("found"):
+                    break
+                if st.get("busy"):
+                    await asyncio.sleep(2)
+                    continue
+                if any(_same_asset(n, expect) for n in (st.get("names") or [])):
+                    break
+                await asyncio.sleep(1)
+
+            # 4. VERIFIKASI: pastikan aset yang akan dipakai memang milik kita
+            if ASSET_VERIFY:
+                state = await self._picker_state(page)
+                listed = [str(n).lower() for n in (state.get("names") or [])]
+                chosen = await self._selected_names(page)
+                verdict, why = "unknown", ""
+
+                if chosen:
+                    if any(_same_asset(n, expect) for n in chosen):
+                        verdict = "ok"
+                    else:
+                        verdict = "wrong"
+                        why = f"terpilih: {sorted(chosen)[:2]}"
+                else:
+                    # UI tidak menandai pilihan -> pakai stempel waktu: aplikasi
+                    # memilih aset TERBARU, jadi kalau ada unggahan job lain yang
+                    # lebih baru, asumsi itu berbahaya -> tolak.
+                    mine = _ts_of(expect)
+                    newer = [n for n in listed
+                             if _ts_of(n) > mine and not _same_asset(n, expect)]
+                    if newer:
+                        verdict = "wrong"
+                        why = f"unggahan lebih baru: {newer[:2]}"
+                    else:
+                        verdict = "ok"
+                        why = "aset terbaru = milik kita"
+
+                if verdict == "wrong":
+                    logger.warning(f"attach {tag}: VERIFIKASI GAGAL ({why}) -> "
+                                   f"tutup picker & ulangi "
+                                   f"[{attempt}/{ATTACH_VERIFY_TRIES}]")
+                    await self._close_picker(page)
+                    await asyncio.sleep(2)
+                    continue
+                if verdict == "unknown":
+                    logger.info(f"attach {tag}: picker tak terbaca, lanjut ke "
+                                f"pemeriksaan chip")
+                else:
+                    logger.info(f"attach {tag}: terverifikasi ({why})")
+
+            # 5. konfirmasi
+            if not await self._press_add_to_prompt(page):
+                await self._close_picker(page)
+                await asyncio.sleep(2)
+                continue
+            await asyncio.sleep(3)
+
+            # 6. chip harus muncul di composer
             for _ in range(15):
-                n = await self._chip_count(page)
-                if n:
-                    logger.info(f"chip attached (composer holds {n})")
+                if await self._chip_count(page):
+                    logger.info(f"attach {tag}: terpasang {expect} "
+                                f"(percobaan {attempt})")
                     return True
                 await asyncio.sleep(1)
-            if attempt < 2:
-                logger.info(f"chip not visible (attempt {attempt+1}) — reopening picker")
-                try:
-                    await page.click('button[aria-label*="Tambahkan bahan"]', timeout=8000)
-                    await asyncio.sleep(3)
-                    await page.evaluate("""() => { const ov=document.querySelector('.cdk-overlay-container');
-                        if (!ov) return;
-                        const e=Array.from(ov.querySelectorAll('*')).filter(x=>x.children.length===0 && /file yang diupload/i.test(x.innerText||''));
-                        if (e.length) e[0].click(); }""")
-                    await asyncio.sleep(2)
-                    await self._press_add_to_prompt(page)
-                    await asyncio.sleep(2)
-                except Exception as e:
-                    logger.info(f"retry reopen failed: {type(e).__name__}: {str(e)[:90]}")
-        raise Exception(f"no chip appeared after confirming {filename}")
+
+            logger.warning(f"attach {tag}: chip tidak muncul "
+                           f"[{attempt}/{ATTACH_VERIFY_TRIES}]")
+            await self._close_picker(page)
+            await asyncio.sleep(2)
+
+        raise Exception(f"gagal memasang {expect} setelah {ATTACH_VERIFY_TRIES} "
+                        f"percobaan — aset tidak bisa diverifikasi sebagai milik job ini")
+
 
     @staticmethod
     async def _press_add_to_prompt(page):
@@ -424,8 +660,12 @@ class FlowPool:
         except Exception:
             return set()
 
-    async def _attach_images(self, page, req):
-        """Attach all supplied images. Returns their media ids (to exclude)."""
+    async def _attach_images(self, page, req, job_id=""):
+        """Attach all supplied images. Returns their media ids (to exclude).
+
+        Dijalankan BERURUTAN dan diverifikasi satu per satu: urutan penting
+        (foto awal dulu, baru akhir), dan salah-ambil satu gambar merusak hasil.
+        """
         sources = self._image_sources(req)
         if not sources:
             return set()
@@ -435,7 +675,7 @@ class FlowPool:
             if not path:
                 raise Exception(f"image {role} could not be fetched: {str(src)[:120]}")
             filename = os.path.basename(path)
-            await self._attach_one(page, path, filename)
+            await self._attach_one(page, path, filename, job_id=job_id)
             chip_ids |= await self._chip_ids(page)
             logger.info(f"attached {role} -> {filename}")
         await page.keyboard.press("Escape")
@@ -452,7 +692,7 @@ class FlowPool:
         try:
             # Loading the editor is the heavy step; only LOAD_GATE at a time.
             async with self._load_sem:
-                if not await self._open_project(page):
+                if not await self._open_project(page, project_id=PROJECT_ID):
                     raise Exception("Project composer not ready")
 
             # Mode is per-page UI state: set it before submitting or a video job
@@ -470,7 +710,31 @@ class FlowPool:
                 wanted = len(self._image_sources(req))
                 if wanted:
                     logger.info(f"job {job_id[:8]}: attaching {wanted} image(s)")
-                    input_media = await self._attach_images(page, req)
+                    # ── ISOLASI: proyek sendiri per job berfoto ──────────────
+                    # Satu perpustakaan aset bersama + pemasangan paralel adalah
+                    # sebab video memakai gambar job lain (terbukti di produksi).
+                    active_pid = PROJECT_ID
+                    lock = None
+                    if USE_PER_JOB_PROJECT:
+                        new_pid = await self._open_new_project(page)
+                        if new_pid:
+                            active_pid = new_pid
+                            logger.info(f"job {job_id[:8]}: proyek job sendiri "
+                                        f"{new_pid[:8]}")
+                        else:
+                            logger.info(f"job {job_id[:8]}: pakai proyek dasar "
+                                        f"+ kunci attach")
+                    if active_pid == PROJECT_ID and ATTACH_SERIALIZE:
+                        lock = await _project_lock(active_pid)
+                        await lock.acquire()
+                        logger.info(f"job {job_id[:8]}: kunci attach proyek didapat")
+                    try:
+                        input_media = await self._attach_images(page, req,
+                                                                job_id=job_id)
+                    finally:
+                        if lock is not None:
+                            lock.release()
+                            logger.info(f"job {job_id[:8]}: kunci attach dilepas")
                     logger.info(f"job {job_id[:8]}: excluding {len(input_media)} input id(s)")
 
             # Let the gallery finish its initial loads, then start listening.
