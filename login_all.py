@@ -70,6 +70,56 @@ def run_one(email, test_vids=True):
     return state, detail[:220], round(time.time() - t0, 1)
 
 
+# ── jalur cadangan Camoufox ─────────────────────────────────────────────────
+CAMOUFOX_PY = "/root/harbor/venv/bin/python"      # venv tempat camoufox dipasang
+CAMOUFOX_SCRIPT = APP / "camoufox_login.py"
+
+
+def run_camoufox(email, test_vids=True, timeout=300):
+    """Jalankan login lewat Camoufox. -> (state, detail, secs).
+
+    Dipakai saat Chromium kena CAPTCHA/verifikasi: Camoufox (Firefox anti-deteksi)
+    terbukti bisa melewati tantangan yang memblokir Chromium.
+    """
+    if not os.path.exists(CAMOUFOX_PY) or not CAMOUFOX_SCRIPT.exists():
+        return "skip", "camoufox tidak tersedia", 0.0
+    cmd = [CAMOUFOX_PY, str(CAMOUFOX_SCRIPT), "--email", email]
+    if test_vids:
+        cmd.append("--test-vids")
+    t0 = time.time()
+    try:
+        r = subprocess.run(cmd, cwd=str(APP), capture_output=True, text=True,
+                           timeout=timeout,
+                           env={**os.environ, "DISPLAY": ":99"})
+    except subprocess.TimeoutExpired:
+        return "error", "camoufox timeout", round(time.time() - t0, 1)
+    out = (r.stdout or "") + (r.stderr or "")
+    state, detail = "error", ""
+    for line in out.splitlines():
+        for tag, name in (("-> ok:", "ok"), ("-> needs_human:", "needs_human"),
+                          ("-> bad_credentials:", "bad_credentials"),
+                          ("-> error:", "error")):
+            if tag in line:
+                state, detail = name, line.split(tag, 1)[1].strip()
+    if not detail:
+        detail = (out.strip().splitlines() or [""])[-1][:180]
+    return state, f"camoufox: {detail[:200]}", round(time.time() - t0, 1)
+
+
+def beban_terlalu_tinggi(ambang=12.0):
+    """True bila load average mesin sudah terlalu tinggi untuk lanjut login.
+
+    Login akun membuka browser penuh; menjalankannya saat mesin sudah sesak
+    membuat gateway tidak bisa melayani job (pernah terjadi: setor akun timeout).
+    """
+    try:
+        with open("/proc/loadavg") as fh:
+            load1 = float(fh.read().split()[0])
+        return load1 > ambang
+    except Exception:
+        return False
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--retry", action="store_true",
@@ -94,7 +144,30 @@ def main():
     tally = {"ok": 0, "error": 0, "needs_human": 0, "bad_credentials": 0}
     for i, e in enumerate(todo, 1):
         email = e["email"]
+
+        # Jangan menggilas mesin: kalau beban sudah tinggi, hentikan dengan
+        # rapi supaya gateway tetap bisa melayani job pengguna.
+        if beban_terlalu_tinggi():
+            print("\n!! beban mesin terlalu tinggi — login dihentikan agar "
+                  "gateway tetap bisa melayani. Jalankan lagi nanti.", flush=True)
+            break
+
         state, detail, secs = run_one(email)
+
+        # Chromium kena CAPTCHA? Coba Camoufox sebelum menyerah.
+        if state == "needs_human":
+            cf_state, cf_detail, cf_secs = run_camoufox(email)
+            print(f"      [cadangan] {email}: camoufox -> {cf_state} ({cf_secs}s)",
+                  flush=True)
+            record({"email": email, "state": cf_state, "detail": cf_detail,
+                    "secs": cf_secs, "at": datetime.now(timezone.utc).isoformat(),
+                    "via": "camoufox"})
+            if cf_state == "ok":
+                # Chromium gagal, Camoufox berhasil: keadaan akhir = ok.
+                state, detail, secs = "ok", cf_detail, secs + cf_secs
+            elif cf_state not in ("skip",):
+                detail = f"{detail} | {cf_detail}"
+
         tally[state] = tally.get(state, 0) + 1
         mark = {"ok": "OK ", "needs_human": "VER", "bad_credentials": "BAD",
                 "error": "ERR"}.get(state, "???")

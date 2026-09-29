@@ -50,6 +50,12 @@ CHALLENGE_MARKERS = [
     "check your phone", "periksa ponsel", "tap yes", "ketuk ya",
     "unusual activity", "aktivitas yang tidak biasa",
     "captcha", "reCAPTCHA", "try again later", "coba lagi nanti",
+    # Halaman CAPTCHA Google (teks ID/EN) — kata "captcha" sendiri tidak muncul,
+    # yang tampil hanya gambar + kalimat perintah ini.
+    "ketik teks yang anda dengar atau lihat", "ketik teks yang anda lihat",
+    "harap masukkan karakter", "masukkan karakter yang anda lihat",
+    "type the text you hear or see", "enter the characters you see",
+    "teks yang anda dengar atau lihat", "gambar di atas",
     "couldn't find your google account", "tidak dapat menemukan akun google anda",
     "wrong password", "kata sandi salah", "password salah",
     "this browser or app may not be secure",
@@ -123,6 +129,28 @@ def record_status(email, state, detail="", cookies=None):
     STATUS_FILE.write_text(json.dumps(data, indent=2))
 
 
+def clear_stale_vids_state(email):
+    """Hapus state basi di vids_accounts untuk akun yang sudah login sukses.
+
+    `/v1/vids/accounts` membaca tabel vids_accounts; kalau baris lama
+    (no_login/ui_retry) dibiarkan, akun yang SUDAH sehat tetap tampil mati di
+    panel admin — dan tombol Hapus Akun Mati bisa membuang akun sehat.
+    """
+    import sqlite3 as _sq
+    vids_db = APP_DIR / "data" / "vids_jobs.db"
+    if not vids_db.exists():
+        return False
+    try:
+        conn = _sq.connect(str(vids_db))
+        conn.execute("DELETE FROM vids_accounts WHERE email=?", (email,))
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        log(f"  gagal bersihkan state basi {email}: {e}")
+        return False
+
+
 def register_in_pool(email, cookies_json="[]"):
     """Make the account visible to the gateway pool (session lives in the profile)."""
     try:
@@ -138,6 +166,9 @@ def register_in_pool(email, cookies_json="[]"):
         conn.commit()
         conn.close()
         log(f"  terdaftar di pool gateway: {email}")
+        # State basi di vids_accounts harus dibuang, kalau tidak panel admin
+        # menganggap akun ini masih mati.
+        clear_stale_vids_state(email)
         return True
     except Exception as e:
         log(f"  gagal mendaftar ke pool: {e}")
@@ -171,22 +202,69 @@ def find_bad(text):
     return None
 
 
-def fill_first(page, selectors, value, timeout=15000):
-    """Try each selector, type into the first one that appears."""
+def _probe_ms():
+    """Timeout probe selector (ms). Kecil supaya akun yang sudah login tidak
+    membuang 3 x 20 s menunggu kolom yang tidak akan muncul."""
+    try:
+        return max(500, int(os.environ.get("GS_LOGIN_PROBE_MS", "4000")))
+    except Exception:
+        return 4000
+
+
+def _present_now(page, selectors):
+    """Selector yang LANGSUNG ada di DOM (tanpa menunggu sama sekali)."""
     for sel in selectors:
         try:
-            el = page.wait_for_selector(sel, timeout=timeout, state="visible")
-            if el:
-                el.click()
-                el.fill("")
-                el.type(value, delay=45)
+            el = page.query_selector(sel)
+            if el and el.is_visible():
                 return sel
         except Exception:
             continue
     return None
 
 
-def click_first(page, selectors, timeout=8000):
+def fill_first(page, selectors, value, timeout=None):
+    """Isi kolom pertama yang muncul.
+
+    Cek DOM dulu (instan) sebelum menunggu: satu selector yang tidak ada
+    dahulu memakan satu timeout penuh, jadi urutan ini menghemat puluhan detik
+    per akun ketika kolomnya memang sudah ada.
+    """
+    timeout = _probe_ms() if timeout is None else timeout
+
+    sel = _present_now(page, selectors)
+    if sel:
+        try:
+            el = page.query_selector(sel)
+            el.click()
+            el.fill("")
+            el.type(value, delay=25)
+            return sel
+        except Exception:
+            pass
+
+    for sel in selectors:
+        try:
+            el = page.wait_for_selector(sel, timeout=timeout, state="visible")
+            if el:
+                el.click()
+                el.fill("")
+                el.type(value, delay=25)
+                return sel
+        except Exception:
+            continue
+    return None
+
+
+def click_first(page, selectors, timeout=None):
+    timeout = _probe_ms() if timeout is None else timeout
+    sel = _present_now(page, selectors)
+    if sel:
+        try:
+            page.query_selector(sel).click()
+            return sel
+        except Exception:
+            pass
     for sel in selectors:
         try:
             el = page.wait_for_selector(sel, timeout=timeout, state="visible")
@@ -323,7 +401,31 @@ def login_one(page, email, password, dry_run=False, test_vids=False,
     except Exception as e:
         return "error", f"gagal membuka halaman login: {e}"
 
-    time.sleep(3)
+    # Cek instan dulu: kalau sesi sudah login, tidak ada gunanya menunggu
+    # kolom email (dulu 3 x 20 s terbuang di sini).
+    settle = 0.8
+    try:
+        settle = float(os.environ.get("GS_LOGIN_SETTLE", "1.2"))
+    except Exception:
+        pass
+    try:
+        page.wait_for_selector('input[type="email"], input[type="password"], #identifierId',
+                               timeout=int(settle * 1000))
+    except Exception:
+        pass
+    has_email_field = _present_now(page, IDENTIFIER_SELECTORS) is not None
+    if not has_email_field:
+        low_now = page_text(page).lower()
+        already = ("akun google" in low_now or "google account" in low_now
+                   or "myaccount" in page.url or "kelola akun" in low_now)
+        if already:
+            log("  sesi sudah login (dicek cepat, tanpa tunggu kolom email)")
+            if test_vids:
+                st, dt = check_vids_access(page)
+                return ("ok" if st == "ok" else st), f"sesi lama; {dt}"
+            return "ok", "sesi sudah login"
+
+    time.sleep(settle)
     txt = page_text(page)
     if find_challenge(txt):
         shot("challenge-initial")
@@ -522,7 +624,18 @@ def check_vids_access(page, doc_url=None):
                   timeout=60000)
     except Exception as e:
         return "error", f"gagal membuka Vids: {e}"
-    time.sleep(6)
+    # Tunggu sampai halaman Vids benar-benar siap, bukan 6 detik tetap.
+    vids_settle = 2.0
+    try:
+        vids_settle = float(os.environ.get("GS_VIDS_SETTLE", "2.0"))
+    except Exception:
+        pass
+    try:
+        page.wait_for_selector('[aria-label*="Prompt"], [aria-label*="prompt"], '
+                               'textarea, [contenteditable="true"], [role="textbox"]',
+                               timeout=15000)
+    except Exception:
+        time.sleep(vids_settle)
     url = page.url
     txt = page_text(page)
     if "accounts.google.com" in url:
@@ -536,6 +649,49 @@ def check_vids_access(page, doc_url=None):
 # --------------------------------------------------------------------------- #
 # runner
 # --------------------------------------------------------------------------- #
+
+def cleanup_orphans(email, grace=1.5):
+    """Bunuh proses chrome sisa yang masih memakai profil akun ini.
+
+    browser.close() tidak selalu mematikan seluruh keturunan; sisa proses dari
+    banyak akun menumpuk lalu menjenuhkan mesin. Hanya proses dengan
+    --user-data-dir=<profil akun ini> yang disentuh.
+    """
+    import subprocess as _sp
+    import time as _t
+    prof = str(PROFILES_DIR / email)
+    try:
+        out = _sp.run(["ps", "-eo", "pid,cmd"], capture_output=True, text=True,
+                      timeout=15).stdout
+    except Exception:
+        return 0
+    pids = []
+    for line in out.splitlines():
+        if "chrome" not in line or prof not in line:
+            continue
+        parts = line.split(None, 1)
+        if parts and parts[0].isdigit():
+            pids.append(parts[0])
+    if not pids:
+        return 0
+    _t.sleep(grace)                      # beri kesempatan keluar sendiri
+    hidup = []
+    for pid in pids:
+        try:
+            with open(f"/proc/{pid}/cmdline", "rb") as fh:
+                if prof.encode() in fh.read():
+                    hidup.append(pid)
+        except Exception:
+            pass
+    for pid in hidup:
+        try:
+            _sp.run(["kill", "-9", pid], timeout=5)
+        except Exception:
+            pass
+    if hidup:
+        log(f"  bersihkan {len(hidup)} proses chrome yatim")
+    return len(hidup)
+
 
 def run(entries, args):
     from playwright.sync_api import sync_playwright
@@ -559,6 +715,20 @@ def run(entries, args):
                         "--no-sandbox", "--disable-setuid-sandbox",
                         "--disable-blink-features=AutomationControlled",
                         "--disable-dev-shm-usage",
+                        # HEMAT (terukur: 8->6 proses, 348->164 MB per instance):
+                        # satukan renderer per situs, batasi renderer, matikan
+                        # gpu & layanan latar yang tidak dipakai saat login.
+                        "--process-per-site",
+                        "--renderer-process-limit=1",
+                        "--disable-gpu",
+                        "--disable-software-rasterizer",
+                        "--disable-extensions",
+                        "--disable-background-networking",
+                        "--disable-sync",
+                        "--disable-default-apps",
+                        "--disable-component-update",
+                        "--no-first-run",
+                        "--disable-features=Translate,MediaRouter,OptimizationHints",
                     ],
                     viewport={"width": 1280, "height": 800},
                     user_agent=UA,
@@ -591,6 +761,12 @@ def run(entries, args):
                         browser.close()
                     except Exception:
                         pass
+                # Proses Chrome sering tertinggal setelah close(); sisa 65 akun
+                # menumpuk dan menjenuhkan mesin (load pernah 95). Bunuh sisa
+                # yang memakai profil akun ini saja — jangan sentuh browser
+                # gateway (profil berbeda).
+                if not args.dry_run:
+                    cleanup_orphans(email)
 
             if len(entries) > 1:
                 time.sleep(5)

@@ -2212,7 +2212,9 @@ async def api_custom_docs_dashboard():
                 <div class="label">Authentication Header</div>
                 <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">Pass in header via <code>X-API-Key</code> or <code>Authorization: Bearer</code></div>
             </div>
-            <div class="key-code">gflow_live_REDACTED</div>
+            <div class="key-code">gflow_live_&lt;API_KEY_ANDA&gt;</div>
+            <!-- Kunci TIDAK ditulis di halaman ini: dokumentasi ini
+                 dapat dilihat siapa pun yang membuka /docs-custom. -->
         </div>
 
         <!-- SECTION 1 -->
@@ -2313,7 +2315,7 @@ async def api_custom_docs_dashboard():
             <div class="code-block-header">💻 Contoh Request Body (JSON)</div>
             <pre><code>POST http://104.64.15.167:8088/v1/google-flow/videos/create
 Headers:
-  X-API-Key: gflow_live_REDACTED
+  X-API-Key: gflow_live_APIKEY_ANDA
   Content-Type: application/json
 
 {
@@ -2416,7 +2418,7 @@ Headers:
             <div class="code-block-header">💻 Contoh Request Body (JSON)</div>
             <pre><code>POST http://104.64.15.167:8088/v1/google-flow/images/create
 Headers:
-  X-API-Key: gflow_live_REDACTED
+  X-API-Key: gflow_live_APIKEY_ANDA
   Content-Type: application/json
 
 {
@@ -2457,7 +2459,7 @@ Headers:
             <div class="code-block-header">💻 Contoh Request</div>
             <pre><code>GET http://104.64.15.167:8088/v1/google-flow/jobs/f9672d84-5cbb-4953-a295-f79350a41f2f
 Headers:
-  X-API-Key: gflow_live_REDACTED</code></pre>
+  X-API-Key: gflow_live_APIKEY_ANDA</code></pre>
 
             <div class="code-block-header">⏳ Response Saat Masih Diproses (Status: processing)</div>
             <pre><code>{
@@ -2519,7 +2521,7 @@ Headers:
 
 GET http://104.64.15.167:8088/v1/google-flow/jobs?status=completed&limit=10
 Headers:
-  X-API-Key: gflow_live_REDACTED</code></pre>
+  X-API-Key: gflow_live_APIKEY_ANDA</code></pre>
         </div>
 
         <!-- SECTION 4 -->
@@ -2536,7 +2538,7 @@ Headers:
             </div>
             <pre><code>GET http://104.64.15.167:8088/v1/google-flow/models
 Headers:
-  X-API-Key: gflow_live_REDACTED
+  X-API-Key: gflow_live_APIKEY_ANDA
 
 // Response 200 OK
 {
@@ -2591,7 +2593,7 @@ Headers:
             </div>
             <pre><code>POST http://104.64.15.167:8088/v1/google-flow/accounts/add
 Headers:
-  X-API-Key: gflow_live_REDACTED
+  X-API-Key: gflow_live_APIKEY_ANDA
   Content-Type: application/json
 
 {
@@ -2620,7 +2622,7 @@ Headers:
             </div>
             <pre><code>POST http://104.64.15.167:8088/v1/google-flow/auth/refresh
 Headers:
-  X-API-Key: gflow_live_REDACTED
+  X-API-Key: gflow_live_APIKEY_ANDA
 
 // Response 200 OK
 {
@@ -2927,6 +2929,10 @@ def purge_accounts_txt(emails):
 class VidsPurgeRequest(BaseModel):
     emails: List[str] = []
     dry_run: bool = False
+    # True = boleh hapus walau state 'ok' (admin memilih sendiri dari daftar)
+    force: bool = False
+    # Cara pintas hapus massal per keadaan, mis. ["no_login","ui_retry"]
+    states: List[str] = []
 
 
 @app.post("/v1/vids/accounts/purge", dependencies=[Depends(verify_api_key)])
@@ -2948,13 +2954,53 @@ async def api_vids_accounts_purge(req: VidsPurgeRequest):
     try:
         rows = conn.execute("SELECT email, state FROM vids_accounts").fetchall()
         state_of = {r["email"]: r["state"] for r in rows}
-        for email in (req.emails or []):
+
+        # ── PENGAMAN: keberhasilan login dicatat di tabel `accounts`
+        # (gateway.db) sebagai status='active', sedangkan vids_accounts sering
+        # tertinggal basi. Tanpa pemeriksaan ini, akun yang SUDAH sehat akan
+        # ikut terhapus hanya karena label lama di vids_accounts.
+        actually_active = set()
+        try:
+            with get_db() as _aconn:
+                for _ar in _aconn.execute(
+                        "SELECT email FROM accounts WHERE status='active' "
+                        "AND COALESCE(is_active,1)=1").fetchall():
+                    actually_active.add(_ar["email"])
+        except Exception as _e:
+            logger.warning(f"purge: gagal baca tabel accounts: {_e}")
+
+        # Baris basi untuk akun yang sebenarnya sehat: bersihkan labelnya,
+        # jangan hapus akunnya. Dijalankan sebelum loop sasaran.
+        stale_fixed = 0
+        if not req.dry_run:
+            for _e in list(state_of.keys()):
+                if _e in actually_active:
+                    try:
+                        conn.execute("DELETE FROM vids_accounts WHERE email=?",
+                                     (_e,))
+                        stale_fixed += 1
+                    except Exception:
+                        pass
+            if stale_fixed:
+                conn.commit()
+                logger.info(f"purge: {stale_fixed} label basi dibersihkan "
+                            f"(akun sehat, tidak dihapus)")
+
+        # Sasaran: gabungan email yang diminta + semua akun ber-state yang dipilih.
+        targets = list(req.emails or [])
+        want_states = [str(s).strip() for s in (req.states or []) if str(s).strip()]
+        if want_states:
+            for e, st in state_of.items():
+                if st in want_states and e not in targets:
+                    targets.append(e)
+
+        for email in targets:
             email = (email or "").strip()
             if not email or email not in state_of:
                 missing.append(email)
                 continue
-            if state_of[email] == "ok":
-                kept.append(email)      # akun sehat: JANGAN dihapus
+            if (state_of[email] == "ok" or email in actually_active) and not req.force:
+                kept.append(email)      # akun sehat: JANGAN dihapus (kecuali force)
                 continue
             if not req.dry_run:
                 conn.execute("DELETE FROM vids_accounts WHERE email=?", (email,))
@@ -2980,7 +3026,9 @@ async def api_vids_accounts_purge(req: VidsPurgeRequest):
     finally:
         conn.close()
     logger.info(f"vids purge: {len(removed)} dihapus, {len(kept)} sehat dilindungi")
-    return {"removed": len(removed), "profiles_deleted": profiles,
+    return {"removed": len(removed), "removed_emails": removed,
+            "stale_labels_cleared": locals().get("stale_fixed", 0),
+            "profiles_deleted": profiles,
             "removed_from_accounts_txt": _txt_gone,
             "kept_healthy": kept, "unknown": [m for m in missing if m],
             "dry_run": req.dry_run}
@@ -3107,6 +3155,65 @@ async def api_vids_accounts_template():
     }
 
 
+@app.get("/v1/vids/accounts/login-log", dependencies=[Depends(verify_api_key)])
+async def api_vids_login_log(limit: int = 50, state: Optional[str] = None):
+    """Riwayat login akun pool: hasil TERBARU per akun.
+
+    Sumber: data/login_results.jsonl (ditulis gsuite_login/login_all).
+    `state` menyaring: ok | error | needs_human | bad_credentials.
+    """
+    import json as _json
+    from pathlib import Path as _P
+
+    p = _P("/root/api-google-flow/data/login_results.jsonl")
+    if not p.exists():
+        return {"total": 0, "items": [], "note": "belum ada riwayat login"}
+
+    latest = {}
+    order = []
+    for line in p.read_text(errors="replace").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            d = _json.loads(line)
+        except Exception:
+            continue
+        e = (d.get("email") or "").strip()
+        if not e:
+            continue
+        if e not in latest:
+            order.append(e)
+        latest[e] = d                      # baris terakhir = hasil terbaru
+
+    items = [latest[e] for e in order]
+    if state:
+        items = [i for i in items if (i.get("state") or "") == state]
+    items.sort(key=lambda i: i.get("at") or "", reverse=True)
+
+    counts = {}
+    for i in latest.values():
+        s = i.get("state") or "?"
+        counts[s] = counts.get(s, 0) + 1
+
+    try:
+        limit = max(1, min(int(limit), 500))
+    except Exception:
+        limit = 50
+
+    return {
+        "total": len(latest),
+        "counts": counts,
+        "showing": min(limit, len(items)),
+        "items": [
+            {"email": i.get("email"), "state": i.get("state"),
+             "detail": (i.get("detail") or "")[:300],
+             "secs": i.get("secs"), "at": i.get("at")}
+            for i in items[:limit]
+        ],
+    }
+
+
 @app.get("/v1/vids/accounts", dependencies=[Depends(verify_api_key)])
 async def api_vids_accounts():
     """Keadaan pool akun Vids: mana yang siap, mana yang limit."""
@@ -3128,6 +3235,25 @@ async def api_vids_accounts():
             "cooldown_left": max(0, r["until"] - now) if limited else 0,
             "note": r["note"],
         }
+
+    # Keberhasilan login dicatat di tabel `accounts` (gateway.db) sebagai
+    # status='active'. Tanpa menggabungkannya, akun yang baru login sukses
+    # tetap tampil 'unknown' dan admin tidak bisa memisahkan yang sehat.
+    active_emails = set()
+    try:
+        with get_db() as aconn:
+            for arow in aconn.execute(
+                    "SELECT email FROM accounts WHERE status='active' "
+                    "AND COALESCE(is_active,1)=1").fetchall():
+                active_emails.add(arow["email"])
+    except Exception as e:
+        logger.warning(f"vids accounts: gagal baca tabel accounts: {e}")
+
+    for e in active_emails:
+        cur = states.get(e)
+        if cur is None or cur.get("state") in (None, "", "unknown"):
+            states[e] = {"state": "ok", "cooldown_left": 0,
+                         "note": "login sukses (pool gateway)"}
     # daftar akun dari accounts.txt
     all_acc = []
     acc_file = "/root/api-google-flow/accounts.txt"
@@ -3139,7 +3265,12 @@ async def api_vids_accounts():
                 if "@" in e:
                     all_acc.append(e)
     ready = [e for e in all_acc if states.get(e, {}).get("state") != "limited"]
+    by_state = {}
+    for e in all_acc:
+        s = states.get(e, {}).get("state") or "unknown"
+        by_state[s] = by_state.get(s, 0) + 1
     return {"total": len(all_acc), "ready": len(ready),
+            "by_state": by_state,
             "limited": [e for e in all_acc if states.get(e, {}).get("state") == "limited"],
             "accounts": [{"email": e, **states.get(e, {"state": "unknown",
                                                        "cooldown_left": 0, "note": ""})}

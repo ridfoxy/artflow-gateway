@@ -324,7 +324,12 @@ class ContextManager:
                 downloads_path=str(OUT),
                 args=["--display=:99", "--no-sandbox", "--disable-gpu",
                       "--disable-dev-shm-usage", "--window-size=1400,900",
-                      "--disable-blink-features=AutomationControlled"],
+                      "--disable-blink-features=AutomationControlled",
+                      # HEMAT: 8->6 proses, ~53% memori lebih kecil
+                      "--process-per-site", "--renderer-process-limit=1",
+                      "--disable-software-rasterizer", "--disable-extensions",
+                      "--disable-background-networking", "--disable-sync",
+                      "--disable-default-apps", "--disable-component-update"],
                 viewport={"width": 1400, "height": 900},
             )
             self.ctx[email] = (ctx, now)

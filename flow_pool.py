@@ -375,14 +375,49 @@ class FlowPool:
         src = str(src)
         if src.startswith(("http://", "https://")):
             import urllib.request
+            import urllib.error
             os.makedirs(FRAME_DIR, exist_ok=True)
             name = src.rsplit("/", 1)[-1].split("?")[0] or "frame"
             if not os.path.splitext(name)[1]:
                 name += ".jpg"
             dest = os.path.join(FRAME_DIR, f"{int(time.time()*1000)}_{name}")
-            with urllib.request.urlopen(src, timeout=60) as r, open(dest, "wb") as f:
-                f.write(r.read())
-            return dest
+
+            # Cloudflare menolak User-Agent library Python (403 Forbidden) di depan
+            # domain publik, sehingga gambar referensi / start / end frame tidak
+            # pernah terunduh. Kirim UA browser lebih dulu, lalu UA bawaan sebagai
+            # cadangan; tolak body yang jelas bukan gambar (mis. halaman HTML galat).
+            attempts = [
+                {
+                    "User-Agent": (
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                        "(KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+                    ),
+                    "Accept": "image/avif,image/webp,image/jpeg,image/png,*/*;q=0.8",
+                    "Referer": src,
+                },
+                {},
+            ]
+            last_error = None
+            for headers in attempts:
+                try:
+                    req = urllib.request.Request(src, headers=headers)
+                    with urllib.request.urlopen(req, timeout=60) as r:
+                        body = r.read()
+                        ctype = (r.headers.get("Content-Type") or "").lower()
+                    if body and (ctype.startswith("image/") or body[:2] == b"\xff\xd8"
+                                 or body[:8] == b"\x89PNG\r\n\x1a\n"):
+                        with open(dest, "wb") as f:
+                            f.write(body)
+                        return dest
+                    last_error = f"bukan gambar (ct={ctype or 'unknown'}, {len(body)}B)"
+                    logger.warning(f"unduh gambar {name}: {last_error}")
+                except Exception as e:
+                    last_error = str(e)[:140]
+                    logger.warning(f"unduh gambar {name} gagal: {last_error}")
+
+            raise Exception(
+                f"gagal mengunduh gambar referensi dari {src[:90]}: {last_error}"
+            )
         return src if os.path.exists(src) else None
 
     async def _open_new_project(self, page):
