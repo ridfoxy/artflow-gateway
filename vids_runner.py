@@ -1037,6 +1037,9 @@ def ensure_xvfb():
 # ─────────────────────────────────────────────────────────────
 IMAGE_RECORD = APP / "data" / "with_image_payload.json"
 SESSION_MAX_JOBS = int(os.environ.get("VIDS_SESSION_JOBS", "12"))
+# Jeda antar percobaan saat sesi rusak. Tanpa ini 4-5 percobaan terjadi
+# di detik yang sama: pool terlihat kosong padahal akun sehat tersedia.
+RETRY_PAUSE_SECONDS = float(os.environ.get("VIDS_RETRY_PAUSE", "3"))
 # Berapa generate dikirim SERENTAK dari satu sesi. Uji: 3 serentak ->
 # 3 video berbeda dalam 36,6s (kalau berurutan 93s).
 PARALLEL_PER_SESSION = int(os.environ.get("VIDS_PARALLEL", "3"))
@@ -1583,6 +1586,32 @@ async def run_batch(name, cm, pool):
                     continue
 
                 if status == "retry_account":
+                    # SESI RUSAK: kalau halaman sesi sudah tertutup atau token
+                    # hilang, sesi ini tidak bisa dipakai lagi. Dulu `sess`
+                    # dibiarkan hidup, jadi percobaan berikutnya memakai sesi
+                    # mati yang SAMA (5x dalam 1 detik) dan job menyerah padahal
+                    # ada akun sehat lain.
+                    d = str(detail or "")
+                    if ("tertutup" in d or "token tidak tersedia" in d
+                            or "tidak bisa dipakai" in d or "tidak siap" in d):
+                        log(f"sesi {email} rusak ({d[:60]}) -> dibuang")
+                        try:
+                            await close_session(sess)
+                        except Exception:
+                            pass
+                        sess = None
+                        pool.mark_ui_retry(email)
+                        await asyncio.sleep(RETRY_PAUSE_SECONDS)
+                    _requeue(jid, d)
+                    continue
+                if status == "failed" and "halaman sesi" in str(detail):
+                    log(f"sesi {email} rusak (failed) -> dibuang")
+                    try:
+                        await close_session(sess)
+                    except Exception:
+                        pass
+                    sess = None
+                    await asyncio.sleep(RETRY_PAUSE_SECONDS)
                     _requeue(jid, str(detail))
                     continue
 
