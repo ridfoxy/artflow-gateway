@@ -41,6 +41,13 @@ STREAM_SAVE = APP / "data" / "vids_streamed.json"
 MAX_CONCURRENT = int(os.environ.get("VIDS_MAX_CONCURRENT", "1"))
 MAX_CONTEXTS = int(os.environ.get("VIDS_MAX_CONTEXTS", "1"))
 IDLE_CLOSE_SECONDS = int(os.environ.get("VIDS_IDLE_CLOSE", "180"))
+# WORKER HOLD: worker tanpa sesi yang menemukan antrian kosong JANGAN langsung
+# mati. Kalau mati, hanya worker pertama yang bekerja (terbukti dari log: hanya
+# "b0" yang muncul) sehingga konkurensi efektif menjadi 1 dan job teks
+# mengantre di belakang job bergambar ~4-5 menit.
+WORKER_HOLD = os.environ.get("VIDS_WORKER_HOLD", "1") not in ("0", "false", "no")
+WORKER_IDLE_POLL = float(os.environ.get("VIDS_WORKER_POLL", "2"))
+WORKER_EXIT_AFTER = float(os.environ.get("VIDS_WORKER_EXIT_AFTER", "900"))
 ACCOUNT_COOLDOWN_LIMIT = int(os.environ.get("VIDS_LIMIT_COOLDOWN", "3600"))
 GEN_TIMEOUT = int(os.environ.get("VIDS_GEN_TIMEOUT", "240"))
 # Batas beban: satu job tidak boleh menyandera antrian. VPS ini ~4 GB RAM, dan
@@ -1625,6 +1632,7 @@ async def run_batch(name, cm, pool):
     """
     sess = None
     idle_since = None
+    kosong_sejak = None       # sejak kapan antrian kosong (worker tanpa sesi)
     try:
         while True:
             batch = []
@@ -1657,7 +1665,18 @@ async def run_batch(name, cm, pool):
                 # Antrian kosong: JANGAN buru-buru menutup sesi — buka editor
                 # memakan ~26s, jadi sesi ditahan sampai IDLE_CLOSE_SECONDS.
                 if sess is None:
-                    return
+                    # TANPA sesi + antrian kosong sesaat: jangan mati. Kalau
+                    # mati, hanya 1 worker yang bekerja (konkurensi efektif
+                    # jadi 1) dan job teks mengantre di belakang job bergambar
+                    # yang butuh ~4-5 menit. Tunggu, lalu coba lagi.
+                    if not WORKER_HOLD:
+                        return
+                    if kosong_sejak is None:
+                        kosong_sejak = time.time()
+                    if time.time() - kosong_sejak >= WORKER_EXIT_AFTER:
+                        return
+                    await asyncio.sleep(WORKER_IDLE_POLL)
+                    continue
                 if idle_since is None:
                     idle_since = time.time()
                 if time.time() - idle_since > IDLE_CLOSE_SECONDS:
@@ -1670,6 +1689,7 @@ async def run_batch(name, cm, pool):
                 await asyncio.sleep(2)
                 continue
             idle_since = None
+            kosong_sejak = None       # dapat kerja -> reset hitungan kosong
             log(f"{name}: ambil {len(batch)} job "
                 + " ".join(f"[{i['job_id'][:8]}]" for i in batch))
 
