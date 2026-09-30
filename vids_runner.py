@@ -319,7 +319,7 @@ class ContextManager:
             ctx = await self.pw.chromium.launch_persistent_context(
                 user_data_dir=str(prof),
                 executable_path="/usr/bin/google-chrome-stable",
-                headless=False,
+                headless=HEADLESS,
                 accept_downloads=True,
                 downloads_path=str(OUT),
                 args=["--display=:99", "--no-sandbox", "--disable-gpu",
@@ -419,6 +419,32 @@ def looks_like_ui_not_ready(detail):
 
 
 ZERO_UI = os.environ.get("VIDS_ZERO_UI", "1") not in ("0", "false", "no")
+# Semua TEKS lewat zero-UI, TERMASUK portrait. Job bergambar tetap lewat UI
+# karena payload gambar butuh dokumen proyek yang dibuat aplikasi.
+# Setel VIDS_PORTRAIT_ZEROUI=0 untuk kembali ke perilaku lama (portrait -> UI).
+ZERO_UI_PORTRAIT = os.environ.get("VIDS_PORTRAIT_ZEROUI", "1") not in ("0", "false", "no")
+# HEADLESS: tanpa Xvfb/tampilan. Terbukti bekerja (editor siap 2s vs 24s
+# headful) dan memakai memori lebih sedikit. VIDS_HEADLESS=0 -> kembali headful.
+HEADLESS = os.environ.get("VIDS_HEADLESS", "1") not in ("0", "false", "no")
+
+# Timeout unggah gambar lewat input[type=file]. Elemen itu dihapus DOM setelah
+# unggahan pertama, jadi percobaan berikutnya menunggu sia-sia; 12s cukup untuk
+# memastikan gagal tanpa membuang 45s slot sesi. Setel 45000 untuk perilaku lama.
+UPLOAD_TIMEOUT_MS = int(os.environ.get("VIDS_UPLOAD_TIMEOUT", "12000"))
+# Tombol yang MEMUNCULKAN input gambar berikutnya. Vids melepas
+# input[type=file] setelah satu unggahan; tanpa menekan tombol ini, gambar
+# ke-2 tidak pernah bisa dipasang (produksi selalu "1/2").
+# Setel VIDS_ADD_BUTTON=0 untuk kembali ke perilaku lama.
+ADD_BUTTON = os.environ.get("VIDS_ADD_BUTTON", "1") not in ("0", "false", "no")
+ADD_BUTTON_SEL = ('button[aria-label="Add avatar or ingredients"], '
+                  'button[aria-label*="Add avatar"], '
+                  'button[aria-label*="Add ingredient"]')
+# Berapa job BERGAMBAR boleh masuk satu batch. Job bergambar berjalan
+# berurutan dan mahal; membiarkannya memborong batch membuat job teks ikut
+# menunggu. 0 = tidak dibatasi (perilaku lama).
+IMG_PER_BATCH = int(os.environ.get("VIDS_IMG_PER_BATCH", "1"))# Buka ulang konteks setelah N job untuk mengatasi kebocoran memori Playwright
+# (context.close() tidak melepas semua). 0 = tidak pernah.
+RECYCLE_JOBS = int(os.environ.get("VIDS_RECYCLE_JOBS", "40"))
 TEMPLATE_FILE = Path(__file__).parent / "data" / "genai_template.json"
 WARMUP_MARK = "warmup"
 
@@ -485,6 +511,26 @@ def normalize_prompt(prompt):
     if neg:
         main = f"{main} Avoid: {neg}"
     return main or p
+
+
+def video_dimensi(path):
+    """(lebar, tinggi) video, atau None bila tidak terbaca.
+
+    Dipakai sebagai PENGAMAN: jalur cepat (zero-UI) tidak lagi dipaksa hanya
+    untuk landscape, jadi rasio hasil harus DIPERIKSA, bukan diasumsikan.
+    """
+    try:
+        import subprocess as _sp
+        r = _sp.run(["ffprobe", "-v", "error", "-select_streams", "v:0",
+                     "-show_entries", "stream=width,height", "-of", "csv=p=0",
+                     str(path)], capture_output=True, text=True, timeout=25)
+        t = (r.stdout or "").strip()
+        if "," in t:
+            w, h = t.split(",")[:2]
+            return int(w), int(h)
+    except Exception:
+        pass
+    return None
 
 
 def build_body(template_body, prompt):
@@ -663,11 +709,35 @@ async def upload_media(page, path, job_id, idx):
     Mengembalikan True bila thumbnail muncul (gambar benar-benar terpasang).
     """
     before = await count_thumbnails(page)
+
+    # MUNCULKAN INPUT BILA TIDAK ADA.
+    # Vids melepas input[type=file] setelah satu unggahan; input berikutnya
+    # dibuat saat tombol "Add avatar or ingredients" diklik. Tanpa langkah ini
+    # gambar ke-2 tidak pernah terpasang (produksi selalu "gambar terpasang: 1/2").
+    if ADD_BUTTON:
+        try:
+            ada = await page.locator('input[type="file"]').count()
+            if ada == 0:
+                for _coba in range(3):
+                    try:
+                        await page.locator(ADD_BUTTON_SEL).first.click(timeout=6000)
+                    except Exception:
+                        pass
+                    await asyncio.sleep(1.2)
+                    if await page.locator('input[type="file"]').count() > 0:
+                        log(f"[{job_id[:8]}] input gambar ke-{idx} dimunculkan "
+                            f"(tombol Add avatar)")
+                        break
+        except Exception as e:
+            log(f"[{job_id[:8]}] gagal memunculkan input: {str(e)[:80]}")
+
+    # TIMEOUT PENDEK: kalau input tidak kunjung siap, jangan blokir slot lama.
     try:
-        fi = page.locator('input[type="file"]').first
-        await fi.set_input_files(str(path), timeout=45000)
+        fi = page.locator('input[type="file"]').last
+        await fi.set_input_files(str(path), timeout=UPLOAD_TIMEOUT_MS)
     except Exception as e:
-        log(f"[{job_id[:8]}] unggah gambar {idx} gagal: {str(e)[:110]}")
+        log(f"[{job_id[:8]}] unggah gambar {idx} gagal "
+            f"(menunggu {UPLOAD_TIMEOUT_MS/1000:.0f}s): {str(e)[:90]}")
         return False
     # tunggu sampai thumbnail bertambah (unggahan benar-benar selesai)
     for _ in range(30):
@@ -1365,6 +1435,19 @@ async def generate_in_session(sess, info):
             path.write_bytes(data)
             log(f"[{job_id[:8]}] tersimpan {path.name} {len(data)} byte "
                 f"(botol sesi ke-{sess['n'] + 1})")
+            # PENGAMAN RASIO: minta portrait tapi hasil bukan vertikal ->
+            # serahkan ke jalur UI (yang menyetel rasio lewat dokumen proyek).
+            dim = video_dimensi(path)
+            if dim and want_portrait and dim[0] >= dim[1]:
+                log(f"[{job_id[:8]}] hasil {dim[0]}x{dim[1]} BUKAN vertikal "
+                    f"padahal diminta portrait -> ulang lewat jalur UI")
+                try:
+                    path.unlink()
+                except Exception:
+                    pass
+                return "ui_fallback", f"rasio salah ({dim[0]}x{dim[1]})"
+            if dim:
+                log(f"[{job_id[:8]}] rasio hasil terverifikasi {dim[0]}x{dim[1]}")
             return "completed", str(path)
         last = f"status={st} {text[:110]}"
         if st in (401, 403):
@@ -1394,7 +1477,12 @@ async def generate_many_in_session(sess, infos):
     for info in infos:
         imgs = [u for u in (info.get("images") or []) if u]
         port = str(info.get("aspect") or "").lower().startswith("port")
-        (slow if (imgs or port) else fast).append(info)
+        # Job TEKS (tanpa gambar) selalu cepat, termasuk portrait: uji nyata
+        # membuktikan teks portrait lewat XHR menghasilkan 720x1280 yang benar
+        # dan selesai ~35s, sedangkan jalur UI membuatnya mengantri di belakang
+        # job bergambar (terukur: menunggu ~3,5 menit).
+        lambat = bool(imgs) or (port and not ZERO_UI_PORTRAIT)
+        (slow if lambat else fast).append(info)
 
     if fast:
         hdrs = sess.get("hdrs") or await harvest_token(page, timeout=20, settle=1.5)
@@ -1403,13 +1491,22 @@ async def generate_many_in_session(sess, infos):
             for info in fast:
                 hasil[info["job_id"]] = galat
         else:
-            tpl = load_aspect_template("landscape")
-            if not tpl:
+            # TEMPLATE SESUAI RASIO (dulu selalu landscape, sehingga job
+            # portrait di jalur paralel menghasilkan video landscape).
+            tpl_lan = load_aspect_template("landscape")
+            tpl_port = load_aspect_template("portrait")
+            if not tpl_lan and not tpl_port:
                 for info in fast:
                     hasil[info["job_id"]] = ("ui_fallback", "template tidak tersedia")
             else:
-                bodies = [build_body(tpl.get("body") or "", normalize_prompt(i["prompt"]))
-                          for i in fast]
+                bodies, aspek_port = [], []
+                for _i in fast:
+                    _p = str(_i.get("aspect") or "").lower().startswith("port")
+                    _t = (tpl_port or tpl_lan) if _p else (tpl_lan or tpl_port)
+                    aspek_port.append(bool(_p))
+                    bodies.append(build_body(_t.get("body") or "",
+                                             normalize_prompt(_i["prompt"])))
+                tpl = tpl_lan or tpl_port
                 for _i in fast:
                     _set_status(_i["job_id"], "running", progress=35)
                 t0 = time.time()
@@ -1426,8 +1523,21 @@ async def generate_many_in_session(sess, infos):
                         if data and len(data) >= 50000:
                             p = OUT / f"vids_{info['job_id'][:8]}.mp4"
                             p.write_bytes(data)
+                            # PENGAMAN RASIO: jalur paralel tidak lagi hanya
+                            # landscape, jadi rasio hasil WAJIB diperiksa.
+                            _dim = video_dimensi(p)
+                            if (_dim and aspek_port[n] and _dim[0] >= _dim[1]):
+                                log(f"[{info['job_id'][:8]}] paralel hasil "
+                                    f"{_dim[0]}x{_dim[1]} BUKAN vertikal -> ulang UI")
+                                try:
+                                    p.unlink()
+                                except Exception:
+                                    pass
+                                retry.append(info)
+                                continue
                             log(f"[{info['job_id'][:8]}] paralel tersimpan {p.name} "
-                                f"{len(data)} byte")
+                                f"{len(data)} byte"
+                                + (f" {_dim[0]}x{_dim[1]}" if _dim else ""))
                             hasil[info["job_id"]] = ("completed", str(p))
                             continue
                         hasil[info["job_id"]] = ("failed", "stream gagal/kecil")
@@ -1488,10 +1598,21 @@ async def run_batch(name, cm, pool):
     try:
         while True:
             batch = []
+            # Job BERGAMBAR mahal & berurutan: batasi jumlahnya per batch supaya
+            # tidak memborong slot dan membuat job teks (yang bisa paralel)
+            # menunggu. Sisa kuota batch diisi job teks.
+            n_img = 0
             for _ in range(max(1, PARALLEL_PER_SESSION)):
                 it = _pick_job()
                 if not it:
                     break
+                ada_gambar = bool([u for u in (it.get("images") or []) if u])
+                if ada_gambar and IMG_PER_BATCH and n_img >= IMG_PER_BATCH:
+                    # kembalikan ke antrean; diambil batch berikutnya
+                    _set_status(it["job_id"], "queued", error=None)
+                    break
+                if ada_gambar:
+                    n_img += 1
                 batch.append(it)
 
             if not batch:
@@ -1515,6 +1636,14 @@ async def run_batch(name, cm, pool):
                 + " ".join(f"[{i['job_id'][:8]}]" for i in batch))
 
             # sesi kedaluwarsa / sudah terlalu banyak dipakai -> tutup
+            # RECYCLE: buka ulang konteks sebelum menumpuk. Playwright tidak
+            # melepas semua memori saat context.close() (isu #6319/#15400), jadi
+            # proses panjang wajib didaur ulang agar memori tetap datar.
+            if sess and RECYCLE_JOBS and sess["n"] >= RECYCLE_JOBS:
+                log(f"sesi {sess['email']} di-recycle setelah {sess['n']} job "
+                    f"(VIDS_RECYCLE_JOBS={RECYCLE_JOBS})")
+                await close_session(sess)
+                sess = None
             if sess and (time.time() - sess["t0"] > SESSION_MAX_AGE
                          or sess["n"] >= SESSION_MAX_JOBS):
                 log(f"sesi {sess['email']} ditutup (dipakai {sess['n']}x)")

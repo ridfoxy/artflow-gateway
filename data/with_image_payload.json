@@ -1,0 +1,11 @@
+{
+ "url": "https://appsgenaiserver-pa.clients6.google.com/v1/genai/generate?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8",
+ "headers": {
+  "Accept-Language": "en",
+  "X-Server-Token": "CAMSGhUR9NL9N67auQayvgSuUb6_BqcGt6CSAB0H",
+  "X-Goog-AuthUser": "0",
+  "Authorization": "SAPISIDHASH 1790583842_98c02a91c733b0e6cb12e75cc6426e6dc30d2291 SAPISID1PHASH 1790583842_98c02a91c733b0e6cb12e75cc6426e6dc30d2291 SAPISID3PHASH 1790583842_98c02a91c733b0e6cb12e75cc6426e6dc30d2291",
+  "Content-Type": "application/json+protobuf"
+ },
+ "body": "[376,null,[9,null,null,null,\"goog_978903795\",null,\"0\",null,[null,null,null,[[[null,null,null,null,null,null,null,[null,null,[[\"19-vifD1dpI98KGuxSKUxLy3tF_YiXzZnshQhF7gdkto\",\"application/vnd.google-apps.flix\",null,null,1]]]]]]],null,null,[24,0],null,\"en\",null,null,null,null,null,1,null,null,null,null,null,[[[null,null,null,null,null,null,null,[\"9FFC9A80-EAD9-4A3B-912E-37C9B5790708\",[null,null,null,null,null,null,null,null,null,null,null,[null,null,null,null,null,null,null,null,[null,null,null,\"AVL_0qhyMGBOROkKZaWYaDRAYufuyOptdgY-OOEMaTb-6K3FLIvWxxKPm4tSlsiYMVV0zgOouz1XmXWekujl5B1ruOUx_JHY5-K1SRhk13nHXf2eQSuEmektTujt9sxsBi3YHdn9LSBrlxs8uZ4A5ZmLmYN8sAIDNNKP9hO7RwoKkA4CRIPx_yQ\",1],null,null,null,null,\"Image1\"]]]]]],null,null,null,null,null,null,null,null,null,null,null,null,null,null,0],[null,null,null,[[[null,null,\"capture payload with one image\"]]]],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,[0,12,null,0,1,null,null,null,10]],[1,null,[[null,\"1\",1189]]],1]"
+}
