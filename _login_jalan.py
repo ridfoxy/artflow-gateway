@@ -27,9 +27,17 @@ APP = Path("/root/api-google-flow")
 RESULTS = APP / "data" / "login_results.jsonl"
 ACCOUNTS = APP / "accounts.txt"
 PY = "/root/geminiomni/venv/bin/python"
-DELAY = float(os.environ.get("LOGIN_DELAY", "25"))
+DELAY = float(os.environ.get("LOGIN_DELAY", "0"))       # langsung lanjut
+# Batas per akun: login sukses ~183s (termasuk verifikasi Vids), sedangkan
+# CAPTCHA terdeteksi ~7-9s. 420s hanya membuat akun yang menggantung memakan
+# 7 menit sebelum lanjut — itu sumber "jeda 6 menit" yang dirasakan user.
+PER_AKUN_TIMEOUT = float(os.environ.get("LOGIN_TIMEOUT", "180"))
+# Jalur cadangan Camoufox: terbukti lolos CAPTCHA pada akun yang Chromium-nya
+# kena tantangan (uji: drkvpj@gumdel.com).
+CAMOUFOX_PY = os.environ.get("CAMOUFOX_PY", "/root/harbor/venv/bin/python")
+CAMOUFOX_SCRIPT = os.environ.get("CAMOUFOX_SCRIPT", "camoufox_login.py")
+PAKAI_CAMOUFOX = os.environ.get("LOGIN_CAMOUFOX", "1") not in ("0", "false", "no")
 LOAD_MAX = float(os.environ.get("LOGIN_LOAD_MAX", "12"))
-PER_AKUN_TIMEOUT = float(os.environ.get("LOGIN_TIMEOUT", "420"))
 
 TAG_STATE = (("-> ok:", "ok"), ("-> needs_human:", "needs_human"),
              ("-> bad_credentials:", "bad_credentials"),
@@ -123,6 +131,37 @@ def bersihkan_kunci(email):
             pass
 
 
+def jalankan_camoufox(email):
+    """Coba login akun yang kena CAPTCHA memakai Camoufox.
+
+    Terbukti dari uji: akun yang Chromium-nya kena CAPTCHA berhasil login
+    lewat Camoufox (halaman login bersih, sandi terkirim, landing "Selamat
+    datang"). Keluarannya sengaja meniru gsuite_login.py supaya bisa dibaca
+    fungsi yang sama.
+    """
+    skrip = APP / CAMOUFOX_SCRIPT
+    if not skrip.exists():
+        return None, "camoufox_login.py tidak ada"
+    py = CAMOUFOX_PY if Path(CAMOUFOX_PY).exists() else PY
+    cmd = [py, str(skrip), "--email", email, "--test-vids"]
+    t0 = time.time()
+    try:
+        r = subprocess.run(cmd, cwd=str(APP), capture_output=True, text=True,
+                           timeout=PER_AKUN_TIMEOUT + 60,
+                           env={**os.environ, "DISPLAY": ":99"})
+    except subprocess.TimeoutExpired:
+        return "error", "camoufox timeout", round(time.time() - t0, 1)
+    out = (r.stdout or "") + (r.stderr or "")
+    state, detail = "error", ""
+    for line in out.splitlines():
+        for tag, nama in TAG_STATE:
+            if tag in line:
+                state, detail = nama, line.split(tag, 1)[1].strip()
+    if not detail:
+        detail = out.strip().splitlines()[-1][:200] if out.strip() else "tanpa keluaran"
+    return state, detail, round(time.time() - t0, 1)
+
+
 def main():
     args = sys.argv[1:]
     if not args:
@@ -164,6 +203,18 @@ def main():
         bersihkan_kunci(email)
         state, detail, secs = jalankan_satu(email)
         print(f"    -> {state}: {detail[:90]} ({secs}s)", flush=True)
+
+        # FALLBACK CAMOUFOX: Chromium kena CAPTCHA -> coba Camoufox sekali.
+        # Jangan menunggu timeout panjang; CAPTCHA sudah jelas masalahnya.
+        if state == "needs_human" and PAKAI_CAMOUFOX:
+            print("    -> CAPTCHA: mencoba jalur cadangan Camoufox...", flush=True)
+            st2, d2, s2 = jalankan_camoufox(email)
+            print(f"    -> camoufox {st2}: {str(d2)[:80]} ({s2}s)", flush=True)
+            if st2 == "ok":
+                state, detail, secs = "ok", f"camoufox; {d2}", s2
+            else:
+                detail = f"{detail} | camoufox: {st2} {str(d2)[:80]}"
+
         catat(email, state, detail, secs)
         if state == "ok":
             berhasil += 1

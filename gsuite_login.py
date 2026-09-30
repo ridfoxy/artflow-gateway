@@ -576,42 +576,134 @@ TERMS_ACCEPT_SELECTORS = [
 ]
 
 
-def handle_workspace_terms(page, log_fn=print):
-    """Klik setuju kalau halaman persyaratan Workspace muncul.
+def gulir_sampai_bawah(page, log_fn=print, max_langkah=25):
+    """Gulir halaman sampai bawah.
 
-    Returns True kalau ada yang diklik.
+    Google menyembunyikan tombol setuju di bawah teks persyaratan yang panjang;
+    tanpa menggulir, tombolnya belum ada sehingga pencarian selector gagal.
+    Kembalikan True bila tinggi halaman berhenti bertambah (sudah di dasar).
+    """
+    posisi_akhir = -1
+    for i in range(max_langkah):
+        try:
+            page.keyboard.press("End")
+        except Exception:
+            pass
+        try:
+            page.mouse.wheel(0, 2200)
+        except Exception:
+            pass
+        try:
+            posisi = page.evaluate(
+                "() => (document.scrollingElement||document.body).scrollTop")
+        except Exception:
+            posisi = 0
+        time.sleep(0.7)
+        if posisi == posisi_akhir:
+            log_fn(f"  halaman sudah di dasar (langkah {i+1})")
+            return True
+        posisi_akhir = posisi
+    return False
+
+
+def handle_workspace_terms(page, log_fn=print):
+    """Klik setuju pada halaman persyaratan Workspace.
+
+    Perbaikan penting: GULIR dulu. Halaman
+    /v3/signin/speedbump/workspacetermsofservice menyembunyikan tombol setuju
+    di bawah teks persyaratan; tanpa menggulir, tombolnya belum ada sehingga
+    login berakhir "masih di halaman akun" dan salah dilaporkan sebagai
+    verifikasi manusia padahal sandi sudah benar.
     """
     if "speedbump" not in page.url and "workspaceterms" not in page.url.lower():
         return False
-    log_fn("  halaman persyaratan Workspace terdeteksi — klik setuju…")
-    for sel in TERMS_ACCEPT_SELECTORS:
+    log_fn("  halaman persyaratan Workspace terdeteksi — gulir lalu klik setuju...")
+
+    # 1. gulir sampai bawah supaya tombol setuju muncul
+    gulir_sampai_bawah(page, log_fn)
+
+    # 2. cari tombol setuju (selector diperluas, termasuk jsname Google)
+    SELECTOR = [
+        'button:has-text("I understand")',
+        'button:has-text("Saya mengerti")',
+        'button:has-text("Mengerti")',
+        'button:has-text("Saya setuju")',
+        'button:has-text("Saya Setuju")',
+        'button:has-text("Setuju dan lanjutkan")',
+        'button:has-text("Terima")',
+        'button:has-text("I agree")',
+        'button:has-text("Accept")',
+        'button:has-text("Lanjutkan")',
+        'button:has-text("Continue")',
+        'button:has-text("Setuju")',
+        'button[jsname="V67aGc"]',
+        'button[jsname]',
+        '[role="button"]:has-text("Setuju")',
+        '[role="button"]:has-text("Mengerti")',
+        'input[type="submit"]',
+    ]
+    for sel in SELECTOR:
         try:
-            el = page.wait_for_selector(sel, timeout=4000, state="visible")
+            el = page.wait_for_selector(sel, timeout=3500, state="visible")
             if el:
                 el.click()
                 log_fn(f"  diklik: {sel}")
-                time.sleep(5)
+                time.sleep(4)
                 return True
         except Exception:
             continue
-    # fallback: klik elemen teks setuju mana pun
+
+    # 3. fallback: klik elemen mana pun yang teksnya bermakna setuju
     try:
         clicked = page.evaluate("""() => {
-            const want = ['setuju','agree','terima','accept','lanjutkan','continue'];
-            const els = [...document.querySelectorAll('button,[role="button"],a')];
+            const want = ['setuju','agree','terima','accept','lanjutkan',
+                          'continue','mengerti','understand','ok','oke'];
+            const els = [...document.querySelectorAll('button,[role="button"],a,input[type="submit"]')];
             for (const e of els) {
-                const t = (e.innerText||'').toLowerCase().trim();
-                if (e.offsetParent && want.some(w=>t.includes(w))) { e.click(); return t.slice(0,40); }
+                const t = ((e.innerText||e.value||'')+'').toLowerCase().trim();
+                if (t && want.some(w=>t.includes(w))) {
+                    try { e.scrollIntoView({block:'center'}); } catch(_) {}
+                    e.click();
+                    return t.slice(0,40);
+                }
             }
             return null;
         }""")
         if clicked:
             log_fn(f"  diklik (fallback): {clicked}")
-            time.sleep(5)
+            time.sleep(4)
             return True
     except Exception:
         pass
+
+    # 4. upaya terakhir: klik tombol panah-ke-bawah lalu coba lagi
+    try:
+        page.evaluate("""() => {
+            const b = [...document.querySelectorAll('button,[role="button"]')]
+                .find(e => !((e.innerText||'').trim()) && e.offsetParent);
+            if (b) b.click();
+        }""")
+        time.sleep(2)
+        gulir_sampai_bawah(page, log_fn)
+        ok = page.evaluate("""() => {
+            const want = ['setuju','agree','terima','accept','mengerti','understand'];
+            const els = [...document.querySelectorAll('button,[role="button"],a')];
+            for (const e of els) {
+                const t = ((e.innerText||'')+'').toLowerCase().trim();
+                if (t && want.some(w=>t.includes(w))) { e.click(); return t.slice(0,40); }
+            }
+            return null;
+        }""")
+        if ok:
+            log_fn(f"  diklik (setelah panah): {ok}")
+            time.sleep(4)
+            return True
+    except Exception:
+        pass
+
+    log_fn("  tombol setuju TIDAK ditemukan (halaman mungkin berubah)")
     return False
+
 
 
 VIDS_TEST_URL = "https://docs.google.com/videos/"

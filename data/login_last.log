@@ -1,8 +1,7 @@
   Xvfb :99 sudah jalan
 login untuk 10 akun (kredensial tersedia: 25)
-[1/10] login denijfx8@rallse.com (beban 0.4)
-    -> ok: sesi lama; Vids terbuka (title=Google Vids) (185.7s)
-[2/10] login denijfx7@rallse.com (beban 0.7)
-    -> needs_human: verifikasi setelah email: ketik teks yang anda dengar atau lihat (6.9s)
-[3/10] login denijfx10@rallse.com (beban 0.8)
-    -> ok: sesi lama; Vids terbuka (title=Google Vids) (183.1s)
+[1/10] login denijfx4@rallse.com (beban 1.2)
+    -> needs_human: verifikasi setelah email: ketik teks yang anda dengar atau lihat (7.1s)
+    -> CAPTCHA: mencoba jalur cadangan Camoufox...
+    -> camoufox error: masih di halaman akun (url=https://accounts.google.com/v3/signin/speedbump/works (38.7s)
+[2/10] login denijfx15@rallse.com (beban 1.5)
