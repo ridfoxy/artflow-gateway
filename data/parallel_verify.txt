@@ -1,0 +1,16 @@
+=== VERIFIKASI PARALEL 3: ubpttf@gumdel.com ===
+token dipanen
+menunggu 3.0s agar token matang
+selesai dalam 37.9s
+
+  #1: status=200 URL ditemukan=1
+     https://contribution-rt.usercontent.google.com/download?c=CgxiYXJkX3N0b3JhZ2USTBIJdGVtcF9kYXRhGj8KMGMxOTkwNTIw
+     tersimpan paralel_1_ubpttf.mp4 (3202736 B) sha256=b4ae89cc520d914f
+  #2: status=200 URL ditemukan=1
+     https://contribution-rt.usercontent.google.com/download?c=CgxiYXJkX3N0b3JhZ2USTBIJdGVtcF9kYXRhGj8KMDQ0MzRkN2Iw
+     tersimpan paralel_2_ubpttf.mp4 (4131340 B) sha256=c3f4978e716a50c0
+  #3: status=200 URL ditemukan=1
+     https://contribution-rt.usercontent.google.com/download?c=CgxiYXJkX3N0b3JhZ2USTBIJdGVtcF9kYXRhGj8KMDkxYmI0ZDYz
+     tersimpan paralel_3_ubpttf.mp4 (3914482 B) sha256=a63733cdc441406a
+
+KESIMPULAN: URL unik=3 dari 3 -> paralel aman: hasil BERBEDA

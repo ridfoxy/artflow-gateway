@@ -1,0 +1,79 @@
+=== PETA UPLOAD VIDS: pkxnwa@gumdel.com ===
+editor siap
+
+=== 1. SEMUA tombol/elemen interaktif (yang terlihat) ===
+   total elemen: 60
+
+   --- yang MENGINDIKASIKAN upload/gambar ---
+     [A] '' aria='Google Account: pkxnwa User  
+(pkxnwa@gumdel.com), Important account a'
+          cls=gb_C gb_9a
+     [DIV] 'File' aria=''
+          cls=menu-button goog-control goog-inline-block
+     [DIV] '' aria='Add comment (Ctrl+Alt+M)'
+          cls=goog-toolbar-button goog-inline-block
+     [svg] '' aria='Add transition'
+          cls=[object SVGAnimatedString]
+     [DIV] 'Image' aria='Generate an image'
+          cls=appsSketchyContentLibraryRailToolbarButtonCon
+     [DIV] 'Uploads' aria='Drive and Photos'
+          cls=appsSketchyContentLibraryRailToolbarButtonCon
+     [BUTTON] 'Avatar' aria=''
+          cls=javascriptMaterialdesignGm3WizButtonFilled-bu
+     [BUTTON] 'Ingredients' aria='Ingredients'
+          cls=javascriptMaterialdesignGm3WizButtonFilled-bu
+
+   --- 20 elemen lain (untuk konteks) ---
+     [DIV] '' aria='Show all comments'
+     [DIV] 'Play' aria='Play (Ctrl+F5)'
+     [DIV] 'Share' aria='Share. Private to only me. '
+     [DIV] '' aria='Quick sharing actions'
+     [DIV] 'Edit' aria=''
+     [DIV] 'View' aria=''
+     [DIV] 'Insert' aria=''
+     [DIV] 'Format' aria=''
+     [DIV] 'Scene' aria=''
+     [DIV] 'Arrange' aria=''
+     [DIV] 'Tools' aria=''
+     [DIV] 'Help' aria=''
+     [DIV] '' aria='New scene (Ctrl+M)'
+     [DIV] '' aria='Undo (Ctrl+Z)'
+     [DIV] '' aria='Redo (Ctrl+Y)'
+     [DIV] '' aria='Zoom in'
+     [DIV] '' aria='Zoom'
+     [DIV] '' aria='Select (Esc)'
+     [DIV] '' aria='Video size'
+     [DIV] '' aria='Customize styles'
+
+=== 2. elemen di sekitar kolom prompt ===
+   elemen dekat prompt: 10
+     [BUTTON] 'Avatar' aria='' type= accept=
+     [INPUT] '' aria='' type=file accept=image/png, image/jpeg
+     [BUTTON] 'Ingredients' aria='Ingredients' type= accept=
+     [BUTTON] 'Omni • 720p •   • 10s' aria='Generation settings: Omni, 720p, Landscape, 10 seconds' type= accept=
+     [BUTTON] 'Omni' aria='' type= accept=
+     [BUTTON] '720p' aria='' type= accept=
+     [BUTTON] 'Landscape' aria='' type= accept=
+     [BUTTON] 'Portrait' aria='' type= accept=
+     [INPUT] '' aria='Video duration' type=range accept=
+     [BUTTON] '' aria='Generate' type= accept=
+
+   input[type=file]: [{"accept": "image/png, image/jpeg", "hidden": true, "multiple": false, "cls": ""}]
+
+=== 3. klik kandidat upload & rekam request ===
+
+   'Uploads': DIKLIK -> {"found": true, "t": "Uploads"}
+      request baru: 0
+   'Upload': tidak ada
+   'Add image': tidak ada
+   'Add media': tidak ada
+
+   'Insert': DIKLIK -> {"found": true, "t": "Text"}
+      request baru: 0
+
+   'Add': DIKLIK -> {"found": true, "t": "Add comment (Ctrl+Alt+M)"}
+      request baru: 0
+   'Images': tidak ada
+
+   'Image': DIKLIK -> {"found": true, "t": "Image"}
+      request baru: 0

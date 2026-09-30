@@ -1,0 +1,6 @@
+=== ZERO-UI GAMBAR v4: gpizrx@gumdel.com ===
+1. token dipanen
+2. gambar diunggah via XHR (AVL_0qgQnVDvmRO9Eu...)
+3. payload disusun: 566 -> 989 char
+4. generate status=400 hasil=TIDAK
+   respons: [3,"Invalid value (), Unexpected list for single non-message field.",[["type.googleapis.com/google.rpc.BadRequest",[[[null,"Invalid value (), Unexpected list for single non-message field."]]]]]]

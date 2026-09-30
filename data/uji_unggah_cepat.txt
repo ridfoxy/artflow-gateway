@@ -1,0 +1,16 @@
+=== UJI UNGGAH CEPAT (2 gambar): qlrpmb@gumdel.com ===
+A = cara sekarang (tunggu thumbnail)  B = segera  C = jeda 0,2s
+
+[A_tunggu] chip=['@Image1'] -> 1 gambar
+      unggah 1 OK
+      thumbnail muncul -> baru unggah 2
+      unggah 2 GAGAL (Locator.set_input_files: Timeout 12000ms)
+
+[B_segera] chip=['@Image1'] -> 1 gambar
+      GAGAL: Locator.set_input_files: Timeout 20000ms exceeded.
+Call log:
+
+[C_jeda02] chip=['@Image1'] -> 1 gambar
+      GAGAL: Locator.set_input_files: Timeout 20000ms exceeded.
+Call log:
+

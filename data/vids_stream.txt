@@ -1,0 +1,17 @@
+=== STREAM DOWNLOAD: bkhbyt@gumdel.com ===
+keadaan tombol: {"disabled": false}
+klik Generate…
+
+== tunggu video hasil (maks 5 menit) ==
+   t+ 10s hasil=0 busy=False
+   t+ 20s hasil=0 busy=False
+   t+ 30s hasil=0 busy=False
+   t+ 40s hasil=1 busy=False
+   VIDEO: dur=10.01s 1280x720
+   src : https://contribution-rt.usercontent.google.com/download?c=CgxiYXJkX3N0b3JhZ2USTBIJdGVtcF9kYXRhGj8KMDRlMThlYjVhMWI4ZmY0ZDMwMDA2NWM3Mzk5M2E2ZWM0MDZhZDFm
+
+== unduh langsung dari URL stream (fetch dalam halaman) ==
+   coba 1: {"s": 200, "ct": "video/mp4", "n": 1202436}
+   byte tersedia: 1202436 ct=video/mp4
+   TERUNDUH: vids_stream_bkhbyt.mp4 1202436 byte
+   header: b'\x00\x00\x00 ftypisom'

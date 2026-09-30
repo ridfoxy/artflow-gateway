@@ -1,0 +1,50 @@
+=== ZERO-UI v8 (panen token gratis): mkialb@gumdel.com ===
+editor siap dalam 24.9s  (TANPA generate apa pun)
+
+=== panggilan appsgenaiserver terekam: 20 (tanpa generate) ===
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=12
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=12
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=12
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=39
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=39
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=39
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=39
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=39
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=39
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=39
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=39
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=12
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=39
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=12
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=39
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=39
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=39
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=39
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=39
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?k
+     authorization=ADA 195  x-server-token=ADA  body_len=39
+
+>>> token tersedia TANPA generate <<<
+  URL generate diturunkan dari quotaSummary: https://appsgenaiserver-pa.clients6.google.com/v1/genai/generate?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F
+
+=== coba submit dengan token hasil panen gratis ===
+  {"status":400,"hasVideo":false,"head":"[3,\"Request contains an invalid argument.\",[[\"type.googleapis.com/google.rpc.ErrorInfo\",[\"REQUEST_REFUSED\",\"espresso-pa.googleapis.com\"]]]]"}

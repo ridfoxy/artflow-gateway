@@ -1,0 +1,657 @@
+{
+  "uji.tidaknyata.9999@gmail.com": {
+    "state": "dry_run",
+    "detail": "berhasil sampai langkah email (kolom: input[name=\"identifier\"]), tidak submit",
+    "at": "2026-09-27T04:20:44.908042+00:00"
+  },
+  "xdbmon@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T06:10:42.155007+00:00"
+  },
+  "onbljn@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T06:21:03.842940+00:00"
+  },
+  "sjyekn@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T06:22:47.199302+00:00"
+  },
+  "ojtrfd@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T06:24:31.174594+00:00"
+  },
+  "nebcpo@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T06:28:18.129114+00:00"
+  },
+  "fdxfhr@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=ServiceLogin&flowName=GlifWebSi)",
+    "at": "2026-09-27T06:30:08.314480+00:00"
+  },
+  "yesykc@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=ServiceLogin&flowName=GlifWebSi)",
+    "at": "2026-09-27T06:31:57.553242+00:00"
+  },
+  "fweuaf@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T06:35:45.487671+00:00"
+  },
+  "qztnrz@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T06:39:31.634068+00:00"
+  },
+  "zgvqlz@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T06:43:18.192098+00:00"
+  },
+  "wanrgc@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T06:45:02.055149+00:00"
+  },
+  "anspbk@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?continue=https://docs.google.com/videos/c)",
+    "at": "2026-09-27T06:12:30.595585+00:00"
+  },
+  "yekfvj@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T06:14:14.312845+00:00"
+  },
+  "xtrcmk@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T06:15:58.837486+00:00"
+  },
+  "ubpttf@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T06:17:17.144091+00:00"
+  },
+  "zwylrc@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T06:48:46.815584+00:00"
+  },
+  "zqmxby@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T06:52:32.116873+00:00"
+  },
+  "bmdtne@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=ServiceLogin&flowName=GlifWebSi)",
+    "at": "2026-09-27T06:54:21.600749+00:00"
+  },
+  "keqrad@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T06:58:08.788790+00:00"
+  },
+  "sboozd@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T07:01:54.661925+00:00"
+  },
+  "fwqagx@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=ServiceLogin&flowName=GlifWebSi)",
+    "at": "2026-09-27T07:03:47.395920+00:00"
+  },
+  "wmcuju@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T07:07:32.014456+00:00"
+  },
+  "praoev@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T07:11:17.035043+00:00"
+  },
+  "ephviy@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T07:15:03.079779+00:00"
+  },
+  "mdraru@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T07:18:48.297855+00:00"
+  },
+  "bkhbyt@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T07:22:35.156017+00:00"
+  },
+  "rvewoc@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=ServiceLogin&flowName=GlifWebSi)",
+    "at": "2026-09-27T07:24:24.834908+00:00"
+  },
+  "djkwiw@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=ServiceLogin&flowName=GlifWebSi)",
+    "at": "2026-09-27T07:26:14.112323+00:00"
+  },
+  "neslss@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T07:29:58.311532+00:00"
+  },
+  "slkoky@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T07:33:43.434111+00:00"
+  },
+  "pgqpwd@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T07:37:28.697796+00:00"
+  },
+  "ntiled@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=ServiceLogin&flowName=GlifWebSi)",
+    "at": "2026-09-27T07:39:18.741899+00:00"
+  },
+  "njjlgm@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T07:43:05.261940+00:00"
+  },
+  "qpfwte@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T07:46:50.798201+00:00"
+  },
+  "bkojzm@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=ServiceLogin&flowName=GlifWebSi)",
+    "at": "2026-09-27T07:48:40.822356+00:00"
+  },
+  "tqbxrb@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=ServiceLogin&flowName=GlifWebSi)",
+    "at": "2026-09-27T07:50:30.225941+00:00"
+  },
+  "eavkkr@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T07:54:14.510696+00:00"
+  },
+  "tuuhto@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T07:57:59.779901+00:00"
+  },
+  "wbjopj@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T08:01:44.560642+00:00"
+  },
+  "sgaduz@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T08:05:28.775124+00:00"
+  },
+  "yzuitk@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=ServiceLogin&flowName=GlifWebSi)",
+    "at": "2026-09-27T08:07:18.479967+00:00"
+  },
+  "sbggfq@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T08:11:03.676951+00:00"
+  },
+  "gpizrx@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T08:14:47.761919+00:00"
+  },
+  "hbnmxc@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=ServiceLogin&flowName=GlifWebSi)",
+    "at": "2026-09-27T08:16:37.924779+00:00"
+  },
+  "vxtbiz@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=ServiceLogin&flowName=GlifWebSi)",
+    "at": "2026-09-27T08:18:27.333680+00:00"
+  },
+  "yxqrfs@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T08:22:12.673302+00:00"
+  },
+  "wxcffw@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=ServiceLogin&flowName=GlifWebSi)",
+    "at": "2026-09-27T08:24:03.164460+00:00"
+  },
+  "utwqxc@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T08:27:48.008031+00:00"
+  },
+  "yyidgf@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T08:31:33.416525+00:00"
+  },
+  "ttsrrv@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T08:35:19.128155+00:00"
+  },
+  "czzwyy@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=ServiceLogin&flowName=GlifWebSi)",
+    "at": "2026-09-27T08:37:08.438308+00:00"
+  },
+  "pguuak@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T08:40:54.138132+00:00"
+  },
+  "pkxnwa@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T08:44:38.657211+00:00"
+  },
+  "iozhmy@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T08:48:23.071548+00:00"
+  },
+  "klblyp@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T08:52:07.772514+00:00"
+  },
+  "mlhlpt@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=ServiceLogin&flowName=GlifWebSi)",
+    "at": "2026-09-27T08:53:57.303067+00:00"
+  },
+  "ygwisd@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=ServiceLogin&flowName=GlifWebSi)",
+    "at": "2026-09-27T08:55:46.830247+00:00"
+  },
+  "cvjdwa@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=ServiceLogin&flowName=GlifWebSi)",
+    "at": "2026-09-27T08:57:36.333118+00:00"
+  },
+  "isquyx@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T09:01:21.649178+00:00"
+  },
+  "yjlmah@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T09:05:07.669146+00:00"
+  },
+  "kvzvpo@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=ServiceLogin&flowName=GlifWebSi)",
+    "at": "2026-09-27T09:06:56.984070+00:00"
+  },
+  "mkialb@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T09:10:40.958123+00:00"
+  },
+  "eslmqy@gumdel.com": {
+    "state": "error",
+    "detail": "kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=ServiceLogin&flowName=GlifWebSi)",
+    "at": "2026-09-27T09:12:30.576139+00:00"
+  },
+  "gswhxg@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T09:16:17.374233+00:00"
+  },
+  "bdarhb@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-27T09:20:02.686319+00:00"
+  },
+  "pwlicp@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T13:46:37.985454+00:00"
+  },
+  "qlrpmb@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T13:12:48.165153+00:00"
+  },
+  "vpfeih@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T08:16:11.822490+00:00"
+  },
+  "urjefi@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T08:41:28.954297+00:00"
+  },
+  "xjijyz@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T08:21:36.501825+00:00"
+  },
+  "isjass@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T09:12:12.852079+00:00"
+  },
+  "wdvybl@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T10:46:26.954654+00:00"
+  },
+  "ttjnjm@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T09:15:50.997556+00:00"
+  },
+  "vepnyj@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T08:29:57.187280+00:00"
+  },
+  "xwimjf@gumdel.com": {
+    "state": "needs_human",
+    "detail": "verifikasi setelah email: ketik teks yang anda dengar atau lihat",
+    "at": "2026-09-29T12:22:48.174760+00:00"
+  },
+  "jlyjnj@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T08:34:48.763212+00:00"
+  },
+  "alrkon@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T09:19:19.971234+00:00"
+  },
+  "cnxzpj@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T08:43:03.934155+00:00"
+  },
+  "ozrbin@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T09:22:36.406031+00:00"
+  },
+  "gfmcpq@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T10:47:28.062592+00:00"
+  },
+  "nzzixe@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T10:50:45.125914+00:00"
+  },
+  "eaqbtd@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T12:27:12.097163+00:00"
+  },
+  "fxlzfx@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T10:54:13.494114+00:00"
+  },
+  "patsao@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T10:57:26.952558+00:00"
+  },
+  "lxakld@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:00:40.591093+00:00"
+  },
+  "zwfnrh@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T12:30:47.625659+00:00"
+  },
+  "uhgsri@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:04:08.590932+00:00"
+  },
+  "sflmoo@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T12:34:46.363842+00:00"
+  },
+  "xqkvnh@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T12:38:31.853013+00:00"
+  },
+  "obplrp@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T09:30:24.162856+00:00"
+  },
+  "lpvxce@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T09:33:42.456940+00:00"
+  },
+  "drkvpj@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:07:53.574339+00:00"
+  },
+  "dhoioy@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T09:37:14.526638+00:00"
+  },
+  "nddjer@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T09:40:38.618415+00:00"
+  },
+  "gfyptn@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T09:43:52.315066+00:00"
+  },
+  "nhtbyk@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T09:47:04.793014+00:00"
+  },
+  "qvmxkq@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T09:50:15.986414+00:00"
+  },
+  "tvrdyi@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T09:53:35.788219+00:00"
+  },
+  "hkogey@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T09:56:50.310191+00:00"
+  },
+  "hlwzpv@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T10:00:05.860826+00:00"
+  },
+  "parcxy@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:08:30.388789+00:00"
+  },
+  "rdbxrj@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:11:43.533248+00:00"
+  },
+  "bktnzo@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T12:42:03.919783+00:00"
+  },
+  "ztogrh@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T12:45:45.357102+00:00"
+  },
+  "yemgxn@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T12:49:24.800252+00:00"
+  },
+  "oinkoa@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:13:15.996361+00:00"
+  },
+  "kdewea@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:16:29.276061+00:00"
+  },
+  "ccfwuj@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:19:42.066462+00:00"
+  },
+  "brsaez@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:22:55.405857+00:00"
+  },
+  "dkuhlo@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:23:30.999572+00:00"
+  },
+  "dvuonm@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:24:04.289325+00:00"
+  },
+  "ewsjwz@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:24:39.278024+00:00"
+  },
+  "dhelac@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:27:56.731266+00:00"
+  },
+  "fbloea@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:31:11.693304+00:00"
+  },
+  "vcxtdz@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:31:42.962887+00:00"
+  },
+  "apxjjb@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:35:01.275415+00:00"
+  },
+  "seofjs@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T12:52:57.596584+00:00"
+  },
+  "bzbhry@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:38:50.974118+00:00"
+  },
+  "tsogtz@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:42:07.045911+00:00"
+  },
+  "gvvrvj@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:45:34.500949+00:00"
+  },
+  "nnfzqe@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:49:07.126578+00:00"
+  },
+  "hkuznk@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:52:21.107214+00:00"
+  },
+  "kfbaeo@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:55:37.682931+00:00"
+  },
+  "cslhfu@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T11:59:01.809249+00:00"
+  },
+  "lqvwnn@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T12:02:16.317941+00:00"
+  },
+  "iqxkgj@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T12:05:33.210207+00:00"
+  },
+  "ofijcn@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T12:06:11.954115+00:00"
+  },
+  "wjxwlq@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T12:09:46.383666+00:00"
+  },
+  "lrctff@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T12:14:04.746901+00:00"
+  },
+  "tgylgr@gumdel.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-29T12:17:32.250648+00:00"
+  }
+}

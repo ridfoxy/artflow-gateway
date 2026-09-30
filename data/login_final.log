@@ -1,0 +1,58 @@
+total akun       : 65
+sudah berhasil   : 53
+akan diproses    : 57
+jeda antar akun  : 8s
+
+[OK ]  1/57 isjass@gumdel.com          187.7s  sesi lama; Vids terbuka (title=Google Vids)
+[VER]  2/57 wdvybl@gumdel.com           16.2s  verifikasi setelah email: ketik teks yang anda dengar atau lihat
+[OK ]  3/57 ttjnjm@gumdel.com          185.8s  sesi lama; Vids terbuka (title=Google Vids)
+[VER]  4/57 xwimjf@gumdel.com            8.2s  verifikasi setelah email: ketik teks yang anda dengar atau lihat
+[OK ]  5/57 alrkon@gumdel.com          185.1s  sesi lama; Vids terbuka (title=Google Vids)
+[OK ]  6/57 ozrbin@gumdel.com          187.8s  sesi lama; Vids terbuka (title=Google Vids)
+[ERR]  7/57 gfmcpq@gumdel.com          145.6s  sesi lama; gagal membuka Vids: Page.goto: Target page, context or browser has been closed
+[ERR]  8/57 nzzixe@gumdel.com            1.2s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR]  9/57 eaqbtd@gumdel.com            0.9s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 10/57 fxlzfx@gumdel.com            0.9s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 11/57 patsao@gumdel.com            0.9s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 12/57 lxakld@gumdel.com            1.1s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 13/57 zwfnrh@gumdel.com            1.1s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[VER] 14/57 uhgsri@gumdel.com           16.5s  verifikasi setelah email: ketik teks yang anda dengar atau lihat
+[VER] 15/57 sflmoo@gumdel.com           10.0s  verifikasi setelah email: ketik teks yang anda dengar atau lihat
+[VER] 16/57 xqkvnh@gumdel.com           11.3s  verifikasi setelah email: ketik teks yang anda dengar atau lihat
+[OK ] 17/57 obplrp@gumdel.com          190.4s  sesi lama; Vids terbuka (title=Google Vids)
+[OK ] 18/57 lpvxce@gumdel.com          190.6s  sesi lama; Vids terbuka (title=Google Vids)
+[VER] 19/57 drkvpj@gumdel.com            9.7s  verifikasi setelah email: ketik teks yang anda dengar atau lihat
+[OK ] 20/57 dhoioy@gumdel.com          186.4s  sesi lama; Vids terbuka (title=Google Vids)
+[OK ] 21/57 nddjer@gumdel.com          195.6s  sesi lama; Vids terbuka (title=Google Vids)
+[OK ] 22/57 gfyptn@gumdel.com          185.8s  sesi lama; Vids terbuka (title=Google Vids)
+[OK ] 23/57 nhtbyk@gumdel.com          184.3s  sesi lama; Vids terbuka (title=Google Vids)
+[OK ] 24/57 qvmxkq@gumdel.com          183.6s  sesi lama; Vids terbuka (title=Google Vids)
+[OK ] 25/57 tvrdyi@gumdel.com          191.4s  sesi lama; Vids terbuka (title=Google Vids)
+[OK ] 26/57 hkogey@gumdel.com          186.8s  sesi lama; Vids terbuka (title=Google Vids)
+[OK ] 27/57 hlwzpv@gumdel.com          187.4s  sesi lama; Vids terbuka (title=Google Vids)
+[ERR] 28/57 parcxy@gumdel.com          115.6s  sesi lama; gagal membuka Vids: Page.goto: Target page, context or browser has been closed
+[ERR] 29/57 rdbxrj@gumdel.com            1.8s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[VER] 30/57 bktnzo@gumdel.com            9.4s  verifikasi setelah email: ketik teks yang anda dengar atau lihat
+[VER] 31/57 ztogrh@gumdel.com           11.9s  verifikasi setelah email: ketik teks yang anda dengar atau lihat
+[VER] 32/57 yemgxn@gumdel.com            8.4s  verifikasi setelah email: ketik teks yang anda dengar atau lihat
+[VER] 33/57 oinkoa@gumdel.com           93.7s  berhenti di persetujuan Workspace — password BENAR, perlu klik setuju (url singkat: workspacete
+[ERR] 34/57 kdewea@gumdel.com            1.1s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 35/57 ccfwuj@gumdel.com            0.9s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 36/57 brsaez@gumdel.com            0.8s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 37/57 dkuhlo@gumdel.com            0.9s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 38/57 dvuonm@gumdel.com            0.9s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 39/57 ewsjwz@gumdel.com            1.0s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 40/57 dhelac@gumdel.com            1.1s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 41/57 fbloea@gumdel.com            1.4s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 42/57 vcxtdz@gumdel.com            1.1s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 43/57 apxjjb@gumdel.com            0.8s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 44/57 seofjs@gumdel.com            0.9s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 45/57 bzbhry@gumdel.com            0.9s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 46/57 tsogtz@gumdel.com            1.0s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 47/57 gvvrvj@gumdel.com            0.8s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 48/57 nnfzqe@gumdel.com            1.0s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 49/57 hkuznk@gumdel.com            1.0s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 50/57 kfbaeo@gumdel.com            0.9s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 51/57 cslhfu@gumdel.com            1.0s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 52/57 lqvwnn@gumdel.com            0.9s  BrowserType.launch_persistent_context: Target page, context or browser has been closed
+[ERR] 53/57 iqxkgj@gumdel.com            1.1s  BrowserType.launch_persistent_context: Target page, context or browser has been closed

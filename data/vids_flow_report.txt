@@ -1,0 +1,76 @@
+== 1. buka layar awal Vids ==
+== 2. PILIH UKURAN dulu (dugaan akar masalah) ==
+   ukuran dipilih: [aria-label="Create a landscape video"]
+== 3. buka editor 'Create AI videos' ==
+   editor dibuka
+
+== 4. keadaan panel SEBELUM prompt ==
+   {"found": true, "disabled": true, "settings": "Omni • 720p • _ • 10s _"}
+== 5. tulis prompt ==
+
+== 6. keadaan panel SETELAH prompt ==
+   {"found": true, "disabled": true, "settings": "Omni • 720p • _ • 10s _"}
+== 7. tunggu Generate hidup (maks 90s) ==
+   t+  5s disabled=True settings='Omni • 720p • _ • 10s _'
+   t+ 10s disabled=True settings='Omni • 720p • _ • 10s _'
+   t+ 15s disabled=True settings='Omni • 720p • _ • 10s _'
+   t+ 20s disabled=True settings='Omni • 720p • _ • 10s _'
+   t+ 25s disabled=True settings='Omni • 720p • _ • 10s _'
+   t+ 30s disabled=True settings='Omni • 720p • _ • 10s _'
+   t+ 35s disabled=True settings='Omni • 720p • _ • 10s _'
+   t+ 40s disabled=True settings='Omni • 720p • _ • 10s _'
+   t+ 45s disabled=True settings='Omni • 720p • _ • 10s _'
+   t+ 50s disabled=True settings='Omni • 720p • _ • 10s _'
+   t+ 55s disabled=True settings='Omni • 720p • _ • 10s _'
+   t+ 60s disabled=True settings='Omni • 720p • _ • 10s _'
+   t+ 65s disabled=True settings='Omni • 720p • _ • 10s _'
+   t+ 70s disabled=True settings='Omni • 720p • _ • 10s _'
+   t+ 75s disabled=True settings='Omni • 720p • _ • 10s _'
+   t+ 80s disabled=True settings='Omni • 720p • _ • 10s _'
+   t+ 85s disabled=True settings='Omni • 720p • _ • 10s _'
+   t+ 90s disabled=True settings='Omni • 720p • _ • 10s _'
+
+== 8. klik Generate kalau sudah hidup ==
+   MASIH MATI — buka panel pengaturan untuk lihat apa yang kurang
+   opsi pengaturan: ["Play", "Share", "Show timing", "AI Video", "Avatar", "Voiceover", "Music", "Image", "Record", "Uploads", "Stock", "Captions", "Text", "Templates", "Shapes", "Create", "Edit", "Animate", "Extend", "Avatar", "Ingredients", "Omni • 720p •   • 10s", "Clear", "Omni", "720p", "Landscape", "Portrait"]
+
+== 9. pantau generasi (maks 5 menit) ==
+   t+ 10s gen_calls=23 url=cC5s3vEegBEno1w8KCkJvSqnCNr8/edit?scene=id.p#scene=id.p
+
+== 10. panggilan generasi yang terekam ==
+   REQ GET https://www.gstatic.com/docs/gettingstarteddialog/generate_video_clips_omni_entry_point_v1.jpg
+   RES 200 https://www.gstatic.com/docs/gettingstarteddialog/generate_video_clips_omni_entry_point_v1.jpg
+        ?
+   REQ GET https://www.gstatic.com/docs/gettingstarteddialog/generate_video_clips_omni_entry_point_v2.mp4
+   REQ POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+        [null,1,[9]]
+   REQ POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+        [null,1,[9]]
+   REQ POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+        [null,1,[9]]
+   REQ POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+        [null,1,[9],233,null,[[null,"1",1251]]]
+   RES 206 https://www.gstatic.com/docs/gettingstarteddialog/generate_video_clips_omni_entry_point_v2.mp4
+        ?
+
+== 11. ekspor dokumen 1ETHRlKtaKIgOwkIcC5s3vEegBEno1w8KCkJvSqnCNr8 ==
+   startexport 200 len=710
+   link: https://docs.usercontent.google.com/videos/d/1ETHRlKtaKIgOwkIcC5s3vEegBEno1w8KCkJvSqnCNr8/startdownload?authuser=0&expor
+   unduh: status=200 ct=video/mp4 len=13744
+   file masih kecil — ekspor mungkin belum selesai
+
+== file video di output ==
+    2bd57fc0-76a9-438e-83a7-953a1f88fcce.mp4 4520944 byte
+    2c8cab49-41dc-4f20-a5ba-89be519faf6a.mp4 1531302 byte
+    2fdee7d7-c036-44ad-a014-ee7b8c3edb12.mp4 3761110 byte
+    36921734-9271-416a-9705-5fd9efabf827.mp4 1209890 byte
+    481e6d81-6963-4f59-8727-e014d0db8a06.mp4 3322976 byte
+    4ae5d2a1-188e-4db2-ba5d-c1c5820fe3f8.mp4 3953386 byte
+    5e0396b4-9bc1-4edb-9d1e-02b6b51cb82f.mp4 998481 byte
+    9bee99ae-09cf-4f66-a033-ae430820ffda.mp4 3786169 byte
+    9cff0bf2-830d-4454-9ab9-4c854748e5f2.mp4 1056532 byte
+    a30c53f1-3151-4a85-8bbb-678b06310aa9.mp4 2831447 byte
+    a9adf1e7-cf9f-4277-aff7-5e91e0894018.mp4 959237 byte
+    c6fd3b43-b1e7-48a9-9fbe-c62625fadeab.mp4 2676759 byte
+    db64b81d-f633-42de-9801-eae4f13d9ccb.mp4 1345092 byte
+    f540a428-513d-4346-860b-6a9d01a21b3c.mp4 2503106 byte

@@ -1,0 +1,22 @@
+pola kontrol: [0,12,null,0,1,null,null,null,10]
+=== OPSI B langkah 3: gpizrx@gumdel.com ===
+editor siap; panen token
+token dipanen
+
+[nilai= 12] status=200 34s url=ADA
+    dimensi: 1280x720 durasi=10s -> LANDSCAPE
+[nilai= 11] status=200 31s url=ADA
+    dimensi: 1280x720 durasi=10s -> LANDSCAPE
+[nilai= 13] status=200 34s url=ADA
+    dimensi: 1280x720 durasi=10s -> LANDSCAPE
+[nilai=  9] status=200 31s url=ADA
+    dimensi: 1280x720 durasi=10s -> LANDSCAPE
+[nilai= 14] status=200 33s url=ADA
+    dimensi: 1280x720 durasi=10s -> LANDSCAPE
+
+=== RINGKASAN ===
+  nilai  12 -> 1280x720  LANDSCAPE  10s
+  nilai  11 -> 1280x720  LANDSCAPE  10s
+  nilai  13 -> 1280x720  LANDSCAPE  10s
+  nilai   9 -> 1280x720  LANDSCAPE  10s
+  nilai  14 -> 1280x720  LANDSCAPE  10s

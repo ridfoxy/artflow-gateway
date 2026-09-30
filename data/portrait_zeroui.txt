@@ -1,0 +1,19 @@
+=== OPSI B langkah 5 (uji penentu): yekfvj@gumdel.com ===
+editor siap
+
+=== 1. pilih Portrait lewat UI ===
+   percobaan 1: {"found": true, "n": 1, "selected": true, "cls": "appsDocsGettingStartedEntryPointSelectionViewAspectRatioOption appsDoc"}
+   bilah pengaturan: Generation settings: Omni, 720p, Landscape, 10 seconds
+
+=== 2. submit dari UI agar payload portrait terekam ===
+   tombol Generate: {"disabled": false, "found": true}
+   payload portrait terekam (585 char)
+   dokumen flix: 1FsYO5F3g7kXNiu9Kk-ciUjth1i-HBHGrRegzlSb
+   blok pengaturan: [0,12,null,0,1,null,null,null,10]
+
+=== 3. ukur dimensi hasil dari UI portrait ===
+   >>> HASIL UI PORTRAIT: 1280x720 LANDSCAPE 10s <<<
+
+=== 4. submit via XHR (zero-UI) dengan payload portrait ===
+   status=200 url=ADA
+   >>> HASIL XHR: 1280x720 LANDSCAPE 10s <<<

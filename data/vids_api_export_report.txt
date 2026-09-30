@@ -1,0 +1,16 @@
+dokumen: a red ball bouncing on white background - Google Vids
+url: https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/edit?scene=id.p#scene=id.p
+token di halaman: -
+
+== 1. panggil startexport?outputFormat=mp4 ==
+{"status":400,"body":"<!DOCTYPE html><html lang=\"en\"><head><script nonce=\"2JtAK9NcZewhudSrCP4Avw\">window['ppConfig'] = {productName: '26981ed0d57bbad37e728ff58134270c', deleteIsEnforced:  false , sealIsEnforced:  false , heartbeatRate:  0.5 , periodicReportingRateMillis:  60000.0 , disableAllReporting:  false };(function(){'use strict';function k(a){var b=0;return function(){return b<a.length?{done:!1,value:a[b++]}:{done:!0}}}function l(a){var b=typeof Symbol!=\"undefined\"&&Symbol.iterator&&a[Symbol.iterator];if(b)return b.call(a);if(typeof a.length==\"number\")return{next:k(a)};throw Error(String(a)+\" is not an iterable or ArrayLike\");}var m=typeof Object.defineProperties==\"function
+
+== 2. polling getexports ==
+   t+  6s status=400 len=1500
+   isi: <!DOCTYPE html><html lang="en"><head><script nonce="l2bpLnQ0bCvD66E8_MbJAQ">window['ppConfig'] = {productName: '26981ed0d57bbad37e728ff58134270c', deleteIsEnforced:  false , sealIsEnforced:  false , heartbeatRate:  0.5 , periodicReportingRateMillis:  60000.0 , disableAllReporting:  false };(function(){'use strict';function k(a){var b=0;return function(){return b<a.length?{done:!1,value:a[b++]}:{done:!0}}}function l(a){var b=typeof Symbol!="undefined"&&Symbol.iterator&&a[Symbol.iterator];if(b)return b.call(a);if(typeof a.length=="number")return{next:k(a)};throw Error(String(a)+" is not an itera
+
+== 3. unduh hasil ==
+belum ada link unduh di getexports
+
+== file output ==
+    vids_result.mp4 1940 byte

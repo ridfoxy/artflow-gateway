@@ -1,0 +1,8 @@
+=== ZERO-UI GAMBAR v7: zwylrc@gumdel.com ===
+1. token dipanen
+2. unggah XHR ok (AVL_0qiS8vtQUkcbcz...)
+3. basis payload bergambar: 1000 -> 987 char (token lama diganti: True)
+4. generate status=200 hasil=ADA
+5. tersimpan zeroui_v7_zwylrc.mp4 (3377314 B) b'\x00\x00\x00 ftypisom'
+
+*** ZERO-UI GAMBAR v7 BERHASIL ***

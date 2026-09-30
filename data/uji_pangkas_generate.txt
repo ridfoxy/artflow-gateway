@@ -1,0 +1,12 @@
+=== uji GENERATE dengan profil DIPANGKAS: qlrpmb@gumdel.com ===
+profil: 157.3 MB -> 4.0 MB (hemat 97.4%)
+
+konteks dibuka 24s | proses chrome baru: 2 | RAM konteks: 7 MB
+token: ADA
+kirim generate via XHR...
+  status=200 waktu=33.2s
+  URL video ADA, unduh...
+
+  *** BERHASIL: pangkas_qlrpmb.mp4 6318629 B header=b'\x00\x00\x00 ftypisom' mp4=True ***
+  RAM konteks: 7 MB untuk profil 4.0 MB
+  proses chrome tersisa setelah tutup: 0 (0 MB)

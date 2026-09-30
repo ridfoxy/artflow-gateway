@@ -1,0 +1,11 @@
+dokumen: a red ball bouncing on white background - Google Vids
+
+== buka File > Download ==
+item Download: {'t': 'Download ►', 'x': 55, 'y': 306, 'w': 320, 'h': 32}
+submenu: [{"t": "MP4 video (.mp4) GIF animation (.gif)", "x": 375, "y": 306, "w": 262, "h": 78}, {"t": "MP4 video (.mp4)", "x": 376, "y": 313, "w": 260, "h": 32}, {"t": "MP4 video (.mp4)", "x": 392, "y": 319, "w": 229, "h": 20}, {"t": "GIF animation (.gif)", "x": 376, "y": 345, "w": 260, "h": 32}, {"t": "GIF animation (.gif)", "x": 392, "y": 351, "w": 229, "h": 20}]
+klik MP4 di: 375 306 262 78
+
+== startexport terekam? == False
+
+== file output ==
+    vids_result.mp4 1940 byte

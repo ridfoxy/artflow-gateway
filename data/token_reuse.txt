@@ -1,0 +1,13 @@
+=== UJI PAKAI-ULANG TOKEN: ubpttf@gumdel.com ===
+buka editor: 26.7s
+token dipanen (sekali). lalu kirim 5 prompt berurutan:
+
+  kirim #1: status=200 video=ADA (33.6s)
+  kirim #2: status=200 video=ADA (30.9s)
+  kirim #3: status=200 video=ADA (30.6s)
+  kirim #4: status=200 video=ADA (30.5s)
+  kirim #5: status=200 video=ADA (30.2s)
+
+ringkas: 5/5 berhasil | total 155.8s | rata-rata 31.2s per video
+biaya buka editor dibayar SEKALI: 26.7s
+KESIMPULAN: token BISA dipakai ulang -> tanpa antri mungkin

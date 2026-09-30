@@ -1,0 +1,14 @@
+template: body 566 char, penanda 'warmup'=ada
+=== ZERO-UI v9: zwylrc@gumdel.com ===
+editor siap 24.8s (tanpa generate)
+token dipanen gratis dari quotaSummary
+URL generate dari template
+body: 566 -> 599 char (prompt diganti)
+
+=== SUBMIT ZERO-UI ===
+  status=200  waktu=31.9s
+  URL video ADA
+
+  HTTP 200 ct=video/mp4 1870485 byte
+  header: b'\x00\x00\x00 ftypisom'
+  >>> MP4 VALID — ZERO-UI SIAP DIPASANG <<<

@@ -1,0 +1,26 @@
+=== OPSI B langkah 6: zwylrc@gumdel.com ===
+editor siap
+
+bilah SEBELUM: Generation settings: Omni, 720p, Landscape, 10 seconds
+
+=== 1. klik tombol pengaturan ===
+   {"found": true}
+
+=== 2. isi panel pengaturan ===
+   elemen rasio/durasi di panel: 5
+     [BUTTON] 'Omni | • | 720p | • |   | • | 10s' aria=Generation settings: Omni, 720p, Landscape, 10 seconds checked=None
+     [BUTTON] 'Omni' aria=None checked=None
+     [BUTTON] '720p' aria=None checked=None
+     [radio] 'Landscape' aria=None checked=true
+     [radio] 'Portrait' aria=None checked=false
+
+=== 3. pilih Portrait di panel ===
+   coba 'Portrait': {"found": true, "t": "Portrait", "cls": "javascriptMaterialdesignGm3WizConnectedButtonGroupSharedButt"}
+
+bilah SESUDAH: Generation settings: Omni, 720p, Portrait, 10 seconds
+bilah setelah Escape: Generation settings: Omni, 720p, Portrait, 10 seconds
+
+=== 4. submit & ukur ===
+bilah setelah reload: None
+
+   video tidak terdeteksi di halaman

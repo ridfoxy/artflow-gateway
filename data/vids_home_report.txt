@@ -1,0 +1,31 @@
+== buka beranda Vids ==
+url: https://docs.google.com/videos/u/0/
+judul: Google Vids
+
+== teks beranda ==
+Vids | Recently used templates | Start a new video | Recent videos | Owned by anyone | Recent videos | a red ball bouncing on white background | Opened12:35 PM
+
+== elemen dengan id dokumen (pola ID panjang) ==
+   IMG ''
+       src = https://www.gstatic.com/images/branding/productlogos/vids_2026/v3/web-48dp/logo_vids_2026_color
+       srcset = https://www.gstatic.com/images/branding/productlogos/vids_2026/v3/web-48dp/logo_vids_2026_color
+   IMG ''
+       src = https://lh3.google.com/u/0/ogw/AF2bZyiqSrhxkpKS6oKZmph2G2IJmPqM9F-Yl2nUgpGutnr5HA=s32-c-mo
+       srcset = https://lh3.google.com/u/0/ogw/AF2bZyiqSrhxkpKS6oKZmph2G2IJmPqM9F-Yl2nUgpGutnr5HA=s32-c-mo 1x, 
+
+== semua elemen klik-able (top 40) ==
+   A      role=          'Vids'
+   DIV    role=button    'Main menu'
+   A      role=          'Vids'
+   BUTTON role=          'Clear search'
+   BUTTON role=button    'Search'
+   A      role=button    'Google apps'
+   A      role=button    'Google Account: xdbmon User  \n(xdbmon@gumdel.com), Importa'
+   DIV    role=button    'Back'
+   DIV    role=button    'Owned by anyone'
+   DIV    role=button    'List view'
+   DIV    role=button    'Open file picker'
+   DIV    role=button    'More actions. Popup button.'
+   A      role=          'Vids'
+
+screenshot: data/login_logs/vids-home2.png

@@ -1,0 +1,19 @@
+=== OPSI B langkah 4: ubpttf@gumdel.com ===
+editor siap
+
+request sebelum klik rasio: 56
+
+=== klik PORTRAIT (aria tepat) ===
+hasil klik: {"found": true, "cls": "appsDocsGettingStartedEntryPointSelectionViewAspectRatioOption appsDocsGettingSt"}
+
+request total sesudah klik: 56
+
+=== request BARU setelah klik rasio: 0 ===
+
+=== kelas tombol rasio sekarang ===
+  Create a landscape video: tidak
+  Create a portrait video: tidak
+  Create a square video: tidak
+
+=== semua request 'menarik' sepanjang sesi ===
+  [xhr] GET /videos/u/0/d/176vB-adU7WgUuO6QiV7bYe-518k9GJ2SMv4gF0m4I8Q/getencryptedpresetassets?actor_ids=actor28&actor_ids=actor38&actor_ids=actor51&ac

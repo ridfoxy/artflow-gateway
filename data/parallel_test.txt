@@ -1,0 +1,12 @@
+=== UJI PARALEL 3 SERENTAK: yekfvj@gumdel.com ===
+editor siap 29.2s
+token dipanen
+
+=== kirim 3 generate SERENTAK (satu halaman) ===
+  #1: status=200 video=ADA (32.6s)
+  #2: status=200 video=ADA (34.6s)
+  #3: status=200 video=ADA (32.7s)
+
+3/3 berhasil | total 34.7s | unik=1
+KESIMPULAN: paralel DALAM satu sesi BERHASIL -> daya angkat naik ~3x tanpa tambah Chrome
+  setara 5.2 video/menit dari SATU sesi

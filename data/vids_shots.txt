@@ -1,0 +1,23 @@
+== 1. layar awal Vids ==
+   [shot] probe-1-homescreen.png 368215 byte
+== 2. buka editor ==
+   [shot] probe-2a-just-opened.png 179500 byte
+   [shot] probe-2b-editor-ready.png 179503 byte
+   keadaan (prompt kosong): {"disabled": true, "settings": "Omni • 720p • _ • 10s _"}
+== 3. ketik prompt ==
+   [shot] probe-3a-prompt-focused.png 179507 byte
+   [shot] probe-3b-prompt-typed.png 176373 byte
+   keadaan (prompt terisi): {"disabled": true, "prompt": "a blue cube slowly rotating on a white background", "settings": "Omni • 720p • _ • 10s _"}
+== 4. buka panel pengaturan (biar terlihat apa yang kurang) ==
+   [shot] probe-4-settings-panel.png 176875 byte
+== 5. coba Enter lalu screenshot hasilnya ==
+   [shot] probe-5-after-enter.png 176371 byte
+
+== file screenshot ==
+   probe-1-homescreen.png  368215 byte
+   probe-2a-just-opened.png  179500 byte
+   probe-2b-editor-ready.png  179503 byte
+   probe-3a-prompt-focused.png  179507 byte
+   probe-3b-prompt-typed.png  176373 byte
+   probe-4-settings-panel.png  176875 byte
+   probe-5-after-enter.png  176371 byte

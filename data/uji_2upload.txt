@@ -1,0 +1,21 @@
+=== UJI UNGGAH 2 GAMBAR SEKALIGUS: qlrpmb@gumdel.com ===
+gambar: f_merah.png + f_biru.png
+
+input[type=file] awal: [{"accept": "image/png, image/jpeg", "multiple": false, "tampak": false}]
+thumbnail sebelum: {'img': 0, 'remove': 0}
+
+[CARA A] set_input_files([gambar1, gambar2])
+  panggilan GAGAL: Locator.set_input_files: Error: Non-multiple file input can only accept single file
+Call log:
+  - waiting for 
+  thumbnail sesudah: {'img': 0, 'remove': 0}
+
+[CARA B] unggah bertahap pada input yang sama
+  GAGAL: Locator.set_input_files: Timeout 15000ms exceeded.
+Call log:
+  - waiting for locator("input[type=\"file\"]").f
+  thumbnail sesudah B: {'img': 2, 'remove': 1}
+
+=== HASIL UNGGAH ===
+  thumbnail: 2 | chip 'Remove image': 1
+  2 GAMBAR TERPASANG

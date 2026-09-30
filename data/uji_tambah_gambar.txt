@@ -1,0 +1,18 @@
+=== CARI CARA MENAMBAH GAMBAR KE-2: qlrpmb@gumdel.com ===
+
+input awal: 1
+unggah 1: TERKIRIM
+setelah unggah 1 -> input=0 chip={'chips': ['@Image1']}
+input[type=file] yang pernah DIBUAT (rekaman MutationObserver): []
+
+kandidat pemicu 'Add image/avatar': 3
+   [0] BUTTON aria='Add avatar or ingredients' txt='Add'
+   [1] DIV aria='' txt='Add avatar or ingredients'
+   [2] SPAN aria='' txt='Add avatar or ingredients'
+
+=== mencoba klik tiap kandidat ===
+   [0] 'Add': input 0->1 chip ['@Image1']->['@Image1']   <<< INPUT MUNCUL
+        >>> unggah gambar 2: chip=['@Image1', '@Image2']  *** 2 GAMBAR BERHASIL ***
+
+=== AKHIR ===
+  input=1 chip={'chips': ['@Image1', '@Image2']}

@@ -1,0 +1,42 @@
+== 1. buka daftar Vids ==
+url: https://docs.google.com/videos/u/0/
+dokumen terlihat:
+!! tidak ada dokumen di daftar; coba halaman lain
+
+== 6. endpoint getexports / ekspor ==
+   [200] GET https://docs.google.com/videos/u/0/
+          ct=text/html; charset=utf-8 len=
+   [200] GET https://docs.google.com/static/videos/client/css/498035880-homescreen_flix_css_ltr.css
+          ct=text/css len=123455
+   [200] GET https://docs.google.com/static/videos/client/css/3754101433-homescreen_quantum_css_webkit_ltr.css
+          ct=text/css len=10053
+   [200] GET https://docs.google.com/static/videos/client/js/3679390391-homescreen_binary_i18n_core.js
+          ct=text/javascript len=675351
+   [200] GET https://docs.google.com/static/videos/client/js/4172305146-homescreen_binary_i18n_app.js
+          ct=text/javascript len=83188
+   [200] GET https://docs.google.com/videos/manifest.json
+          ct=application/manifest+json; charset=utf-8 len=
+   [204] POST https://docs.google.com/videos/u/0/naLogImpressions?token=AJagN6Taj7HQA4Qv8RMT62zOmiHj%3A1790489845333&ouid=110221244694095901562
+          ct=text/html; charset=utf-8 len=0
+   [200] GET https://docs.google.com/static/videos/client/js/4139448242-homescreen_binary_i18n_wiz.js
+          ct=text/javascript len=558772
+   [200] GET https://docs.google.com/videos/u/0/preload
+          ct=text/html; charset=utf-8 len=
+   [200] GET https://docs.google.com/static/videos/client/css/1137545924-editor_css_ltr.css
+          ct=text/css len=447588
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=core
+          ct=text/javascript; charset=UTF-8 len=920278
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=app
+          ct=text/javascript; charset=UTF-8 len=2481299
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=docos
+          ct=text/javascript; charset=UTF-8 len=325454
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=pretertiarydeps
+          ct=text/javascript; charset=UTF-8 len=406996
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=recordingstudio
+          ct=text/javascript; charset=UTF-8 len=189795
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=tertiary
+          ct=text/javascript; charset=UTF-8 len=392299
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.viewer_integrated.en.IShomqbBP6E.es5.O/am=IAAADDA/d=0/wt=0/rs=AJpcAAIZDUdqE95RctB3kGi4L5lfFp23-Q/m=core
+          ct=text/javascript; charset=UTF-8 len=420319
+   [200] GET https://docs.google.com/static/videos/client/css/3566724345-viewer_css_ltr.css
+          ct=text/css len=111537

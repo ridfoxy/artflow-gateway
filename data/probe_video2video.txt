@@ -1,0 +1,95 @@
+=== PROBE VIDEO-TO-VIDEO: qlrpmb@gumdel.com ===
+
+=== HALAMAN AWAL (pintu masuk) ===
+  Vids
+  Hello, qlrpmb.
+  Let’s start creating.
+  Landscape
+  Portrait
+  Square
+  Create AI videos
+  New
+  Turn text, images, or audio into short videos with Omni
+  Edit videos
+  New
+  Transform your videos with Omni
+  Personal avatar
+  New
+  Create your own personal avatar to star in any video
+  AI avatar
+  New
+  Write a script, choose an avatar, and generate a video
+  Docs to video
+  New
+  Turn documents or PDFs into dynamic video summaries
+  Slides to video
+  Turn presentations into narrated videos
+  Record
+  Record yourself, your screen, or both
+  Upload
+  Use media from Drive, Photos, or your computer
+
+==========================================================
+=== BUKA PINTU: Edit videos ===
+  url: https://docs.google.com/videos/d/1mrbEvYDNhzdGT9yktoqEYSRlPbtKw8t36xKQ9Acoe3g/edit?scene=id.p#scene=
+  input file:
+     accept='video/mp4, video/webm' [VIDEO] multiple=False
+  tombol relevan:
+     'Landscape' disabled=False
+     'Portrait' disabled=False
+     'Square' disabled=False
+     'Create AI videosNewTurn text, images, or' disabled=False
+     'Edit videosNewTransform your videos with' disabled=False
+     'Docs to videoNewTurn documents or PDFs i' disabled=False
+     'Slides to videoTurn presentations into n' disabled=False
+     'UploadUse media from Drive, Photos, or y' disabled=False
+     'Upload' disabled=False
+     'Video size' disabled=False
+     'Crop video' disabled=False
+     'Mask video' disabled=False
+     'Mask video' disabled=False
+     'Reset video' disabled=False
+     'Replace video' disabled=False
+     'Previous edit (Ctrl+Alt+J)' disabled=False
+  teks halaman:
+     Untitled video
+     Play
+     Share
+     FileEditViewInsertFormatSceneArrangeToolsHelp
+     Show timing
+     00:00.0
+     /
+     00:05.0
+     1
+     AI Video
+     Avatar
+     Voiceover
+     Music
+     Image
+     Record
+
+==========================================================
+=== BUKA PINTU: Upload ===
+  klik gagal: Locator.click: Timeout 9000ms exceeded.
+Call log:
+  - waiting for loca
+
+=== ENDPOINT PENTING (27) ===
+  https://www.gstatic.com/docs/gettingstarteddialog/upload_entry_point_drive_photos_v3.jpg
+  https://www.gstatic.com/docs/gettingstarteddialog/upload_entry_point_drive_photos_v2.mp4
+  https://www.gstatic.com/docs/gettingstarteddialog/upload_entry_point_drive_photos_v2.mp4
+  https://www.gstatic.com/docs/videos/videos/likeness/flix_likeness_veo_entry_point_v2.mp4
+  https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  https://www.gstatic.com/docs/gettingstarteddialog/upload_entry_point_drive_photos_v2.mp4
+  https://www.gstatic.com/docs/videos/videos/likeness/flix_likeness_veo_entry_point_v2.mp4
+  https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8

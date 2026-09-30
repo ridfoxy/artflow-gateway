@@ -1,0 +1,6 @@
+=== ZERO-UI GAMBAR v3: zwylrc@gumdel.com ===
+1. token dipanen
+2. gambar diunggah via XHR (token AVL_0qhlNipTa2RTrT_H...)
+3. payload disusun (566 -> 995 char)
+4. generate status=400 hasil=TIDAK
+   respons: [3,"Invalid value (), List is not message or group type.",[["type.googleapis.com/google.rpc.BadRequest",[[[null,"Invalid value (), List is not message or group type."]]]]]]

@@ -1,0 +1,32 @@
+dokumen: a red ball bouncing on white background - Google Vids
+
+== File > Download ==
+item Download: None
+
+== tunggu ekspor selesai (maks 180s) ==
+   t+ 10s file=- ekspor_isi=0
+   t+ 20s file=- ekspor_isi=0
+   t+ 30s file=- ekspor_isi=0
+   t+ 40s file=- ekspor_isi=0
+   t+ 50s file=- ekspor_isi=0
+   t+ 60s file=- ekspor_isi=0
+   t+ 70s file=- ekspor_isi=0
+   t+ 80s file=- ekspor_isi=0
+   t+ 90s file=- ekspor_isi=0
+   t+100s file=- ekspor_isi=0
+   t+110s file=- ekspor_isi=0
+   t+120s file=- ekspor_isi=0
+   t+130s file=- ekspor_isi=0
+   t+140s file=- ekspor_isi=0
+   t+150s file=- ekspor_isi=0
+   t+160s file=- ekspor_isi=0
+   t+170s file=- ekspor_isi=0
+   t+180s file=- ekspor_isi=0
+
+== panggilan ekspor ==
+   [200] https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/getexports?token=AJagN6Rk52eOBxk9q6ft79IuBCK3%3A1790491447013&
+        )]}'
+[]
+
+== file output ==
+    vids_result.mp4 1940 byte

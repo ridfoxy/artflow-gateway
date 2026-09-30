@@ -1,0 +1,42 @@
+== buka dokumen lewat beranda (agar token muncul) ==
+   dokumen diklik
+url: https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/edit?ouid=110221244694095901562&usp=vids_home
+token terekam: True | ouid: 110221244694095901562
+
+== 1. startexport MP4 (page.request, bawa cookie) ==
+   status=405
+   body=<!DOCTYPE html><html lang="en"><head><script nonce="_4iACslqXzy-EHBtXlTwAQ">window['ppConfig'] = {productName: '26981ed0d57bbad37e728ff58134270c', deleteIsEnforced:  false , sealIsEnforced:  false , heartbeatRate:  0.5 , periodicReportingRateMillis:  60000.0 , disableAllReporting:  false };(function(){'use strict';function k(a){var b=0;return function(){return b<a.length?{done:!1,value:a[b++]}:{done:!0}}}function l(a){var b=typeof Symbol!="undefined"&&Symbol.iterator&&a[Symbol.iterator];if(b)ret
+   coba format lain (gif) untuk memastikan token benar
+   gif status=405 body=<!DOCTYPE html><html lang="en"><head><script nonce="gFzCrcteNuC33XYP3ZIEtA">window['ppConfig'] = {productName: '26981ed0d57bbad37e728ff58134270c', deleteIsEnforced:  false , sealIsEnforced:  false , heartbeatRate:  0.5 , periodicReportingRateMillis:  60000.0 , disableAllReporting:  false };(function
+
+== 2. polling getexports ==
+   t+  6s status=200 isi=[]
+   t+ 12s status=200 isi=[]
+   t+ 18s status=200 isi=[]
+   t+ 24s status=200 isi=[]
+   t+ 30s status=200 isi=[]
+   t+ 36s status=200 isi=[]
+   t+ 42s status=200 isi=[]
+   t+ 48s status=200 isi=[]
+   t+ 54s status=200 isi=[]
+   t+ 60s status=200 isi=[]
+   t+ 66s status=200 isi=[]
+   t+ 72s status=200 isi=[]
+   t+ 78s status=200 isi=[]
+   t+ 84s status=200 isi=[]
+   t+ 90s status=200 isi=[]
+   t+ 96s status=200 isi=[]
+   t+102s status=200 isi=[]
+   t+108s status=200 isi=[]
+   t+114s status=200 isi=[]
+   t+120s status=200 isi=[]
+   t+126s status=200 isi=[]
+   t+132s status=200 isi=[]
+   t+138s status=200 isi=[]
+   t+144s status=200 isi=[]
+
+== 3. unduh ==
+belum ada link unduh
+
+== file output ==
+    vids_result.mp4 1940 byte

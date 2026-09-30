@@ -1,0 +1,76 @@
+editor dibuka via button:has-text("Create AI videos")
+prompt ditulis
+
+== elemen klik-able di sekitar kolom prompt ==
+kotak prompt: {"x": 894, "y": 674, "w": 481, "h": 82}
+   DIV    (   0,  0) 1500x114 dis=False 'Untitled video\nPlay\n\xa0\nShare\nFileEditViewInsertFormatSce'
+   DIV    (1158,  9)  42x 42 dis=False '|Show all comments'
+   DIV    (1206, 10)  92x 40 dis=False 'Play|Play (Ctrl+F5)'
+   DIV    (1308, 10)  91x 40 dis=False 'Share|Share. Private to only me.'
+   DIV    (1398, 10)  34x 40 dis=False '|Quick sharing actions'
+   A      (1444, 10)  40x 40 dis=False '|Google Account: xdbmon User  \n(xdbmon@gumdel.com), Imp'
+   DIV    ( 458, 70)  32x 30 dis=False '|Background'
+   DIV    ( 492, 70)  30x 30 dis=False '|Transition (Ctrl+Alt+R)'
+   DIV    ( 524, 70)  30x 30 dis=False '|Animation (Ctrl+Shift+M)'
+   DIV    ( 802, 65)  32x 40 dis=False '|Mode and view'
+   DIV    ( 803, 70)  30x 30 dis=False '|Hide the menus (Ctrl+Shift+F)'
+   DIV    ( 392,772) 111x 18 dis=False '00:00.0\n/\n00:05.0|0 seconds out of 5 seconds.'
+   DIV    ( 588,758) 230x 46 dis=False '|Timeline zoom controls'
+   DIV    ( 596,758) 144x 46 dis=False '|Adjust timeline zoom'
+   DIV    ( 778,852)  40x 40 dis=False '|New scene (Ctrl+M)'
+   DIV    (1412,140)  88x730 dis=False 'AI Video\nAvatar\nVoiceover\nMusic\nImage\nRecord\nUploads\nSt'
+   DIV    (1412,140)  88x 48 dis=False 'AI Video|Generate an AI video clip'
+   DIV    (1412,202)  88x 48 dis=False 'Avatar|Generate an avatar'
+   DIV    (1412,264)  88x 48 dis=False 'Voiceover|Generate a voiceover'
+   DIV    (1412,326)  88x 48 dis=False 'Music|Generate music'
+   DIV    (1412,388)  88x 48 dis=False 'Image|Generate an image'
+   DIV    (1412,450)  88x 48 dis=False 'Record|Record'
+   DIV    (1412,512)  88x 48 dis=False 'Uploads|Drive and Photos'
+   DIV    (1412,574)  88x 48 dis=False 'Stock|Stock and web'
+   DIV    (1412,636)  88x 48 dis=False 'Captions|Captions'
+   DIV    (1412,698)  88x 48 dis=False 'Text|Insert text'
+   DIV    (1412,760)  88x 48 dis=False 'Templates|Insert from templates'
+   DIV    (1412,822)  88x 48 dis=False 'Shapes|Insert shapes and lines'
+   BUTTON ( 870, 73)  40x 40 dis=False '|Gemini in Workspace can make mistakes.'
+   BUTTON (1316, 73)  40x 40 dis=False '|Show gallery'
+   BUTTON (1364, 73)  40x 40 dis=False '|Close side sheet'
+   BUTTON (1348,133)  40x 40 dis=False '|Close banner'
+   DIV    ( 878,193) 257x412 dis=False '|'
+   DIV    ( 878,609) 257x147 dis=False '|'
+   DIV    ( 878,760) 257x412 dis=False '|'
+   DIV    ( 878,1176) 257x147 dis=False '|'
+   DIV    (1139,193) 257x147 dis=False '|'
+   DIV    (1139,344) 257x412 dis=False '|'
+   DIV    (1139,760) 257x147 dis=False '|'
+   DIV    (1139,911) 257x412 dis=False '|The person wipes their hands on a rag, looking into th'
+   DIV    (1139,1327) 257x147 dis=False '|'
+   BUTTON ( 894,625) 100x 36 dis=False 'Create|Create'
+   BUTTON (1002,625)  82x 36 dis=False 'Edit|Edit'
+   BUTTON (1092,625) 110x 36 dis=False 'Animate|Animate'
+   BUTTON (1211,625) 102x 36 dis=False 'Extend|Extend'
+   BUTTON (1344,626)  36x 36 dis=False '|Collapse'
+   DIV    ( 894,674) 481x 82 dis=False 'a red ball bouncing on a white background|Describe your'
+   BUTTON ( 894,768)  90x 90 dis=False 'Avatar|'
+   BUTTON ( 990,768) 390x 90 dis=False 'Ingredients|Ingredients'
+   BUTTON ( 894,878) 188x 32 dis=False 'Omni\n•\n720p\n•\n\xa0\n•\n10s\n\xa0|Generation settings: Omni, 720p'
+   BUTTON (1265,878)  67x 32 dis=False 'Clear|'
+   BUTTON (1340,874)  40x 40 dis=True '|Generate'
+
+kandidat terbaik: {"tag": "BUTTON", "text": "Create|Create", "x": 894, "y": 625, "w": 100, "h": 36, "dis": false, "aria": "Create"}
+== klik kandidat ==
+   klik pada (944,643)
+url sekarang: videos/d/1ORoRuJONbA9M1bO-IKNo5-cOTnZDbez39n7kh8p42EQ/edit?scene=id.p#scene=id.p
+
+== pantau 120 detik ==
+   t+ 10s tanda=[] net=24
+
+== jaringan generasi ==
+   [200] GET https://www.gstatic.com/docs/gettingstarteddialog/generate_video_clips_omni_entry_point_v1.jpg
+          ct=image/jpeg
+   [206] GET https://www.gstatic.com/docs/gettingstarteddialog/generate_video_clips_omni_entry_point_v2.mp4
+          ct=video/mp4
+   [200] POST https://docs.google.com/videos/u/0/d/1ORoRuJONbA9M1bO-IKNo5-cOTnZDbez39n7kh8p42EQ/getexports?token=AJagN6TkmwHqbeeDt2H_IEzBBBVp%3A1790488928551&ouid=110221244694095901562&cros_files=false&nded=false
+          ct=application/json; charset=utf-8
+   [200] POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+          ct=application/json+protobuf; charset=UTF-8
+   [204] GET https://docs.google.com/generate_204?u5Dyvw

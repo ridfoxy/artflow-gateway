@@ -1,0 +1,35 @@
+editor dibuka
+== keadaan awal == {"found": true, "disabled": true, "settings": "Omni • 720p •   • 10s"}
+== setelah menulis prompt == {"found": true, "disabled": true, "settings": "Omni • 720p •   • 10s"}
+   t+  5s disabled=True settings='Omni • 720p • \xa0 • 10s'
+   t+ 10s disabled=True settings='Omni • 720p • \xa0 • 10s'
+   t+ 15s disabled=True settings='Omni • 720p • \xa0 • 10s'
+   t+ 20s disabled=True settings='Omni • 720p • \xa0 • 10s'
+   t+ 25s disabled=True settings='Omni • 720p • \xa0 • 10s'
+   t+ 30s disabled=True settings='Omni • 720p • \xa0 • 10s'
+   t+ 35s disabled=True settings='Omni • 720p • \xa0 • 10s'
+   t+ 40s disabled=True settings='Omni • 720p • \xa0 • 10s'
+   t+ 45s disabled=True settings='Omni • 720p • \xa0 • 10s'
+   t+ 50s disabled=True settings='Omni • 720p • \xa0 • 10s'
+   t+ 55s disabled=True settings='Omni • 720p • \xa0 • 10s'
+   t+ 60s disabled=True settings='Omni • 720p • \xa0 • 10s'
+
+!! Generate masih mati. Coba klik ingredient/alat lain untuk memicu state.
+   klik Ingredients
+== setelah memicu == {"found": true, "disabled": true, "settings": "Omni • 720p •   • 10s"}
+
+!! tidak bisa submit — Generate tetap mati
+
+== pantau 150 detik ==
+   t+ 10s tanda=[] net=24
+
+== jaringan ==
+   [200] GET https://www.gstatic.com/docs/gettingstarteddialog/generate_video_clips_omni_entry_point_v1.jpg
+          ct=image/jpeg
+   [206] GET https://www.gstatic.com/docs/gettingstarteddialog/generate_video_clips_omni_entry_point_v2.mp4
+          ct=video/mp4
+   [200] POST https://docs.google.com/videos/u/0/d/1YHqKpFAcKd1ApcBbsgIbOv8zWDhIwbJ1OoG8_nw_ATQ/getexports?token=AJagN6TIXynGx8ehXNWp_K6Uni-N%3A1790489023927&ouid=110221244694095901562&cros_files=false&nded=false
+          ct=application/json; charset=utf-8
+   [200] POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+          ct=application/json+protobuf; charset=UTF-8
+   [204] GET https://docs.google.com/generate_204?jAuCKw

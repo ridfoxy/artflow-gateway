@@ -1,0 +1,71 @@
+beranda dibuka
+
+== klik kartu video terbaru ==
+diklik: text="a red ball bouncing on white background"
+url sekarang: https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/edit?ouid=110221244694095901562&usp=vids_h
+judul: a red ball bouncing on white background - Google Vids
+
+== elemen <video> di dokumen ==
+[
+  {
+    "src": "https://ssl.gstatic.com/docs/generativeai/videogen/video_gen_omni_edit_promo.mp4",
+    "cur": "https://ssl.gstatic.com/docs/generativeai/videogen/video_gen_omni_edit_promo.mp4",
+    "dur": 3.033333,
+    "w": 1920,
+    "h": 1120
+  }
+]
+
+== teks dokumen ==
+a red ball bouncing on white background | Play | Share | FileEditViewInsertFormatSceneArrangeToolsHelp | Show timing | 00:00.0 | / | 00:05.0 | 1 | AI Video | Avatar | Voiceover | Music | Image | Record | Uploads | Stock | Captions | Text | Templates | Shapes | Turn on screen reader support | Banner hidden | To enable screen reader support, press Ctrl+Alt+Z To learn about keyboard shortcuts, press Ctrl+slash | Reimagine your video | Describe any changes you want to make, from a tiny tweak to a total transformation
+
+== coba unduh ==
+   menu File: ["File", "Edit", "View", "Insert", "Format", "Scene", "Arrange", "Tools", "Help", "New video", "Open\nCtrl+O", "Slides to video", "Docs to video\nNew", "Storyboard", "Make a copy\n►", "Share", "Download\n►", "Export to Drive", "Rename", "Move", "Add shortcut to Drive", "Move to trash", "Version history\n►", "Details", "Security limitations", "Language\n►", "Video size"]
+HASIL UNDUH: tidak ada
+
+== isi respons getexports ==
+    )]}' []
+
+== endpoint ==
+   [200] GET https://docs.google.com/videos/u/0/
+   [200] GET https://docs.google.com/static/videos/client/css/3754101433-homescreen_quantum_css_webkit_ltr.css
+   [200] GET https://docs.google.com/static/videos/client/css/498035880-homescreen_flix_css_ltr.css
+   [200] GET https://docs.google.com/static/videos/client/js/3679390391-homescreen_binary_i18n_core.js
+   [200] GET https://docs.google.com/static/videos/client/js/4172305146-homescreen_binary_i18n_app.js
+   [200] GET https://docs.google.com/videos/manifest.json
+   [200] GET https://lh3.googleusercontent.com/rd-ogw/AF2bZyjVSw6RzbvZsAbTHuT8YmJrqVh9TCm34JBOzHgcEp76OXSN7TLh50aEmo9nhYH7AM2ReCZGDO6qj7Nf9tkwiqXkHZOPAjjvcwndKgkBW5-i_l9FpyGP5yz9lOFZRdKiUuPwn365zMBo
+   [204] POST https://docs.google.com/videos/u/0/naLogImpressions?token=AJtFDW2OOI4gYzWhDpH622bnwAld%3A1790490291310&ouid=110221244694095901562
+   [200] GET https://docs.google.com/videos/u/0/preload
+   [200] GET https://docs.google.com/static/videos/client/js/4139448242-homescreen_binary_i18n_wiz.js
+   [200] GET https://docs.google.com/static/videos/client/css/1137545924-editor_css_ltr.css
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=core
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=app
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=docos
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=pretertiarydeps
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=recordingstudio
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=tertiary
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.viewer_integrated.en.IShomqbBP6E.es5.O/am=IAAADDA/d=0/wt=0/rs=AJpcAAIZDUdqE95RctB3kGi4L5lfFp23-Q/m=core
+   [200] GET https://docs.google.com/static/videos/client/css/3566724345-viewer_css_ltr.css
+   [200] GET https://lh3.googleusercontent.com/a/ACg8ocK9HGR-XqeXDoXOWOmlxNJyFNuyF8bMPlbLHKQEzyBgbKpOIg=s128-b16-cc-rp-mo
+   [200] GET https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/edit?ouid=110221244694095901562&usp=vids_home
+   [200] GET https://lh3.googleusercontent.com/rd-ogw/AF2bZyiBCb5bypiaHTyrqNwsGI320bfjLqDNJUG0oq0aw4Eb2bwX5Ekj9JyXKdXVijZfk8dS11qD2-5VBF5rYjwGFXsvkaQHH6ub_VH4b4YHJARrxHhWZR4HFpAimke9nVB5RIZ0PrFmY0HU
+   [200] GET https://ssl.gstatic.com/docs/videos/images/flix_no_scenes_illustration.svg
+   [200] POST https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/docos/p/sync?sid=235ac7eda958e9f0&vc=1&c=1&w=1&flr=0&smv=9&smb=%5B9%2C%20%5D&token=AJagN6SPr1hYQ9-8-aGG2rzJ
+   [200] POST https://docs.google.com/videos/font/getmetadata?token=AJagN6SPr1hYQ9-8-aGG2rzJMRQp%3A1790490304918&ouid=110221244694095901562&usp=vids_home&cros_files=false&nded=false
+   [200] GET https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/trash/read?id=15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg&token=AJagN6SPr1hYQ9-8-aGG2rzJMRQp%3A17904903049
+   [200] GET https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/test?id=15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg&sid=235ac7eda958e9f0&token=AJagN6SPr1hYQ9-8-aGG2rzJMRQ
+   [200] GET https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/peruserchrome?id=15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg&token=AJagN6SPr1hYQ9-8-aGG2rzJMRQp%3A17904903
+   [200] GET https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/docos/p/uc?id=15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg&reqid=0&token=AJagN6SPr1hYQ9-8-aGG2rzJMRQp%3A179
+   [206] GET https://ssl.gstatic.com/docs/generativeai/videogen/video_gen_omni_edit_promo.mp4
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=sketchysmith
+   [200] GET https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/haslikeness?token=AJagN6SPr1hYQ9-8-aGG2rzJMRQp%3A1790490304918&ouid=110221244694095901562&usp=vids_home&cro
+   [200] POST https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/prefs?id=15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg&token=AJagN6SPr1hYQ9-8-aGG2rzJMRQp%3A1790490304918&ou
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=templates
+   [200] POST https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/bind?id=15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg&sid=235ac7eda958e9f0&token=AJagN6SPr1hYQ9-8-aGG2rzJMRQ
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=voiceovers
+   [200] POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=emojidata
+   [200] GET https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/bind?id=15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg&sid=235ac7eda958e9f0&token=AJagN6SPr1hYQ9-8-aGG2rzJMRQ
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=organize
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=peoplehovercard
+   [200] POST https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/getexports?token=AJagN6SPr1hYQ9-8-aGG2rzJMRQp%3A1790490304918&ouid=110221244694095901562&usp=vids_home&cros

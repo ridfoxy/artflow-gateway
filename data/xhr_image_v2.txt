@@ -1,0 +1,11 @@
+=== ZERO-UI GAMBAR v2: gpizrx@gumdel.com ===
+token dipanen
+
+=== unggah via XHR ===
+  token: AVL_0qgKBwccxj1rLUZudg9fy1...
+  entri disisipkan setelah ',1,' (posisi 281)
+  payload: 566 -> 987 char
+
+=== kirim generate ===
+  status=400 url=TIDAK
+  respons: [3,"Invalid value (), List is not message or group type.",[["type.googleapis.com/google.rpc.BadRequest",[[[null,"Invalid value (), List is not message or group type."]]]]]]

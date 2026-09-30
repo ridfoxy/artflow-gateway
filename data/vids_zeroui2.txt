@@ -1,0 +1,69 @@
+=== ZERO-UI v2: iozhmy@gumdel.com ===
+tombol Generate: {"disabled": false}
+generate diklik (UI)
+
+=== SEMUA request setelah klik (8) ===
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/generate?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+
+=== request yang ditangkap hook (59) ===
+  [xhr] GET /_/videos/_/js/k=videos.viewer.en.jrmAUOkIPEE.es5.O/am=IAAADDA/d=0/wt=0/rs=AJpcAAKvQK8_dPGbjNMn_X-yWvel850OXA/m=core?cb=120362078
+     headers: {}
+     body len=0: None
+  [xhr] GET /static/videos/client/css/3566724345-viewer_css_ltr.css
+     headers: {}
+     body len=0: None
+  [xhr] POST /videos/u/0/font/getmetadata?token=AJagN6T9fqzrWhdFyQeGed85Uci5%3A1790512357411&ouid=117831592933418169631&cros_files=false&nded=false
+     headers: {"X-Same-Domain":"1","X-Rel-Id":"b8.4f71ce91.s","X-Build":"editors.videos-frontend_20260921.00_p3","X-Client-Deadline-Ms":20000,"Content-Type":"application/x-www-form-urlencoded;charset=utf-8"}
+     body len=246: families=Amatic%20SC%2CCaveat%2CComfortaa%2CEB%20Garamond%2CLexend%2CLobster%2CLora%2CMerriweather%2CMontserrat%2CNunito%2COswald%2CPacifico%2CPlayfair%20Display%2CRoboto%2CRoboto%20Mono%2CRoboto%20Serif%2CSpectral&useAllSubsets=true&format=woff2
+  [xhr] POST /videos/u/0/d/1O2GuxWw1wm7dN7iBACkeDaxN1EZml5Oj9P1-zcd4kxc/getexports?token=AJagN6T9fqzrWhdFyQeGed85Uci5%3A1790512357411&ouid=117831592933418169631&cr
+     headers: {"X-Same-Domain":"1","X-Rel-Id":"b8.4f71ce91.s","X-Build":"editors.videos-frontend_20260921.00_p3","X-Client-Deadline-Ms":20000,"Content-Type":"application/x-www-form-urlencoded;charset=utf-8"}
+     body len=0: None
+
+=== 40 request terakhir dari halaman (untuk melihat polanya) ===
+  [xhr] POST /videos/u/0/d/1O2GuxWw1wm7dN7iBACkeDaxN1EZml5Oj9P1-zcd4kxc/prefs?id=1O2GuxWw1wm7dN7iBACkeDaxN1EZml5Oj9P1-zcd4kxc&token=AJagN6T9fqzrWhdFyQeGe
+  [xhr] POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  [xhr] POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  [xhr] POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  [xhr] POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  [xhr] POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  [xhr] POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  [xhr] POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  [fetch] POST https://play.google.com/log?format=json&hasfast=true&authuser=0
+  [fetch] POST https://play.google.com/log?format=json&hasfast=true
+  [fetch] POST https://play.google.com/log?format=json&hasfast=true
+  [xhr] POST /videos/u/0/naLogImpressions?id=1O2GuxWw1wm7dN7iBACkeDaxN1EZml5Oj9P1-zcd4kxc&token=AJagN6T9fqzrWhdFyQeGed85Uci5%3A1790512357411&ouid=1178315
+  [fetch] POST https://play.google.com/log?format=json&hasfast=true&authuser=0
+  [xhr] POST /videos/u/0/naLogImpressions?id=1O2GuxWw1wm7dN7iBACkeDaxN1EZml5Oj9P1-zcd4kxc&token=AJagN6T9fqzrWhdFyQeGed85Uci5%3A1790512357411&ouid=1178315
+  [xhr] POST /videos/u/0/d/1O2GuxWw1wm7dN7iBACkeDaxN1EZml5Oj9P1-zcd4kxc/prefs?id=1O2GuxWw1wm7dN7iBACkeDaxN1EZml5Oj9P1-zcd4kxc&token=AJagN6T9fqzrWhdFyQeGe
+  [xhr] POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  [xhr] POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  [xhr] POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  [xhr] POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  [xhr] POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  [xhr] POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  [xhr] POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  [xhr] POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/generate?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+  [fetch] POST https://play.google.com/log?format=json&hasfast=true&authuser=0
+  [xhr] POST /videos/u/0/naLogImpressions?id=1O2GuxWw1wm7dN7iBACkeDaxN1EZml5Oj9P1-zcd4kxc&token=AJagN6T9fqzrWhdFyQeGed85Uci5%3A1790512357411&ouid=1178315
+  [fetch] POST https://play.google.com/log?format=json&hasfast=true&authuser=0
+  [xhr] POST /videos/u/0/naLogImpressions?id=1O2GuxWw1wm7dN7iBACkeDaxN1EZml5Oj9P1-zcd4kxc&token=AJagN6T9fqzrWhdFyQeGed85Uci5%3A1790512357411&ouid=1178315
+  [fetch] POST https://play.google.com/log?format=json&hasfast=true&authuser=0
+  [xhr] POST /videos/u/0/naLogImpressions?id=1O2GuxWw1wm7dN7iBACkeDaxN1EZml5Oj9P1-zcd4kxc&token=AJagN6T9fqzrWhdFyQeGed85Uci5%3A1790512357411&ouid=1178315
+  [fetch] POST https://play.google.com/log?format=json&hasfast=true&authuser=0
+  [xhr] POST /videos/u/0/naLogImpressions?id=1O2GuxWw1wm7dN7iBACkeDaxN1EZml5Oj9P1-zcd4kxc&token=AJagN6T9fqzrWhdFyQeGed85Uci5%3A1790512357411&ouid=1178315
+  [fetch] POST https://play.google.com/log?format=json&hasfast=true&authuser=0
+  [xhr] POST /videos/u/0/naLogImpressions?id=1O2GuxWw1wm7dN7iBACkeDaxN1EZml5Oj9P1-zcd4kxc&token=AJagN6T9fqzrWhdFyQeGed85Uci5%3A1790512357411&ouid=1178315
+  [fetch] POST https://play.google.com/log?format=json&hasfast=true&authuser=0
+  [xhr] POST /videos/u/0/naLogImpressions?id=1O2GuxWw1wm7dN7iBACkeDaxN1EZml5Oj9P1-zcd4kxc&token=AJagN6T9fqzrWhdFyQeGed85Uci5%3A1790512357411&ouid=1178315
+  [fetch] POST https://play.google.com/log?format=json&hasfast=true&authuser=0
+  [xhr] POST /videos/u/0/naLogImpressions?id=1O2GuxWw1wm7dN7iBACkeDaxN1EZml5Oj9P1-zcd4kxc&token=AJagN6T9fqzrWhdFyQeGed85Uci5%3A1790512357411&ouid=1178315
+  [fetch] POST https://play.google.com/log?format=json&hasfast=true&authuser=0
+  [xhr] POST /videos/u/0/naLogImpressions?id=1O2GuxWw1wm7dN7iBACkeDaxN1EZml5Oj9P1-zcd4kxc&token=AJagN6T9fqzrWhdFyQeGed85Uci5%3A1790512357411&ouid=1178315
+  [fetch] POST https://play.google.com/log?format=json&hasfast=true&authuser=0

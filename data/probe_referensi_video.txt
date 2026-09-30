@@ -1,0 +1,36 @@
+=== PROBE REFERENSI + VIDEO-TO-VIDEO: qlrpmb@gumdel.com ===
+
+=== TAB EDITOR ===
+  ['Create AI videosNewTurn text, images, or audio into short videos with Omni', 'Edit videosNewTransform your videos with Omni', 'Personal avatarNewCreate your own personal avatar to star in any video', 'Create', 'Edit', 'Animate', 'Extend']
+
+=== INPUT FILE ===
+  accept='image/png, image/jpeg' multiple=False
+  input yang menerima VIDEO: 0
+
+=== TEKS BATAS di UI ===
+  "Show gallery\nClose side sheet\nYou've reached your monthly limit"
+  'Wait until Oct 1 at 3\u202fPM for limits to reset or upgrade now to generate more videos'
+  'vatar to use as a character in your video\n\xa0\nIngredients\nAdd up to 3 images to use as ingredients in your video'
+
+=== UJI BATAS JUMLAH GAMBAR (klik Add berulang) ===
+  gambar 1: TERKIRIM
+
+  --- gambar 2 --- tombol Add: 1
+      [0] aria='Add avatar or ingredients' disabled=False
+      gambar 2 terkirim -> chip=['@Image1', '@Image2']
+
+  --- gambar 3 --- tombol Add: 1
+      [0] aria='Add avatar or ingredients' disabled=False
+      gambar 3 terkirim -> chip=['@Image1', '@Image2', '@Image3']
+
+  --- gambar 4 --- tombol Add: 0
+      TIDAK ADA input baru -> batas tercapai / tombol hilang
+
+=== HASIL: 3 gambar terpasang ['@Image1', '@Image2', '@Image3'] ===
+
+=== CARI MENU VIDEO-TO-VIDEO / MOTION ===
+  'Website promotion' aria='Website promotion' disabled=False
+  '' aria='On a flat white background, dynami' disabled=False
+  '' aria='On a flat white background, dynami' disabled=False
+  'Animate' aria='Animate' disabled=False
+  'Extend' aria='Extend' disabled=False

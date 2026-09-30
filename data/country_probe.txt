@@ -1,0 +1,14 @@
+
+=== yekfvj@gumdel.com ===
+  editor siap : False
+  url akhir   : https://flow.google.com/unsupported-country
+  diblokir?   : YA (unsupported-country)
+  id media di halaman: 0
+    (id uji) status=401 ct=text/html len=16 isi=b'No session found'
+
+=== xtrcmk@gumdel.com ===
+  editor siap : False
+  url akhir   : https://flow.google.com/unsupported-country
+  diblokir?   : YA (unsupported-country)
+  id media di halaman: 0
+    (id uji) status=401 ct=text/html len=16 isi=b'No session found'

@@ -1,0 +1,45 @@
+=== E2E VIDS: bkhbyt@gumdel.com ===
+url: https://docs.google.com/videos/d/1YkjGgKQ46U8ec9fM-VlnIbGHtlMT6fjCFKgFa4gUriQ/edit
+
+== buka editor ==
+== tulis prompt ==
+   [setelah prompt] {"disabled": false, "videos": 2}
+
+== klik Generate ==
+   diklik
+   dokumen: 1YkjGgKQ46U8ec9fM-VlnIbGHtlMT6fjCFKgFa4gUriQ
+
+== tunggu generasi selesai (maks 6 menit) ==
+   t+ 10s busy=False video_total=2 video_hasil=0
+   t+ 20s busy=False video_total=2 video_hasil=0
+   t+ 30s busy=False video_total=2 video_hasil=0
+   t+ 40s busy=False video_total=3 video_hasil=1
+        -> dur=10.01s 1280x720 https://contribution-rt.usercontent.google.com/download?c=CgxiYXJkX3N0b3JhZ2USTB
+
+   generasi selesai pada ~40s
+
+== panggilan generasi ==
+   REQ POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/generate?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+        [374,null,[9,null,null,null,"goog_145890259",null,"0",null,[null,null,null,[[[null,null,null,null,null,null,null,[null,null,[["1YkjGgKQ46U8ec9fM-VlnIbGHtlMT6fjCFKgFa4gUriQ","application/vnd.google-app
+
+== ekspor MP4 ==
+   startexport 200 len=710
+   link: https://docs.usercontent.google.com/videos/d/1YkjGgKQ46U8ec9fM-VlnIbGHtlMT6fjCFKgFa4gUriQ/startdownload?authuser=0&exportId=CkF0eX
+
+== unduh (coba berulang, unduhan bisa belum siap) ==
+   t+  8s status=None ct=None len=0 err=TypeError: Failed to fetch
+   t+ 16s status=None ct=None len=0 err=TypeError: Failed to fetch
+   t+ 24s status=None ct=None len=0 err=TypeError: Failed to fetch
+   t+ 32s status=None ct=None len=0 err=TypeError: Failed to fetch
+   t+ 40s status=None ct=None len=0 err=TypeError: Failed to fetch
+   t+ 48s status=None ct=None len=0 err=TypeError: Failed to fetch
+   t+ 56s status=None ct=None len=0 err=TypeError: Failed to fetch
+   t+ 64s status=None ct=None len=0 err=TypeError: Failed to fetch
+   t+ 72s status=None ct=None len=0 err=TypeError: Failed to fetch
+   t+ 80s status=None ct=None len=0 err=TypeError: Failed to fetch
+   t+ 88s status=None ct=None len=0 err=TypeError: Failed to fetch
+   t+ 96s status=None ct=None len=0 err=TypeError: Failed to fetch
+   t+104s status=None ct=None len=0 err=TypeError: Failed to fetch
+   t+112s status=None ct=None len=0 err=TypeError: Failed to fetch
+
+!! unduhan tidak menghasilkan file besar

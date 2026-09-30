@@ -1,0 +1,9 @@
+=== UJI ZERO-UI: onbljn@gumdel.com ===
+UI siap dalam 24.4s
+tombol Generate: {"disabled": false}
+generate diklik (UI)
+payload terekam 20.2s setelah klik
+
+=== PAYLOAD GENERATE (lengkap) ===
+!! payload tidak tertangkap oleh hook
+   respons genai/generate: []

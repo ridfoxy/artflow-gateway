@@ -1,0 +1,13 @@
+=== ZERO-UI v6 (bukti akhir): isquyx@gumdel.com ===
+editor siap dalam 24.0s (biaya ini bisa dipakai ulang)
+token dipanen
+
+=== KIRIM PROMPT BARU VIA XHR (tanpa sentuh UI) ===
+  status=200  waktu=30.85s   <-- SUBMIT ZERO-UI
+  URL video: https://contribution-rt.usercontent.google.com/download?c=CgxiYXJkX3N0b3JhZ2USTBIJdGVtcF9kYXRhGj8KMDVlMDVmMWM0...
+
+=== UNDUH VIDEO ===
+  HTTP 200  ct=video/mp4  2116549 byte
+  tersimpan: /root/api-google-flow/output/zeroui_isquyx.mp4  (2116549 byte)
+  header: b'\x00\x00\x00 ftypisom'
+  >>> MP4 VALID <<<

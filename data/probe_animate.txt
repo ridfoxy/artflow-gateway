@@ -1,0 +1,98 @@
+=== SELIDIKI TAB ANIMATE: qlrpmb@gumdel.com ===
+
+
+============================================================
+=== KLIK TAB ANIMATE ===
+  url: https://docs.google.com/videos/d/13up0MMZn2pH7l6LikYciosspvBcExZW9fzALK_9-Vwc/edit?scene=i
+  input file:
+     accept='image/png, image/jpeg' [gambar] multiple=False
+  tombol penting:
+     'Create AI videosNewTurn text, images, or aud' disabled=False
+     'Edit videosNewTransform your videos with Omn' disabled=False
+     'Personal avatarNewCreate your own personal a' disabled=False
+     'Docs to videoNewTurn documents or PDFs into ' disabled=False
+     'Slides to videoTurn presentations into narra' disabled=False
+     'UploadUse media from Drive, Photos, or your ' disabled=False
+     'Upload' disabled=False
+  teks halaman (potongan):
+     Untitled video
+     Play
+     Share
+     FileEditViewInsertFormatSceneArrangeToolsHelp
+     Show timing
+     00:00.0
+     /
+     00:05.0
+     1
+     AI Video
+     Avatar
+     Voiceover
+     Music
+     Image
+     Record
+     Uploads
+     Stock
+     Captions
+     Text
+
+============================================================
+=== KLIK TAB EXTEND ===
+  url: https://docs.google.com/videos/d/13up0MMZn2pH7l6LikYciosspvBcExZW9fzALK_9-Vwc/edit?scene=i
+  input file:
+     accept='video/mp4, video/webm' [VIDEO] multiple=False
+  tombol penting:
+     'Create AI videosNewTurn text, images, or aud' disabled=False
+     'Edit videosNewTransform your videos with Omn' disabled=False
+     'Personal avatarNewCreate your own personal a' disabled=False
+     'Docs to videoNewTurn documents or PDFs into ' disabled=False
+     'Slides to videoTurn presentations into narra' disabled=False
+     'UploadUse media from Drive, Photos, or your ' disabled=False
+     'Upload' disabled=False
+  teks halaman (potongan):
+     Untitled video
+     Play
+     Share
+     FileEditViewInsertFormatSceneArrangeToolsHelp
+     Show timing
+     00:00.0
+     /
+     00:05.0
+     1
+     AI Video
+     Avatar
+     Voiceover
+     Music
+     Image
+     Record
+     Uploads
+     Stock
+     Captions
+     Text
+
+============================================================
+=== KLIK TAB EDIT ===
+  klik gagal: Locator.click: Timeout 8000ms exceeded.
+Call log:
+  - waiting for loca
+
+=== REQUEST JARINGAN PENTING (84) ===
+  https://docs.google.com/videos/create
+  https://docs.google.com/static/videos/client/css/3085917376-editor_css_ltr.css
+  https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.-gMf8SRw78s.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJ
+  https://docs.google.com/videos/manifest.json
+  https://www.gstatic.com/docs/gettingstarteddialog/generate_video_clips_omni_entry_point_v1.jpg
+  https://www.gstatic.com/docs/gettingstarteddialog/edit_video_clips_omni_entry_point_v1.jpg
+  https://www.gstatic.com/docs/gettingstarteddialog/upload_entry_point_drive_photos_v3.jpg
+  https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.-gMf8SRw78s.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJ
+  https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.-gMf8SRw78s.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJ
+  https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.-gMf8SRw78s.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJ
+  https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.-gMf8SRw78s.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJ
+  https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.-gMf8SRw78s.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJ
+  https://docs.google.com/_/videos/_/js/k=videos.viewer_integrated.en.deYbZayLu-E.es5.O/am=IAAADDA/d=0/wt=0/rs=AJpcAAIK3dl
+  https://docs.google.com/static/videos/client/css/3746235335-viewer_css_ltr.css
+  https://ssl.gstatic.com/docs/videos/images/flix_no_scenes_illustration.svg
+  https://docs.google.com/videos/u/0/font/getmetadata?token=AJagN6R50bIkYfhZ-SeU34rrorpZ%3A1790754970002&ouid=105686065878
+  https://docs.google.com/videos/u/0/d/13up0MMZn2pH7l6LikYciosspvBcExZW9fzALK_9-Vwc/getexports?token=AJagN6R50bIkYfhZ-SeU3
+  https://docs.google.com/videos/u/0/d/13up0MMZn2pH7l6LikYciosspvBcExZW9fzALK_9-Vwc/test?id=13up0MMZn2pH7l6LikYciosspvBcEx
+  https://www.gstatic.com/docs/gettingstarteddialog/generate_video_clips_omni_entry_point_v2.mp4
+  https://www.gstatic.com/docs/gettingstarteddialog/edit_video_clips_omni_entry_point_v2.mp4

@@ -1,0 +1,14 @@
+gambar: f_merah.png (6357 B, 8476 b64)
+=== ZERO-UI GAMBAR: zwylrc@gumdel.com ===
+token generate dipanen
+
+=== 1. unggah gambar via XHR murni ===
+  {"startStatus": 200, "finStatus": 200, "finTxt": "[\"AVL_0qgxXwO1aTWfz-C0qRzlnHj7tB0l0pfL4HcEKETbnilCRrNvkl98NUzVb_Fw4j8g7h4nFVqGHK8ifRiXxLWMTj-55Bgk7FDAcCODeNRZgdsg0kNJ3SscfRmrjCH16n5YhEYsmHFXRDTfUBds0a0Yd0J16EGgm0HdpCuIsMzKwGtd4Z4fMsM\"]"}
+  token gambar diperoleh: AVL_0qgxXwO1aTWfz-C0qRzlnHj7tB...
+
+=== 2. susun payload bergambar (tanpa UI) ===
+  payload: 566 -> 952 char
+
+=== 3. kirim generate via XHR ===
+  status=400 url_video=TIDAK
+  respons: [3,"Invalid value at 'prompt.bold.child' (type.googleapis.com/apps_intelligence.gen_ai.StructuredContentNode), \"20FCD0C7-225B-4EB1-AAC2-4CD0DF7CD8DE\"",[["type.googleapis.com/google.rpc.BadRequest",[[["prompt.bold.child","Invalid value at 'prompt.bold.child' (type.googleapis.com/apps_intelligence.g

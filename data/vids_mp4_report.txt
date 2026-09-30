@@ -1,0 +1,45 @@
+dokumen: a red ball bouncing on white background - Google Vids
+token: AJagN6Q9Vr3MpcErUKSkhnMz7p6M%3A179049362 | ouid: 110221244694095901562
+
+== 1. GET startexport?outputFormat=mp4 (metode BENAR) ==
+   status=200
+   body=)]}'
+["operations/CkF0eXBlLmdvb2dsZWFwaXMuY29tL2FwcHMuZmxpeC52aWRlb19leHBvcnQub3BlcmF0aW9ucy5PcGVyYXRpb25JZBI6EhxBQm54aXlOd25MQVhoQXFXQXlBM0lOMThaZjZMIgtSUjNOLUFROTc0NCoLCMmH49UGEND4rDkwAQ\u003d\u003d",["type.googleapis.com/apps.flix.lroproto.DownloadLinkMetadata",[1790487335423,1790487344776,"5fd0c862c3c584a2",5000,1,0,1]],1,null,["type.googleapis.com/apps.flix.lroproto.DownloadLinkResponse",["ht
+
+== 2. polling GET getexports ==
+   t+  6s 405 [["er",null,null,null,null,405,null,null,null,9],["di",59]]
+   t+ 12s 405 [["er",null,null,null,null,405,null,null,null,9],["di",83]]
+   t+ 18s 405 [["er",null,null,null,null,405,null,null,null,9],["di",56]]
+   t+ 24s 405 [["er",null,null,null,null,405,null,null,null,9],["di",60]]
+   t+ 30s 405 [["er",null,null,null,null,405,null,null,null,9],["di",58]]
+   t+ 36s 405 [["er",null,null,null,null,405,null,null,null,9],["di",61]]
+   t+ 42s 405 [["er",null,null,null,null,405,null,null,null,9],["di",66]]
+   t+ 48s 405 [["er",null,null,null,null,405,null,null,null,9],["di",67]]
+   t+ 54s 405 [["er",null,null,null,null,405,null,null,null,9],["di",54]]
+   t+ 60s 405 [["er",null,null,null,null,405,null,null,null,9],["di",53]]
+   t+ 66s 405 [["er",null,null,null,null,405,null,null,null,9],["di",63]]
+   t+ 72s 405 [["er",null,null,null,null,405,null,null,null,9],["di",53]]
+   t+ 78s 405 [["er",null,null,null,null,405,null,null,null,9],["di",68]]
+   t+ 84s 405 [["er",null,null,null,null,405,null,null,null,9],["di",49]]
+   t+ 90s 405 [["er",null,null,null,null,405,null,null,null,9],["di",55]]
+   t+ 96s 405 [["er",null,null,null,null,405,null,null,null,9],["di",61]]
+   t+102s 405 [["er",null,null,null,null,405,null,null,null,9],["di",65]]
+   t+108s 405 [["er",null,null,null,null,405,null,null,null,9],["di",54]]
+   t+114s 405 [["er",null,null,null,null,405,null,null,null,9],["di",66]]
+   t+120s 405 [["er",null,null,null,null,405,null,null,null,9],["di",61]]
+   t+126s 405 [["er",null,null,null,null,405,null,null,null,9],["di",87]]
+   t+132s 405 [["er",null,null,null,null,405,null,null,null,9],["di",57]]
+   t+138s 405 [["er",null,null,null,null,405,null,null,null,9],["di",51]]
+   t+144s 405 [["er",null,null,null,null,405,null,null,null,9],["di",55]]
+   t+150s 405 [["er",null,null,null,null,405,null,null,null,9],["di",59]]
+
+== 3. unduh ==
+belum ada link; coba unduh lewat UI juga
+
+== fallback UI: File -> 'd' -> pilih MP4 ==
+   baris MP4: [{"t": "MP4 video (.mp4)", "x": 376, "y": 313, "w": 260, "h": 32}]
+   TERUNDUH (UI): vids_ui.mp4 13744 byte
+
+== file vids baru ==
+    vids_result.mp4 1940 byte
+    vids_ui.mp4 13744 byte

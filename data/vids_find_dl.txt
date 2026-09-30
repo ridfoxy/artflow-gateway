@@ -1,0 +1,14 @@
+dokumen: a red ball bouncing on white background - Google Vids
+
+=== C. semua kontrol terkait unduh/ekspor ===
+  DIV    r=button   ( 467, 10)  28x28 aria='Document status: Saved to Drive.' t=''
+
+=== A. File -> akselerator 'd' ===
+  item menu setelah 'd': [{"t": "Details", "x": 55, "y": 581, "w": 320, "h": 32}, {"t": "Security limitations", "x": 55, "y": 613, "w": 320, "h": 32}, {"t": "Language ►", "x": 55, "y": 645, "w": 320, "h": 32}, {"t": "Video size", "x": 55, "y": 694, "w": 320, "h": 32}, {"t": "MP4 video (.mp4)", "x": 376, "y": 313, "w": 260, "h": 32}, {"t": "GIF animation (.gif)", "x": 376, "y": 345, "w": 260, "h": 32}]
+
+--- A: setelah Enter ---
+  REQ GET https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/startexport?outputFormat=gif&token=AJagN6SSg9hM8PMotlLnLSIEOSSJ%3A1790493228195&ouid=1102212
+      x-same-domain=1 ct=None body=''
+
+=== tunggu file (maks 120s) ===
+  t+ 10s media=[('9292c78d-3318-419a-af15-7ab0b71b3fab.mp4', 586142), ('a30c53f1-3151-4a85-8bbb-678b06310aa9.mp4', 2831447), ('db64b81d-f633-42de-9801-eae4f13d9ccb.mp4', 1345092), ('2fdee7d7-c036-44ad-a014-ee7b8c3edb12.mp4', 3761110), ('9bee99ae-09cf-4f66-a033-ae430820ffda.mp4', 3786169), ('c6fd3b43-b1e7-48a9-9fbe-c62625fadeab.mp4', 2676759), ('dcb845ac-a662-4a72-8720-8c88e4e02a90.mp4', 3847418), ('4ae5d2a1-188e-4db2-ba5d-c1c5820fe3f8.mp4', 3953386), ('vids_result.mp4', 1940), ('f540a428-513d-4346-860b-6a9d01a21b3c.mp4', 2503106), ('5e0396b4-9bc1-4edb-9d1e-02b6b51cb82f.mp4', 998481), ('5ed4f3da-1a83-4c0f-9e6c-20a5f1033ae7.mp4', 1838169), ('481e6d81-6963-4f59-8727-e014d0db8a06.mp4', 3322976), ('36921734-9271-416a-9705-5fd9efabf827.mp4', 1209890), ('a9adf1e7-cf9f-4277-aff7-5e91e0894018.mp4', 959237), ('2c8cab49-41dc-4f20-a5ba-89be519faf6a.mp4', 1531302), ('9cff0bf2-830d-4454-9ab9-4c854748e5f2.mp4', 1056532), ('2bd57fc0-76a9-438e-83a7-953a1f88fcce.mp4', 4520944)] besar=17

@@ -1,0 +1,8 @@
+prompt diganti: 'a pink square on a white background' -> 'a bright green triangle on a white background'  (body 596 -> 606 char)
+=== ZERO-UI v4: ttsrrv@gumdel.com ===
+cookie: 54 butir, SAPISID=ada
+X-Server-Token: ada (40 char)
+
+=== KONTROL: prompt baru via XHR dalam halaman ===
+  {"status":401,"hasVideo":false,"body":"[16,\"Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.\"]"}
+  kredensial disimpan untuk uji server: data/zeroui_creds.json

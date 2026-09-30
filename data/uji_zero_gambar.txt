@@ -1,0 +1,9 @@
+=== UJI ZERO-UI BERGAMBAR: vpfeih@gumdel.com ===
+gambar : /root/api-google-flow/data/f_merah.png (6357 B)
+prompt : 'sebuah kubus merah berputar perlahan di atas meja kayu'
+
+1. editor + token siap 54.1s
+!! GALAT: TargetClosedError: Page.evaluate: Target page, context or browser has been closed
+Browser logs:
+
+<launching> /usr/bin/google-chrome-stable --disable-field-trial-config --disable-background-networking --disable-backgroun

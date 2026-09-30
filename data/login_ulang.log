@@ -1,0 +1,7 @@
+total akun       : 65
+sudah berhasil   : 0
+akan diproses    : 65
+jeda antar akun  : 8s
+
+[ERR]  1/65 pwlicp@gumdel.com          472.1s  timeout
+[OK ]  2/65 qlrpmb@gumdel.com          250.4s  sesi lama; Vids terbuka (title=Google Vids)

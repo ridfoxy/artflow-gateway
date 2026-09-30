@@ -1,0 +1,12 @@
+=== UJI START+END: zwylrc@gumdel.com ===
+editor siap
+
+=== unggah MERAH (gambar 1) lalu BIRU (gambar 2) ===
+   gambar terpasang: 4 thumbnail
+
+=== generate ===
+   clicked
+
+=== tunggu video ===
+   video 1280x720 10.0s
+   tersimpan startend_test.mp4 (6922765 byte)

@@ -1,0 +1,155 @@
+== 1. buka Vids ==
+== 2. buka editor via 'Create AI videos' ==
+   diklik: button:has-text("Create AI videos")
+== 3. cari kolom prompt ==
+   kolom: div[aria-label^="Describe your video"]
+== 4. tulis prompt ==
+   prompt ditulis
+== 5. cari tombol generate ==
+   tombol: button:has-text("Create")
+== 6. klik generate ==
+   gagal klik: Locator.click: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("butt
+   fallback: Enter
+== 7. pantau hasil (maks 5 menit) ==
+   t+ 10s tanda=[] mp4=6
+   t+ 20s tanda=[] mp4=6
+   t+ 30s tanda=[] mp4=6
+   t+ 40s tanda=[] mp4=6
+
+== 8. video yang terlihat di DOM ==
+[
+  {
+    "src": "https://www.gstatic.com/docs/videos/videos/likeness/flix_likeness_veo_entry_point_v2.mp4",
+    "current": "https://www.gstatic.com/docs/videos/videos/likeness/flix_likeness_veo_entry_point_v2.mp4",
+    "dur": 6.083628,
+    "w": 1920,
+    "h": 1080
+  },
+  {
+    "src": "https://www.gstatic.com/docs/videos/videos/likeness/flix_likeness_avatars_entry_point_v2.mp4",
+    "current": "https://www.gstatic.com/docs/videos/videos/likeness/flix_likeness_avatars_entry_point_v2.mp4",
+    "dur": 5.967528,
+    "w": 1920,
+    "h": 1080
+  }
+]
+
+== 9. kandidat URL media dari jaringan ==
+    https://www.gstatic.com/docs/gettingstarteddialog/generate_video_clips_omni_entry_point_v2.mp4
+    https://www.gstatic.com/docs/gettingstarteddialog/edit_video_clips_omni_entry_point_v2.mp4
+    https://www.gstatic.com/docs/videos/videos/likeness/flix_likeness_avatars_entry_point_v2.mp4
+    https://www.gstatic.com/docs/videos/videos/likeness/flix_likeness_veo_entry_point_v2.mp4
+
+== 10. endpoint generasi ( jaringan unik ) ==
+   [200] GET https://docs.google.com/videos/create
+          ct=text/html; charset=utf-8
+   [200] GET https://docs.google.com/static/videos/client/css/1137545924-editor_css_ltr.css
+          ct=text/css
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=core
+          ct=text/javascript; charset=UTF-8
+   [200] GET https://www.gstatic.com/docs/gettingstarteddialog/generate_video_clips_omni_entry_point_v1.jpg
+          ct=image/jpeg
+   [200] GET https://www.gstatic.com/docs/gettingstarteddialog/edit_video_clips_omni_entry_point_v1.jpg
+          ct=image/jpeg
+   [200] GET https://lh3.googleusercontent.com/rd-ogw/AF2bZyiuu2VDDXx94E00WUfNq7wwdnA2bctnF4I08E0wIZWGNlnsgK9ITPWel6706_LSZI7wn4MNbF11ZAukyF-nFa_Yl2LeHujOITqIuZtgrdL4AmA4GTHBrUkU0pw_M
+          ct=image/png
+   [200] GET https://docs.google.com/videos/manifest.json
+          ct=application/manifest+json; charset=utf-8
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=sketchysmith
+          ct=text/javascript; charset=UTF-8
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=pretertiarydeps
+          ct=text/javascript; charset=UTF-8
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=docos
+          ct=text/javascript; charset=UTF-8
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=app
+          ct=text/javascript; charset=UTF-8
+   [200] GET https://ssl.gstatic.com/docs/videos/images/flix_no_scenes_illustration.svg
+          ct=image/svg+xml
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.viewer_integrated.en.IShomqbBP6E.es5.O/am=IAAADDA/d=0/wt=0/rs=AJpcAAIZDUdqE95RctB3kGi4L5lfFp23-Q/m=core
+          ct=text/javascript; charset=UTF-8
+   [206] GET https://www.gstatic.com/docs/gettingstarteddialog/generate_video_clips_omni_entry_point_v2.mp4
+          ct=video/mp4
+   [206] GET https://www.gstatic.com/docs/gettingstarteddialog/edit_video_clips_omni_entry_point_v2.mp4
+          ct=video/mp4
+   [200] GET https://docs.google.com/static/videos/client/css/3566724345-viewer_css_ltr.css
+          ct=text/css
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=tertiary
+          ct=text/javascript; charset=UTF-8
+   [200] GET https://www.gstatic.com/docs/videos/images/flix_likeness_intro_view_image.png
+          ct=image/png
+   [200] GET https://www.gstatic.com/docs/videos/images/flix_likeness_error_image.png
+          ct=image/png
+   [206] GET https://www.gstatic.com/docs/videos/videos/likeness/flix_likeness_avatars_entry_point_v2.mp4
+          ct=video/mp4
+   [206] GET https://www.gstatic.com/docs/videos/videos/likeness/flix_likeness_veo_entry_point_v2.mp4
+          ct=video/mp4
+   [200] GET https://drive.usercontent.google.com/auth_warmup
+          ct=text/html; charset=utf-8
+   [200] POST https://docs.google.com/videos/u/0/font/getmetadata?token=AJagN6QRPaRM368HrRa62o2Wywmp%3A1790488637563&ouid=110221244694095901562&cros_files=false&nded=false
+          ct=application/json; charset=utf-8
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=templates
+          ct=text/javascript; charset=UTF-8
+   [200] GET https://docs.google.com/videos/u/0/d/1xUJ3PLBXyv9bGGt34mDDZyZwHkFbTN1eLV2XORnhAVI/test?id=1xUJ3PLBXyv9bGGt34mDDZyZwHkFbTN1eLV2XORnhAVI&sid=281e9d7a468f2d4d&token=AJagN6QR
+          ct=text/plain; charset=utf-8
+   [204] POST https://docs.google.com/videos/u/0/naLogImpressions?id=1xUJ3PLBXyv9bGGt34mDDZyZwHkFbTN1eLV2XORnhAVI&token=AJagN6QRPaRM368HrRa62o2Wywmp%3A1790488637563&ouid=11022124469409
+          ct=text/html; charset=utf-8
+   [200] POST https://docs.google.com/videos/u/0/d/1xUJ3PLBXyv9bGGt34mDDZyZwHkFbTN1eLV2XORnhAVI/getexports?token=AJagN6QRPaRM368HrRa62o2Wywmp%3A1790488637563&ouid=110221244694095901562
+          ct=application/json; charset=utf-8
+   [200] GET https://docs.google.com/videos/u/0/d/1xUJ3PLBXyv9bGGt34mDDZyZwHkFbTN1eLV2XORnhAVI/haslikeness?token=AJagN6QRPaRM368HrRa62o2Wywmp%3A1790488637563&ouid=11022124469409590156
+          ct=application/json; charset=utf-8
+   [200] POST https://appsgenaiserver-pa.clients6.google.com/v1/genai/quotaSummary?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8
+          ct=application/json+protobuf; charset=UTF-8
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=recordingstudio
+          ct=text/javascript; charset=UTF-8
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=voiceovers
+          ct=text/javascript; charset=UTF-8
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=emojidata
+          ct=text/javascript; charset=UTF-8
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=organize
+          ct=text/javascript; charset=UTF-8
+   [200] GET https://docs.google.com/_/videos/_/js/k=videos.editor_js_prod_integrated.en.wSl94HhTrhI.es5.O/am=gAAAMAAM/d=0/wt=0/rs=AJpcAAKa_GTy6s16p4e_2588eINcSGBUNQ/m=peoplehovercard
+          ct=text/javascript; charset=UTF-8
+   [204] GET https://docs.google.com/generate_204?00uEwg
+   [200] POST https://docs.google.com/videos/u/0/d/1xUJ3PLBXyv9bGGt34mDDZyZwHkFbTN1eLV2XORnhAVI/bind?id=1xUJ3PLBXyv9bGGt34mDDZyZwHkFbTN1eLV2XORnhAVI&sid=281e9d7a468f2d4d&token=AJagN6QR
+          ct=text/plain; charset=utf-8
+   [200] POST https://docs.google.com/videos/u/0/d/1xUJ3PLBXyv9bGGt34mDDZyZwHkFbTN1eLV2XORnhAVI/docos/p/sync?id=1xUJ3PLBXyv9bGGt34mDDZyZwHkFbTN1eLV2XORnhAVI&reqid=0&token=AJagN6QRPaRM3
+          ct=application/json; charset=utf-8
+   [200] GET https://docs.google.com/videos/u/0/d/1xUJ3PLBXyv9bGGt34mDDZyZwHkFbTN1eLV2XORnhAVI/bind?id=1xUJ3PLBXyv9bGGt34mDDZyZwHkFbTN1eLV2XORnhAVI&sid=281e9d7a468f2d4d&token=AJagN6QR
+          ct=text/plain; charset=utf-8
+   [200] GET https://docs.google.com/videos/u/0/d/1xUJ3PLBXyv9bGGt34mDDZyZwHkFbTN1eLV2XORnhAVI/peruserchrome?id=1xUJ3PLBXyv9bGGt34mDDZyZwHkFbTN1eLV2XORnhAVI&token=AJagN6QRPaRM368HrRa6
+          ct=application/json; charset=utf-8
+   [200] GET https://docs.google.com/videos/u/0/d/1xUJ3PLBXyv9bGGt34mDDZyZwHkFbTN1eLV2XORnhAVI/docos/p/uc?id=1xUJ3PLBXyv9bGGt34mDDZyZwHkFbTN1eLV2XORnhAVI&reqid=1&token=AJagN6QRPaRM368
+          ct=application/json; charset=utf-8
+   [200] GET https://ssl.gstatic.com/docs/generativeai/videogen/inspirationgallery/omni/images/inspirationgallery_omni_image98.jpg
+          ct=image/jpeg
+   [200] GET https://ssl.gstatic.com/docs/generativeai/videogen/inspirationgallery/omni/images/inspirationgallery_omni_image84.jpg
+          ct=image/jpeg
+   [200] GET https://ssl.gstatic.com/docs/generativeai/videogen/inspirationgallery/omni/images/inspirationgallery_omni_image76.jpg
+          ct=image/jpeg
+   [200] GET https://ssl.gstatic.com/docs/generativeai/videogen/inspirationgallery/omni/images/inspirationgallery_omni_image59.jpg
+          ct=image/jpeg
+   [200] GET https://ssl.gstatic.com/docs/generativeai/videogen/inspirationgallery/omni/images/inspirationgallery_omni_image71.jpg
+          ct=image/jpeg
+   [200] GET https://ssl.gstatic.com/docs/generativeai/videogen/inspirationgallery/omni/images/inspirationgallery_omni_image91.jpg
+          ct=image/jpeg
+   [200] GET https://ssl.gstatic.com/docs/generativeai/videogen/inspirationgallery/omni/images/inspirationgallery_omni_image35.jpg
+          ct=image/jpeg
+   [200] GET https://ssl.gstatic.com/docs/generativeai/videogen/inspirationgallery/omni/images/inspirationgallery_omni_image67.jpg
+          ct=image/jpeg
+   [200] GET https://ssl.gstatic.com/docs/generativeai/videogen/inspirationgallery/omni/images/inspirationgallery_omni_image24.jpg
+          ct=image/jpeg
+   [200] GET https://ssl.gstatic.com/docs/generativeai/videogen/inspirationgallery/omni/images/inspirationgallery_omni_image17.jpg
+          ct=image/jpeg
+   [200] GET https://ssl.gstatic.com/docs/generativeai/videogen/inspirationgallery/omni/images/inspirationgallery_omni_image78.jpg
+          ct=image/jpeg
+   [200] GET https://ssl.gstatic.com/docs/generativeai/videogen/inspirationgallery/omni/images/inspirationgallery_omni_image85.jpg
+          ct=image/jpeg
+   [200] GET https://docs.google.com/videos/u/0/d/1xUJ3PLBXyv9bGGt34mDDZyZwHkFbTN1eLV2XORnhAVI/getencryptedpresetassets?actor_ids=actor28&actor_ids=actor38&actor_ids=actor51&actor_ids
+          ct=application/json; charset=utf-8
+
+== 11. percobaan unduh lewat menu ==
+   (tidak ada unduhan lewat menu — jalur media dari jaringan di atas)
+
+SELESAI

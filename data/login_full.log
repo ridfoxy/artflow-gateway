@@ -1,0 +1,17 @@
+total akun       : 65
+sudah berhasil   : 0
+akan diproses    : 65
+jeda antar akun  : 25s
+
+[OK ]  1/65 pwlicp@gumdel.com           74.7s  sesi lama; Vids terbuka (title=Google Vids)
+[OK ]  2/65 qlrpmb@gumdel.com           75.0s  sesi lama; Vids terbuka (title=Google Vids)
+[OK ]  3/65 vpfeih@gumdel.com          194.9s  sesi lama; Vids terbuka (title=Google Vids)
+[ERR]  4/65 urjefi@gumdel.com           79.8s  kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=Ser
+[OK ]  5/65 xjijyz@gumdel.com          194.9s  sesi lama; Vids terbuka (title=Google Vids)
+[ERR]  6/65 isjass@gumdel.com           79.1s  kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=Ser
+[ERR]  7/65 wdvybl@gumdel.com           81.6s  kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=Ser
+[ERR]  8/65 ttjnjm@gumdel.com           57.4s  kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=Ser
+[OK ]  9/65 vepnyj@gumdel.com          182.4s  sesi lama; Vids terbuka (title=Google Vids)
+[ERR] 10/65 xwimjf@gumdel.com           58.1s  kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=Ser
+[OK ] 11/65 jlyjnj@gumdel.com          183.6s  sesi lama; Vids terbuka (title=Google Vids)
+[ERR] 12/65 alrkon@gumdel.com           56.7s  kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntry=Ser

@@ -1,0 +1,16 @@
+grep: invalid option -- '>'
+Usage: grep [OPTION]... PATTERNS [FILE]...
+Try 'grep --help' for more information.
+dkuhlo@gumdel.com : 1s | 
+grep: invalid option -- '>'
+Usage: grep [OPTION]... PATTERNS [FILE]...
+Try 'grep --help' for more information.
+dvuonm@gumdel.com : 1s | 
+grep: invalid option -- '>'
+Usage: grep [OPTION]... PATTERNS [FILE]...
+Try 'grep --help' for more information.
+ewsjwz@gumdel.com : 0s | 
+grep: invalid option -- '>'
+Usage: grep [OPTION]... PATTERNS [FILE]...
+Try 'grep --help' for more information.
+apxjjb@gumdel.com : 1s | 

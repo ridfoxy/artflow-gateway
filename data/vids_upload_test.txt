@@ -1,0 +1,82 @@
+foto uji: /root/api-google-flow/data/frame_merah.png (6461 byte)
+=== UJI UNGGAH VIDS: ubpttf@gumdel.com ===
+editor siap
+
+=== A. unggah foto ke input[type=file] ===
+   set_input_files: BERHASIL
+   request baru setelah unggah: 6
+     [xhr] POST /videos/u/0/naLogImpressions?id=1cRY-QPnsAiXoSxUvLLbs0WwdTcDwsnMMn2u1ylfo644&token=AJagN6TPRkrh2m6ZwgDQhuUcaQKL%3A179055
+         body: impressionBatch=%5B%5B%5B163%2Cnull%2C299%2C1790552406425000%2C%5B%5B%5B1400%2C900%2C1408%2C1031%5D%2C0%2C%5B13%5D%2Cnull%2C1%2Cnull%2Cnull%2Cnull%2Cn
+     [fetch] POST https://play.google.com/log?format=json&hasfast=true&authuser=0
+         body: [FormData/Uint8Array]
+     [xhr] POST /upload/temporaryblob/videos?authuser=0
+     [xhr] PUT https://docs.google.com/upload/temporaryblob/videos?authuser=0&upload_id=AP6rU81UoBSGAFYD1aU00dz-YMjI2YmwGFElTeUMbmSGY1p
+         body: [Blob]
+     [xhr] POST /videos/u/0/naLogImpressions?id=1cRY-QPnsAiXoSxUvLLbs0WwdTcDwsnMMn2u1ylfo644&token=AJagN6TPRkrh2m6ZwgDQhuUcaQKL%3A179055
+         body: impressionBatch=%5B%5B%5B19%2Cnull%2C302%2C1790552406503000%2C%5B%5B%5B1400%2C900%2C1408%2C1031%5D%2C0%2C%5B13%5D%2Cnull%2C1%2Cnull%2Cnull%2Cnull%2Cnu
+     [fetch] POST https://play.google.com/log?format=json&hasfast=true&authuser=0
+         body: [FormData/Uint8Array]
+
+=== B. keadaan UI setelah unggah ===
+   gambar blob/data di halaman: 2
+   input file: [{"accept": "image/png, image/jpeg", "multiple": false}]
+   elemen bermakna start/end/frame: ["Extend | Extend"]
+   tombol yang ada sekarang:
+     'AI Video'
+     'Add'
+     'Animate'
+     'Avatar'
+     'Captions'
+     'Clear'
+     'Create'
+     'Edit'
+     'Extend'
+     'Image'
+     'Music'
+     'Omni
+•
+720p
+•
+ 
+•
+10s'
+     'Play'
+     'Record'
+     'Shapes'
+     'Share'
+     'Show timing'
+     'Stock'
+     'Templates'
+     'Text'
+     'Uploads'
+     'Voiceover'
+
+=== C. klik tombol 'Image' (Generate an image) ===
+   {"found": true}
+   elemen setelah klik Image:
+      | Show all comments
+     Play | Play (Ctrl+F5)
+     Share | Share. Private to only me. 
+      | Quick sharing actions
+      | Google Account: ubpttf User  
+(ubpttf@gumdel.com), Important
+     File | 
+     Edit | 
+     View | 
+     Insert | 
+     Format | 
+     Scene | 
+     Arrange | 
+     Tools | 
+     Help | 
+      | New scene (Ctrl+M)
+      | Undo (Ctrl+Z)
+      | Redo (Ctrl+Y)
+      | Zoom in
+      | Zoom
+      | Select (Esc)
+      | Add comment (Ctrl+Alt+M)
+      | Video size
+      | Customize styles
+      | Paint format
+      | Background

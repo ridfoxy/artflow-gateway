@@ -1,0 +1,26 @@
+=== KOLOM PROMPT SETELAH UNGGAH: ephviy@gumdel.com ===
+editor siap; kolom prompt ADA
+
+--- SEBELUM unggah ---
+  elemen aria mirip prompt : ["Video size", "Generate an AI video clip", "Generate an image", "Inside a shallow-depth-of-field stage, 3D papercraft models and origami geometri", "Resize prompt box", "Describe your video. You can add ingredients such as brand images, characters, a"]
+  input/textarea           : [{"tag": "INPUT", "aria": "Rename", "ph": "", "ce": null}, {"tag": "INPUT", "aria": "Zoom", "ph": "", "ce": null}, {"tag": "INPUT", "aria": "Set timeline zoom", "ph": "", "ce": null}, {"tag": "DIV", "aria": "Describe your video. You can add ingredients such as brand i", "ph": "", "ce": "true"}]
+  tab                      : ["Create sel=true", "Edit sel=false", "Animate sel=false", "Extend sel=false"]
+
+=== unggah 1 gambar ===
+   ok
+
+--- SESUDAH unggah ---
+  elemen aria mirip prompt : ["Video size", "Generate an AI video clip", "Generate an image", "Inside a shallow-depth-of-field stage, 3D papercraft models and origami geometri", "Resize prompt box"]
+  input/textarea           : [{"tag": "INPUT", "aria": "Rename", "ph": "", "ce": null}, {"tag": "INPUT", "aria": "Zoom", "ph": "", "ce": null}, {"tag": "INPUT", "aria": "Set timeline zoom", "ph": "", "ce": null}, {"tag": "DIV", "aria": "Specify how you want to use the ingredients. For example, Ma", "ph": "", "ce": "true"}]
+  tab                      : ["Create sel=true", "Edit sel=false", "Animate sel=false", "Extend sel=false"]
+
+=== PERBANDINGAN ===
+  aria prompt yang HILANG: ["Describe your video. You can add ingredients such as brand images, characters, a"]
+  aria prompt yang BARU  : []
+
+=== uji selector alternatif ===
+  div[aria-label^="Describe your video"]        count=0 terlihat=False
+  div[aria-label*="Describe"]                   count=0 terlihat=False
+  div[aria-label*="describe"]                   count=0 terlihat=False
+  [contenteditable="true"]                      count=1 terlihat=True
+  textarea                                      count=0 terlihat=False

@@ -1,0 +1,37 @@
+== buka dokumen ==
+judul: a red ball bouncing on white background - Google Vids
+
+== buka menu File ==
+== arahkan ke 'Download' (buka submenu) ==
+   hover gagal: Locator.hover: Timeout 8000ms exceeded.
+Call log:
+  - waitin
+   klik gagal: Locator.click: Timeout 8000ms exceeded.
+Call log:
+  - waitin
+opsi setelah Download: ["File", "Edit", "View", "Insert", "Format", "Scene", "Arrange", "Tools", "Help", "New video", "New video", "New video", "v", "Open\nCtrl+O", "Open\nCtrl+O", "Open", "O", "Ctrl+O", "Slides to video", "Slides to video", "Slides to video", "Docs to video\nNew", "Docs to video\nNew", "Docs to video\nNew", "Docs to video\nNew", "Docs to video", "New", "New", "Storyboard", "Storyboard", "Storyboard", "Make a copy\n►", "Make a copy\n►", "Make a copy", "c", "►", "Share", "Share", "Share", "S", "Download\n►", "Download\n►", "Download", "D", "►"]
+
+== klik opsi ekspor ==
+
+== pantau 150 detik (ekspor di server) ==
+   t+ 10s getexports=1 unduhan=belum
+   t+ 20s getexports=1 unduhan=belum
+   t+ 30s getexports=1 unduhan=belum
+   t+ 40s getexports=1 unduhan=belum
+   t+ 50s getexports=1 unduhan=belum
+   t+ 60s getexports=1 unduhan=belum
+   t+ 70s getexports=1 unduhan=belum
+   t+ 80s getexports=1 unduhan=belum
+   t+ 90s getexports=1 unduhan=belum
+   t+100s getexports=1 unduhan=belum
+   t+110s getexports=1 unduhan=belum
+   t+120s getexports=1 unduhan=belum
+   t+130s getexports=1 unduhan=belum
+   t+140s getexports=1 unduhan=belum
+   t+150s getexports=1 unduhan=belum
+
+== respons getexports ==
+   [200] https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/getexports?token=AJagN6SAq7uL9qg4x7DwAsgxia7G%3A1790
+        body: )]}' []
+
+== isi folder output ==

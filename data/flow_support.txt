@@ -1,0 +1,11 @@
+=== UJI DUKUNGAN FLOW ===
+1. rasio 9:16  -> jobId 9f237700  aspectRatio diminta=9:16
+2. start+end   -> jobId 94d22b43
+3. reference   -> jobId f66b286a
+
+=== PANTAU HASIL (maks 5 menit) ===
+  vertikal 9:16    -> completed items=0 
+  start+end frame  -> failed    items=0 
+      err: image start_image could not be fetched: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAE
+  reference        -> failed    items=0 
+      err: image reference[0] could not be fetched: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwA

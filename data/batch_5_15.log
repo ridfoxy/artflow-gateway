@@ -1,0 +1,14 @@
+gelombang: akun 5..14 (10 akun)
+
+[ERR]  5 onbljn@gumdel.com           75.8s  masih di halaman Google (url=https://accounts.google.com/v3/signin/speedbump/workspaceterm
+[ERR]  6 sjyekn@gumdel.com           75.3s  masih di halaman Google (url=https://accounts.google.com/v3/signin/speedbump/workspaceterm
+[ERR]  7 ojtrfd@gumdel.com           75.0s  masih di halaman Google (url=https://accounts.google.com/v3/signin/speedbump/workspaceterm
+[ERR]  8 nebcpo@gumdel.com           75.1s  masih di halaman Google (url=https://accounts.google.com/v3/signin/speedbump/workspaceterm
+[ERR]  9 fdxfhr@gumdel.com           87.6s  kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntr
+[ERR] 10 yesykc@gumdel.com           73.9s  masih di halaman Google (url=https://accounts.google.com/v3/signin/speedbump/workspaceterm
+[ERR] 11 fweuaf@gumdel.com           87.7s  kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntr
+[ERR] 12 qztnrz@gumdel.com           89.1s  kolom password tidak muncul (url=https://accounts.google.com/v3/signin/identifier?flowEntr
+[ERR] 13 zgvqlz@gumdel.com           75.1s  masih di halaman Google (url=https://accounts.google.com/v3/signin/speedbump/workspaceterm
+[OK ] 14 wanrgc@gumdel.com          201.4s  login ok; Vids terbuka (title=Google Vids)
+
+gelombang selesai: ok=1 gagal=9 butuh_verifikasi=0

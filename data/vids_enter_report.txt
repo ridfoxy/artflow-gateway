@@ -1,0 +1,35 @@
+prompt ditulis (per-karakter, jeda 60ms)
+keadaan: {"disabled": true, "settings": "Omni • 720p • _ • 10s _", "genCount": 1}
+
+== 1. Enter di kolom prompt ==
+   panggilan: 0  keadaan: {"disabled": true, "settings": "Omni • 720p • _ • 10s _", "genCount": 1}
+
+== 2. Ctrl+Enter / Meta+Enter ==
+   Control+Enter: panggilan=0 keadaan={"disabled": true, "settings": "Omni • 720p • _ • 10s _", "genCount": 1}
+   Meta+Enter: panggilan=0 keadaan={"disabled": true, "settings": "Omni • 720p • _ • 10s _", "genCount": 1}
+
+== 3. klik Generate dengan gerakan mouse bertahap ==
+   kotak tombol: {"x": 1240, "y": 824, "w": 40, "h": 40, "disabled": true}
+   panggilan=0 keadaan={"disabled": true, "settings": "Omni • 720p • _ • 10s _", "genCount": 1}
+
+== 4. locator click pada Generate ==
+   gagal: Locator.click: Timeout 8000ms exceeded.
+Call log:
+  - waiting for locator("button[aria-lab
+
+== panggilan generasi terekam ==
+
+!! tidak ada panggilan generasi — submit tidak terpicu
+
+== file video besar di output ==
+    2bd57fc0-76a9-438e-83a7-953a1f88fcce.mp4 4520944 byte
+    2c8cab49-41dc-4f20-a5ba-89be519faf6a.mp4 1531302 byte
+    36921734-9271-416a-9705-5fd9efabf827.mp4 1209890 byte
+    5e0396b4-9bc1-4edb-9d1e-02b6b51cb82f.mp4 998481 byte
+    9bee99ae-09cf-4f66-a033-ae430820ffda.mp4 3786169 byte
+    9cff0bf2-830d-4454-9ab9-4c854748e5f2.mp4 1056532 byte
+    a30c53f1-3151-4a85-8bbb-678b06310aa9.mp4 2831447 byte
+    a9adf1e7-cf9f-4277-aff7-5e91e0894018.mp4 959237 byte
+    c6fd3b43-b1e7-48a9-9fbe-c62625fadeab.mp4 2676759 byte
+    db64b81d-f633-42de-9801-eae4f13d9ccb.mp4 1345092 byte
+    f540a428-513d-4346-860b-6a9d01a21b3c.mp4 2503106 byte

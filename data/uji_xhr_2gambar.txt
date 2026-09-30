@@ -1,0 +1,7 @@
+=== UJI XHR 2 GAMBAR: qlrpmb@gumdel.com ===
+gambar 1 (start): f_merah.png  gambar 2 (end): f_biru.png
+
+rekaman with_2images_payload.json: 586 char, token AVL_=0
+rekaman with_image_payload.json: 1000 char, token AVL_=1
+
+token: TIDAK ADA

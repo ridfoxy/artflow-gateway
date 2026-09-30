@@ -1,0 +1,22 @@
+=== OPSI B langkah 7 (penentu): gpizrx@gumdel.com ===
+editor siap
+
+bilah awal: Generation settings: Omni, 720p, Landscape, 10 seconds
+
+=== A1. buka panel pengaturan → klik radio Portrait ===
+   klik Portrait: {"found": true, "cls": "javascriptMaterialdesignGm3WizConnectedButtonGroupSharedButt"}
+   bilah sesudah: Generation settings: Omni, 720p, Portrait, 10 seconds
+   bilah final  : Generation settings: Omni, 720p, Portrait, 10 seconds
+   PORTRAIT TERPILIH: True
+
+=== A2. tulis prompt & submit dari UI ===
+   tombol Generate: clicked
+   >>> HASIL UI : 720x1280 PORTRAIT 10s <<<
+   payload terekam (582 char)
+   blok: -
+   dokumen flix: 1lKq0GzSTBzl9DYPM2EMMP4Gqm3-9HlZ0D4ctL-n
+
+=== B. submit payload SAMA lewat XHR (zero-UI) ===
+   status=200 url=ADA
+   >>> HASIL XHR: 720x1280 PORTRAIT 10s <<<
+   *** TEMPLATE PORTRAIT DISIMPAN: data/portrait_template.json ***

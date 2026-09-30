@@ -1,0 +1,45 @@
+=== SELIDIKI JUMLAH GAMBAR TERPASANG: qlrpmb@gumdel.com ===
+gambar: f_merah.png (merah) + f_biru.png (biru)
+
+
+[sebelum] gambar=0 chip=0
+
+  unggah 1: TERKIRIM
+
+[setelah unggah 1] gambar=2 chip=8
+   img[0] 720x1280 tampil 16x16 alt='' src='data:image/png;base64,iVBORw'
+   img[1] 720x1280 tampil 94x94 alt='Uploaded image preview' src='data:image/png;base64,iVBORw'
+   chip: '\u200bImage1\u200b@Image1\xa0Remove image\xa0AddAdd avat' aria=''
+   chip: '\u200bImage1\u200b@Image1\xa0Remove image\xa0AddAdd avat' aria=''
+   chip: '\u200bImage1\u200b@Image1\xa0Remove image\xa0AddAdd avat' aria=''
+   chip: '@Image1\xa0Remove image\xa0AddAdd avatar or in' aria=''
+   chip: '@Image1\xa0Remove image\xa0AddAdd avatar or in' aria=''
+   chip: '@Image1\xa0Remove image' aria=''
+   chip: '@Image1\xa0Remove image' aria=''
+   chip: 'Remove image' aria=''
+
+=== mencoba menambah gambar ke-2 ===
+  input masih hidup: GAGAL Locator.set_input_files: Timeout 15000ms exceeded.
+Call log:
+  - waiti
+  input ke-2 (nth): GAGAL Locator.set_input_files: Timeout 15000ms exceeded.
+Call log:
+  - waiti
+  input ke-3 (nth): GAGAL Locator.set_input_files: Timeout 15000ms exceeded.
+Call log:
+  - waiti
+  semua input: GAGAL Locator.set_input_files: Timeout 15000ms exceeded.
+Call log:
+  - waiti
+
+[akhir] gambar=2 chip=8
+   img[0] 720x1280 tampil 16x16 alt='' src='data:image/png;base64,iVBORw'
+   img[1] 720x1280 tampil 94x94 alt='Uploaded image preview' src='data:image/png;base64,iVBORw'
+   chip: '\u200bImage1\u200b@Image1\xa0Remove image\xa0AddAdd avat' aria=''
+   chip: '\u200bImage1\u200b@Image1\xa0Remove image\xa0AddAdd avat' aria=''
+   chip: '\u200bImage1\u200b@Image1\xa0Remove image\xa0AddAdd avat' aria=''
+   chip: '@Image1\xa0Remove image\xa0AddAdd avatar or in' aria=''
+   chip: '@Image1\xa0Remove image\xa0AddAdd avatar or in' aria=''
+   chip: '@Image1\xa0Remove image' aria=''
+   chip: '@Image1\xa0Remove image' aria=''
+   chip: 'Remove image' aria=''

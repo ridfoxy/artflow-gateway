@@ -224,15 +224,30 @@ def job_aspect(row):
 
 
 def load_accounts():
+    """Semua email di accounts.txt (tanpa wajib kolom sandi).
+
+    Dua format harus diterima:
+      email          -> pool tanpa sandi (akun sudah punya profil login)
+      email|sandi    -> format lama
+    Dulu baris WAJIB memuat "|". Karena berkas kini satu kolom, 60 dari 67 akun
+    diabaikan: saat kuota habis pool hanya berisi sedikit akun, job mengantre
+    panjang, padahal akun sehat tersedia.
+    """
     f = APP / "accounts.txt"
-    out = []
-    for line in f.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "|" not in line:
+    if not f.exists():
+        return []
+    out, lihat = [], set()
+    for line in f.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = line.strip().lstrip("\ufeff")
+        if not line or line.startswith("#"):
             continue
-        email = line.split("|")[0].strip()
-        if "@" in email:
-            out.append(email)
+        kolom = line.replace("\t", "|").replace(",", "|").split("|")[0]
+        kandidat = kolom.split("(")[0].strip()
+        if "@" not in kandidat or " " in kandidat:
+            continue
+        if kandidat not in lihat:
+            lihat.add(kandidat)
+            out.append(kandidat)
     return out
 
 
@@ -1122,6 +1137,13 @@ SESSION_MAX_JOBS = int(os.environ.get("VIDS_SESSION_JOBS", "12"))
 # Jeda antar percobaan saat sesi rusak. Tanpa ini 4-5 percobaan terjadi
 # di detik yang sama: pool terlihat kosong padahal akun sehat tersedia.
 RETRY_PAUSE_SECONDS = float(os.environ.get("VIDS_RETRY_PAUSE", "3"))
+# KURAS_KUOTA_AKUN: batch mengambil 1 job dulu sebagai UJI KUOTA. Bila job
+# pertama itu sukses, batch berikutnya mengambil kuota penuh (PARALLEL).
+# Jaminan: akun yang kuotanya habis hanya membakar 1 job, bukan 3-6 job.
+# Bukti masalah: 6 job diambil 1 batch oleh 1 akun yang habis kuota -> 0/6.
+KURAS_KUOTA_AKUN = os.environ.get("VIDS_PROBE_QUOTA", "1") not in ("0", "false", "no")
+# Setelah job pertama sukses, akun dianggap punya kuota -> jangan uji lagi.
+_AKUN_PUNYA_KUOTA = set()
 # Berapa generate dikirim SERENTAK dari satu sesi. Uji: 3 serentak ->
 # 3 video berbeda dalam 36,6s (kalau berurutan 93s).
 PARALLEL_PER_SESSION = int(os.environ.get("VIDS_PARALLEL", "3"))
@@ -1177,8 +1199,16 @@ def _set_status(job_id, status, **kw):
         c.execute(f"UPDATE vids_jobs SET {', '.join(fields)} WHERE job_id=?", vals)
 
 
-def _requeue(job_id, why):
-    """Kembalikan job ke antrian untuk dicoba dengan akun/sesi lain."""
+def _requeue(job_id, why, hitung=True):
+    """Kembalikan job ke antrian untuk dicoba dengan akun/sesi lain.
+
+    hitung=False dipakai saat kegagalan BUKAN salah job (kuota akun habis, UI
+    rusak). Tanpa itu, satu akun yang limit bisa menghabiskan jatah percobaan
+    job sehingga job menyerah sebelum akun sehat dicoba (terbukti: 0/6 sukses).
+    """
+    if not hitung:
+        _set_status(job_id, "queued", error=f"dicoba ulang ({str(why)[:120]})")
+        return True
     n = _TRIES.get(job_id, 0) + 1
     _TRIES[job_id] = n
     if n > MAX_ACCOUNT_TRIES:
@@ -1598,11 +1628,19 @@ async def run_batch(name, cm, pool):
     try:
         while True:
             batch = []
+            # UJI KUOTA: bila akun sesi ini belum terbukti punya kuota, ambil
+            # SATU job dulu. Kalau job itu sukses, akun masuk daftar
+            # _AKUN_PUNYA_KUOTA dan batch berikutnya boleh mengambil penuh.
+            # Tanpa ini, satu akun yang habis kuota membakar seluruh batch.
+            batas_batch = max(1, PARALLEL_PER_SESSION)
+            if KURAS_KUOTA_AKUN and sess:
+                if sess["email"] not in _AKUN_PUNYA_KUOTA:
+                    batas_batch = 1
             # Job BERGAMBAR mahal & berurutan: batasi jumlahnya per batch supaya
             # tidak memborong slot dan membuat job teks (yang bisa paralel)
             # menunggu. Sisa kuota batch diisi job teks.
             n_img = 0
-            for _ in range(max(1, PARALLEL_PER_SESSION)):
+            for _ in range(batas_batch):
                 it = _pick_job()
                 if not it:
                     break
@@ -1690,6 +1728,7 @@ async def run_batch(name, cm, pool):
                 if status == "completed":
                     sess["n"] += 1
                     pool.mark_ok(email)
+                    _AKUN_PUNYA_KUOTA.add(email)   # boleh ambil batch penuh
                     _set_status(jid, "completed", account=email, progress=100,
                                 result_path=str(detail))
                     continue
@@ -1715,7 +1754,7 @@ async def run_batch(name, cm, pool):
                     elif st2 == "limited":
                         pool.mark_limited(email)
                         limit_hit = True
-                        _requeue(jid, "limit (UI)")
+                        _requeue(jid, "limit (UI)", hitung=False)
                     else:
                         _set_status(jid, "failed", account=email, error=str(d2)[:300])
                     continue
@@ -1723,7 +1762,7 @@ async def run_batch(name, cm, pool):
                 if status == "limited":
                     pool.mark_limited(email)
                     limit_hit = True
-                    _requeue(jid, "akun limit")
+                    _requeue(jid, "akun limit", hitung=False)
                     continue
 
                 if status == "retry_account":
@@ -1753,7 +1792,7 @@ async def run_batch(name, cm, pool):
                         pass
                     sess = None
                     await asyncio.sleep(RETRY_PAUSE_SECONDS)
-                    _requeue(jid, str(detail))
+                    _requeue(jid, str(detail), hitung=False)
                     continue
 
                 _set_status(jid, "failed", account=email, error=str(detail)[:300])

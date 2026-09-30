@@ -1,0 +1,24 @@
+foto: MERAH=f_merah.png BIRU=f_biru.png
+=== UJI DUA GAMBAR: gpizrx@gumdel.com ===
+editor siap
+
+gambar SEBELUM: {"blobs": 0, "labels": []}
+
+=== unggah foto 1 (MERAH / START) ===
+   ok
+   sesudah foto 1: {"blobs": 2, "labels": ["Clear"]}
+
+=== unggah foto 2 (BIRU / END) ===
+   ok
+   sesudah foto 2: {"blobs": 4, "labels": ["Remove image 1", "Remove image 2", "Clear"]}
+
+   elemen start/end yang muncul: ["Extend | Extend"]
+
+=== generate ===
+   clicked
+   payload 1408 char
+   label gambar di payload: ['Image1', 'Image2']
+   id gambar (UUID) di payload: ['0BE30D7D-FC0D-4020-93A3-905071917EB6', '2A5254EE-6D43-466C-9464-D8ECC6705D37']
+   token blob: 2 buah
+   BODY (potongan penting):
+   ull,null,null,null,[[[null,null,null,null,null,null,null,["0BE30D7D-FC0D-4020-93A3-905071917EB6",[null,null,null,null,null,null,null,null,null,null,null,[null,null,null,null,null,null,null,null,[null,null,null,"AVL_0qjaHM3RQqPGf40E5bIh_PFp7I_A8CUsqA8zgdvV0gKoW3bMhnRsozhBhr6ofvD7dB4lNo2JNzge5ACZYfEalJydGfzGDSKxEXtGrawve8mKwue75vmUa0IqSs7nCyXMnyE6oJC91iNU1iN5mUyqHoRupZ6pwBbIlYKydliuF13zGauqg5k",1],null,null,null,null,"Image1"]]]]],[[null,null,null,null,null,null,null,["2A5254EE-6D43-466C-9464-D8ECC6705D37",[null,null,null,null,null,null

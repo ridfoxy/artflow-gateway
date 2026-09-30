@@ -1,0 +1,15 @@
+=== UJI: cukup cookie saja? akun qlrpmb@gumdel.com ===
+
+--- mode utuh ---
+   [utuh      ] profil=  157.3 MB  cookie=  0  login_page=False  token=ADA  RAM=1451 MB  9s
+--- mode dipangkas ---
+   [dipangkas ] profil=    4.0 MB  cookie=  0  login_page=False  token=ADA  RAM=1473 MB  8s
+--- mode kosong ---
+   [kosong    ] profil=    0.0 MB  cookie= 57  login_page=True  token=TIDAK  RAM=1046 MB  31s
+
+=== RINGKASAN ===
+  utuh      : BERHASIL  profil=  157.3 MB  RAM=1451 MB
+  dipangkas : BERHASIL  profil=    4.0 MB  RAM=1473 MB
+  kosong    : gagal     profil=    0.0 MB  RAM=1046 MB
+
+  Cookie saja TIDAK cukup — profil utuh masih diperlukan.

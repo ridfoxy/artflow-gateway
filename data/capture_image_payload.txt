@@ -1,0 +1,21 @@
+=== REKAM PAYLOAD BERGAMBAR: ubpttf@gumdel.com ===
+editor siap
+
+=== unggah 1 gambar lewat UI ===
+  thumbnail: 2
+  kolom prompt: ["Specify how you want to use the ingredients. For example, Make the van"]
+
+=== generate lewat UI ===
+  tombol: {"found": true, "disabled": false}
+
+payload bergambar: 1000 char -> with_image_payload.json
+template polos  : 566 char
+
+=== BODY BERGAMBAR (utuh) ===
+[376,null,[9,null,null,null,"goog_978903795",null,"0",null,[null,null,null,[[[null,null,null,null,null,null,null,[null,null,[["19-vifD1dpI98KGuxSKUxLy3tF_YiXzZnshQhF7gdkto","application/vnd.google-apps.flix",null,null,1]]]]]]],null,null,[24,0],null,"en",null,null,null,null,null,1,null,null,null,null,null,[[[null,null,null,null,null,null,null,["9FFC9A80-EAD9-4A3B-912E-37C9B5790708",[null,null,null,null,null,null,null,null,null,null,null,[null,null,null,null,null,null,null,null,[null,null,null,"AVL_0qhyMGBOROkKZaWYaDRAYufuyOptdgY-OOEMaTb-6K3FLIvWxxKPm4tSlsiYMVV0zgOouz1XmXWekujl5B1ruOUx_JHY5-K1SRhk13nHXf2eQSuEmektTujt9sxsBi3YHdn9LSBrlxs8uZ4A5ZmLmYN8sAIDNNKP9hO7RwoKkA4CRIPx_yQ",1],null,null,null,null,"Image1"]]]]]],null,null,null,null,null,null,null,null,null,null,null,null,null,null,0],[null,null,null,[[[null,null,"capture payload with one image"]]]],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,[0,12,null,0,1,null,null,null,10]],[1,null,[[null,"1",1189]]],1]
+
+=== POTONGAN BERGAMBAR (bagian gambar + prompt) ===
+  ,null,[null,null,[["19-vifD1dpI98KGuxSKUxLy3tF_YiXzZnshQhF7gdkto","application/vnd.google-apps.flix",null,null,1]]]]]]],null,null,[24,0],null,"en",null,null,null,null,null,1,null,null,null,null,null,[[[null,null,null,null,null,null,null,["9FFC9A80-EAD9-4A3B-912E-37C9B5790708",[null,null,null,null,null,null,null,null,null,null,null,[null,null,null,null,null,null,null,null,[null,null,null,"AVL_0qhyMGBOROkKZaWYaDRAYufuyOptdgY-OOEMaTb-6K3FLIvWxxKPm4tSlsiYMVV0zgOouz1XmXWekujl5B1ruOUx_JHY5-K1SRhk13nHXf2eQSuEmektTujt9sxsBi3YHdn9LSBrlxs8uZ4A5ZmLmYN8sAIDNNKP9hO7RwoKkA4CRIPx_yQ",1],null,null,null,null,"Image1"]]]]]],null,null,null,null,null,null,null,null,null,n
+
+=== POTONGAN TEMPLATE POLOS (daerah yang sama) ===
+  "en",null,null,null,null,null,1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,0],[null,null,null,[[[null,null,"warmup"]]]],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,[0,12,null,0,1,null,null,null,10]],[1,null,[[null,"1",1189]]],1]

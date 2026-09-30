@@ -1,0 +1,15 @@
+=== PROBE v2: zwylrc@gumdel.com ===
+  t=  5s elemen(galeri/editor)=0
+  t= 20s elemen(galeri/editor)=0
+  t= 35s elemen(galeri/editor)=0
+  t= 50s elemen(galeri/editor)=0
+  t= 65s elemen(galeri/editor)=0
+  t= 80s elemen(galeri/editor)=0
+  t= 95s elemen(galeri/editor)=0
+  t=110s elemen(galeri/editor)=0
+galeri/editor siap: False (url=https://flow.google.com/about)
+
+rekaman jaringan: 7
+kandidat (media id + metadata): 0
+
+item galeri (DOM): 0

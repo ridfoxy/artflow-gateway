@@ -1,0 +1,8 @@
+uji struktur: label di jalur = 'Image1' (harus 'Image1')
+panjang payload uji: 868 char
+=== ZERO-UI GAMBAR v5: zwylrc@gumdel.com ===
+1. token dipanen
+2. unggah XHR ok (AVL_0qgGcgbCD9dLHu...)
+3. payload: 566 -> 987 char
+4. generate status=400 hasil=TIDAK
+   respons: [3,"Request contains an invalid argument.",[["type.googleapis.com/google.rpc.ErrorInfo",["INTERNAL_SERVER_ERROR","espresso-pa.googleapis.com"]]]]

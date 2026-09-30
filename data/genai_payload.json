@@ -1,0 +1,12 @@
+{
+ "url": "https://appsgenaiserver-pa.clients6.google.com/v1/genai/generate?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8",
+ "method": "POST",
+ "headers": {
+  "Accept-Language": "en",
+  "X-Server-Token": "CAMSGhUR9NL9N67auQayvgSuUb6_BqcGt6CSAB0H",
+  "X-Goog-AuthUser": "0",
+  "Authorization": "SAPISIDHASH 1790512550_16f9f0e0b4ec9ac92e0fe99d0f0397643e8a30be SAPISID1PHASH 1790512550_16f9f0e0b4ec9ac92e0fe99d0f0397643e8a30be SAPISID3PHASH 1790512550_16f9f0e0b4ec9ac92e0fe99d0f0397643e8a30be",
+  "Content-Type": "application/json+protobuf"
+ },
+ "body": "[374,null,[9,null,null,null,\"goog_1455787034\",null,\"0\",null,[null,null,null,[[[null,null,null,null,null,null,null,[null,null,[[\"1obU1aOuF8pNcnLVm4CmFew_vY8-3p3C-gkyZyQDD6ow\",\"application/vnd.google-apps.flix\",null,null,1]]]]]]],null,null,[24,0],null,\"en\",null,null,null,null,null,1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,0],[null,null,null,[[[null,null,\"a pink square on a white background\"]]]],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,[0,12,null,0,1,null,null,null,10]],[1,null,[[null,\"1\",1189]]],1]"
+}

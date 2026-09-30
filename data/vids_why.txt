@@ -1,0 +1,144 @@
+== rincian tombol Generate ==
+{
+  "disabled": true,
+  "ariaDisabled": null,
+  "dataDisabled": null,
+  "cls": "javascriptMaterialdesignGm3WizIconButtonFilled-icon-button javascriptMaterialdesignGm3WizIconButtonFilled-icon-button--w",
+  "opacity": "1",
+  "cursor": "default",
+  "bg": "rgba(31, 31, 31, 0.12)",
+  "color": "rgba(31, 31, 31, 0.38)",
+  "outer": "<button class=\"javascriptMaterialdesignGm3WizIconButtonFilled-icon-button javascriptMaterialdesignGm3WizIconButtonFilled-icon-button--with-tooltip collapsiblePromptBoxGenerateButton\" id=\"elptr_9\" jscontroller=\"PIVayb\" jsaction=\"click:h5M12e;clickmod:h5M12e;pointerdown:FEiYhc;pointerup:mF5Elf;pointerenter:EX0mI;pointerleave:vpvbp;pointercancel:xyn4sd;contextmenu:xexox;focus:h06R8; blur:zjh6rb;mlnRJ"
+}
+
+== isi kolom prompt (benar-benar terbaca?) ==
+{
+  "innerText": "a blue cube slowly rotating on a white background",
+  "textContent": "a blue cube slowly rotating on a white background",
+  "len": 49,
+  "aria": "Describe your video. You can add ingredients such as brand images, characters, a"
+}
+
+== tab mode AI Video (mana yang aktif) ==
+[
+  {
+    "t": "Create",
+    "ariaSelected": "true",
+    "bg": "rgb(233, 238, 246)",
+    "color": "rgb(11, 87, 208)",
+    "cls": "javascriptMaterialdesignGm3WizTabsPrimary-tab collapsiblePro"
+  },
+  {
+    "t": "Edit",
+    "ariaSelected": "false",
+    "bg": "rgba(0, 0, 0, 0)",
+    "color": "rgb(68, 71, 70)",
+    "cls": "javascriptMaterialdesignGm3WizTabsPrimary-tab collapsiblePro"
+  },
+  {
+    "t": "Animate",
+    "ariaSelected": "false",
+    "bg": "rgba(0, 0, 0, 0)",
+    "color": "rgb(68, 71, 70)",
+    "cls": "javascriptMaterialdesignGm3WizTabsPrimary-tab collapsiblePro"
+  },
+  {
+    "t": "Extend",
+    "ariaSelected": "false",
+    "bg": "rgba(0, 0, 0, 0)",
+    "color": "rgb(68, 71, 70)",
+    "cls": "javascriptMaterialdesignGm3WizTabsPrimary-tab collapsiblePro"
+  }
+]
+
+== panel pengaturan (buka dan baca) ==
+[
+  {
+    "t": "Create",
+    "checked": null,
+    "pressed": null,
+    "sel": "true",
+    "disabled": false
+  },
+  {
+    "t": "Edit",
+    "checked": null,
+    "pressed": null,
+    "sel": "false",
+    "disabled": false
+  },
+  {
+    "t": "Animate",
+    "checked": null,
+    "pressed": null,
+    "sel": "false",
+    "disabled": false
+  },
+  {
+    "t": "Extend",
+    "checked": null,
+    "pressed": null,
+    "sel": "false",
+    "disabled": false
+  },
+  {
+    "t": "Avatar",
+    "checked": null,
+    "pressed": null,
+    "sel": null,
+    "disabled": false
+  },
+  {
+    "t": "Ingredients",
+    "checked": null,
+    "pressed": null,
+    "sel": null,
+    "disabled": false
+  },
+  {
+    "t": "Omni\n•\n720p\n•\n \n•\n10s",
+    "checked": null,
+    "pressed": null,
+    "sel": null,
+    "disabled": false
+  },
+  {
+    "t": "Clear",
+    "checked": null,
+    "pressed": null,
+    "sel": null,
+    "disabled": false
+  },
+  {
+    "t": "Omni",
+    "checked": null,
+    "pressed": null,
+    "sel": null,
+    "disabled": false
+  },
+  {
+    "t": "720p",
+    "checked": null,
+    "pressed": null,
+    "sel": null,
+    "disabled": false
+  },
+  {
+    "t": "Landscape",
+    "checked": "true",
+    "pressed": null,
+    "sel": null,
+    "disabled": false
+  },
+  {
+    "t": "Portrait",
+    "checked": "false",
+    "pressed": null,
+    "sel": null,
+    "disabled": false
+  }
+]
+
+== coba aktifkan Generate lewat klik sungguhan di pengaturan ==
+
+== keadaan akhir == {"disabled": true, "settings": "Omni • 720p • _ • 10s _"}

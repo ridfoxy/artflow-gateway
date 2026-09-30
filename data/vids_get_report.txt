@@ -1,0 +1,36 @@
+dokumen: a red ball bouncing on white background - Google Vids
+
+== 1. GET startexport?outputFormat=mp4 ==
+   status=200 len=710
+   RESPONS LENGKAP:
+)]}'
+["operations/CkF0eXBlLmdvb2dsZWFwaXMuY29tL2FwcHMuZmxpeC52aWRlb19leHBvcnQub3BlcmF0aW9ucy5PcGVyYXRpb25JZBI7EhxBQm54aXlQcmktQW15aEhzYTNWSWE2WVhwODVIIgtSUjNOLUFROTc0NCoMCL2J49UGEJjSyNgBMAE\u003d",["type.googleapis.com/apps.flix.lroproto.DownloadLinkMetadata",[1790487335423,1790487344776,"5fd0c862c3c584a2",5000,1,0,1]],1,null,["type.googleapis.com/apps.flix.lroproto.DownloadLinkResponse",["https://docs.usercontent.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/startdownload?authuser\u003d0\u0026exportId\u003dCkF0eXBlLmdvb2dsZWFwaXMuY29tL2FwcHMuZmxpeC52aWRlb19leHBvcnQub3BlcmF0aW9ucy5PcGVyYXRpb25JZBI7EhxBQm54aXlQcmktQW15aEhzYTNWSWE2WVhwODVIIgtSUjNOLUFROTc0NCoMCL2J49UGEJjSyNgBMAE%3D"]]]
+
+== 2. cari URL unduh di respons ==
+   kandidat: https://docs.usercontent.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/startdownload?authuser
+
+== 3. unduh ==
+url: https://docs.usercontent.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/startdownload?authuser
+   page.request: 500 ct=text/plain; charset=utf-8 len=21
+   isi (kecil): b'Internal Server Error'
+
+== 4. kalau belum: tunggu ekspor lalu getexports (POST) ==
+   t+  8s 200 []
+   t+ 16s 200 []
+   t+ 24s 200 []
+   t+ 32s 200 []
+   t+ 40s 200 []
+   t+ 48s 200 []
+   t+ 56s 200 []
+   t+ 64s 200 []
+   t+ 72s 200 []
+   t+ 80s 200 []
+   t+ 88s 200 []
+   t+ 96s 200 []
+   t+104s 200 []
+   t+112s 200 []
+   t+120s 200 []
+
+== file hasil ==
+    vids_result.mp4 1940 byte
+    vids_ui.mp4 13744 byte

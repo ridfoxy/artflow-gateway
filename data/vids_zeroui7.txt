@@ -1,0 +1,19 @@
+=== ZERO-UI v7 (satu sesi, 3 prompt): yjlmah@gumdel.com ===
+editor siap dalam 23.9s (dibayar SEKALI)
+token dipanen (dipakai ulang untuk semua prompt)
+
+[prompt 1] status=200 waktu=31.6s url=ADA
+   unduh: 2479100 byte  mp4=True  -> zeroui7_yjlmah_1.mp4
+[prompt 2] status=200 waktu=32.6s url=ADA
+   unduh: 942210 byte  mp4=True  -> zeroui7_yjlmah_2.mp4
+[prompt 3] status=200 waktu=29.3s url=ADA
+   unduh: 3553216 byte  mp4=True  -> zeroui7_yjlmah_3.mp4
+
+=== RINGKASAN ===
+  biaya editor (sekali)      : 23.9s
+  prompt 'a red star on a white backgr': 31.6s  2479100 byte  mp4=True
+  prompt 'a blue rhombus on a white ba': 32.6s  942210 byte  mp4=True
+  prompt 'a yellow crescent on a white': 29.3s  3553216 byte  mp4=True
+  total 3 prompt             : 93.5s
+  rata-rata per prompt       : 31.2s
+  TOTAL dengan 1 sesi        : 117.3s untuk 3 video

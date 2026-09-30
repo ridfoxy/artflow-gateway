@@ -1,0 +1,13 @@
+{
+ "url": "https://appsgenaiserver-pa.clients6.google.com/v1/genai/generate?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8",
+ "method": "POST",
+ "headers": {
+  "Accept-Language": "en",
+  "X-Server-Token": "CAMSGhUR9NL9N67auQayvgSuUb6_BqcGt6CSAB0H",
+  "X-Goog-AuthUser": "0",
+  "Authorization": "SAPISIDHASH 1790512845_3a0d2c5a0a9d5a66a1b170a2c131b37d92a199ae SAPISID1PHASH 1790512845_3a0d2c5a0a9d5a66a1b170a2c131b37d92a199ae SAPISID3PHASH 1790512845_3a0d2c5a0a9d5a66a1b170a2c131b37d92a199ae",
+  "Content-Type": "application/json+protobuf"
+ },
+ "body": "[374,null,[9,null,null,null,\"goog_273000290\",null,\"0\",null,[null,null,null,[[[null,null,null,null,null,null,null,[null,null,[[\"1HhasP0U2yBAaoaM8m9j2WStvYFIfcM76caQKntvobF0\",\"application/vnd.google-apps.flix\",null,null,1]]]]]]],null,null,[24,0],null,\"en\",null,null,null,null,null,1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,0],[null,null,null,[[[null,null,\"warmup\"]]]],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,[0,12,null,0,1,null,null,null,10]],[1,null,[[null,\"1\",1189]]],1]",
+ "ts": 1790512846
+}

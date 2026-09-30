@@ -1,0 +1,9 @@
+dokumen terbuka: a red ball bouncing on white background - Google Vids
+SILAKAN di noVNC: File -> Download -> MP4 video (.mp4)
+(skrip menunggu 240 detik dan merekam panggilannya)
+   terekam 1 panggilan pada t+10s
+
+== PANGGILAN TEREKAM (persis) ==
+
+   POST https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/getexports?token=AJagN6Q0QrITNvzGC9_bThcWyVYy%3A1790491227371&ouid=110221244694095901562&cros_files=false&nded=false
+   headers: {"x-same-domain": "1", "content-type": "application/x-www-form-urlencoded;charset=UTF-8", "referer": "https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/edit?scene=id.p"}

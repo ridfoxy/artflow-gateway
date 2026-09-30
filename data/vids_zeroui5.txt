@@ -1,0 +1,12 @@
+=== ZERO-UI v5: pkxnwa@gumdel.com ===
+tombol Generate: {"disabled": false}
+payload terekam 1.0s setelah klik
+  header: ['Accept-Language', 'Authorization', 'Content-Type', 'X-Goog-AuthUser', 'X-Server-Token']
+  authorization: ada 195 char
+  x-server-token: ada 40 char
+  x-goog-authuser: ada 1 char
+
+=== PUTAR ULANG SEGERA, prompt baru: 'a bright green triangle on a white background' ===
+  hasil: {"status":200,"hasVideo":true,"head":"[[[[[null,null,null,null,null,null,[null,null,null,null,[\"26b693aa39db569d00065c7643ea479d06ad3038ca05f6c8\",\"bard_storage\",\"temp_data\",\"lookup_temp_data\",\"https://contribution-rt.usercontent.google.com/download?c=CgxiYXJkX3N0b3JhZ2USTBIJdGVtcF9kYXRhGj8KMDI2YjY5M2FhMzlkYjU2OWQwMDA2NWM3NjQzZWE0NzlkMDZhZDMwMzhjYTA1ZjZjOBILEgcQp7za1ZwYGAE&filename=video.mp4&opi=108436427\",1280,720,[\"10\"]],[12,0]]]]]],null,[null,null,null,null,null,null,3,[null,null,[[1052,null,2,null,null,0.18950325,0.21945786],[365"}
+
+  >>> BERHASIL: prompt BARU diterima TANPA menyentuh UI <<<

@@ -1,0 +1,25 @@
+foto uji: /root/api-google-flow/data/frame_merah.png (6461 byte) — kotak MERAH
+=== UJI FOTO->VIDEO VID: yekfvj@gumdel.com ===
+editor siap
+
+=== 1. unggah foto MERAH ===
+   unggah: BERHASIL
+   panggilan upload: 2
+     [xhr] POST /upload/temporaryblob/videos?authuser=0
+         header penting: {"X-Goog-Upload-Protocol": "resumable", "X-Goog-Upload-Command": "start", "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"}
+     [xhr] PUT https://docs.google.com/upload/temporaryblob/videos?authuser=0&upload_id=AP6rU83fRuGRY1Oy1p8LASQNP-XFYBgYG0Nu0iPlepc3ee_
+         header penting: {"X-Goog-Upload-Command": "upload, finalize", "X-Goog-Upload-Offset": "0", "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"}
+
+=== 2. tulis prompt & generate ===
+   tombol Generate: clicked
+
+=== 3. payload genai/generate setelah ada foto ===
+   payload terekam (1008 char)
+   BODY:
+   [376,null,[9,null,null,null,"goog_1438283983",null,"0",null,[null,null,null,[[[null,null,null,null,null,null,null,[null,null,[["1bswkxZr5rfXSNpdqjYFhkqLKRSM1QCoi32EumxwFh0E","application/vnd.google-apps.flix",null,null,1]]]]]]],null,null,[24,0],null,"en",null,null,null,null,null,1,null,null,null,null,null,[[[null,null,null,null,null,null,null,["EA448DBA-7E89-45F5-9949-50441CB30B21",[null,null,null,null,null,null,null,null,null,null,null,[null,null,null,null,null,null,null,null,[null,null,null,"AVL_0qjQ-cNZNmOtUl8ZHNljZyvVx_vUvUZbhNQHqvGIGyO4Iah0TK5drpOXg4nwOQ2GlM7ZhSwI-i_muS_KKV1LGkckF1pwsYQCnXiCfxQPcjBStFil7yajXZVuPq2Y-YMBaBC166DO_KSmIzrVozRwt7aJklGU8E1IDC6D437dVkl1gb95XNg",1],null,null,null,null,"Image1"]]]]]],null,null,null,null,null,null,null,null,null,null,null,null,null,null,0],[null,null,null,[[[null,null,"animate this image with gentle motion"]]]],[null,null,null,null,null,null,n
+   id mirip-gambar/dokumen: ['1bswkxZr5rfXSNpdqjYFhkqLKRSM1QCoi32EumxwFh0E']
+   payload menyebut gambar/blob: True
+
+=== 4. tunggu video hasil ===
+   video: 1280x720
+   tersimpan: photo_e2e_yekfvj.mp4 (2329249 byte)

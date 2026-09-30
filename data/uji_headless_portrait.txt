@@ -1,0 +1,25 @@
+=== UJI HEADLESS + PORTRAIT PARALEL === akun qlrpmb@gumdel.com
+profil: 86.8 MB
+
+template portrait: 567 char, penanda ada=True
+buka editor (headless): 2s
+proses chrome: 2 | RAM: 7 MB
+url: https://docs.google.com/videos/d/1jzWdCYKIovDrcpdx24WXQm3XsI-ucdZQiDE9j6iW8xM/ed
+token: ADA
+
+kirim 3 prompt SERENTAK (tanpa antri)...
+selesai dalam 33.8s
+
+  prompt 1: status=200 34s url=ADA
+     unduh 4579601 B (720, 1280) VERTIKAL OK
+  prompt 2: status=200 33s url=ADA
+     unduh 4953785 B (720, 1280) VERTIKAL OK
+  prompt 3: status=200 33s url=ADA
+     unduh 4876461 B (720, 1280) VERTIKAL OK
+
+=== RINGKASAN ===
+  headless      : BERHASIL (token dipanen tanpa tampilan)
+  paralel       : 3 prompt serentak
+  rasio benar   : 3/3 vertikal
+  RAM konteks   : 7 MB
+  proses sisa   : 0 (0 MB)

@@ -1,0 +1,9 @@
+=== PROBE: prompt per media ===
+
+url: https://flow.google.com/project/0f21b6bf-24a7-4cfe-81ec-0e674b324f4a
+
+respons jaringan tertangkap: 0
+
+total kandidat (id + prompt): 0
+
+item galeri di DOM: 0

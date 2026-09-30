@@ -1,0 +1,17 @@
+=== REKAM PAYLOAD 2 GAMBAR: zwylrc@gumdel.com ===
+editor siap
+
+=== unggah 2 gambar lewat UI ===
+  gagal: Locator.set_input_files: Error: Non-multiple file input can only accept single file
+Call log:
+  - waiting for locator("i
+  thumbnail terlihat: 0
+
+=== generate lewat UI ===
+  tombol: {"found": true, "disabled": false}
+payload 2 gambar: 586 char -> with_2images_payload.json
+
+=== jalur label gambar ===
+
+=== root[2][25] (penampung gambar) ===
+  gagal: object of type 'NoneType' has no len()

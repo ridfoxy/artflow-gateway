@@ -1,0 +1,59 @@
+dokumen: a red ball bouncing on white background - Google Vids
+
+== buka menu File ==
+== cari kotak item 'Download' ==
+   (  54, 34)  38x24 'File'
+   (  92, 34)  41x24 'Edit'
+   ( 133, 34)  46x24 'View'
+   ( 179, 34)  53x24 'Insert'
+   ( 232, 34)  62x24 'Format'
+   ( 294, 34)  56x24 'Scene'
+   ( 350, 34)  68x24 'Arrange'
+   ( 418, 34)  50x24 'Tools'
+   ( 468, 34)  45x24 'Help'
+   (  55, 65) 320x32 'New video'
+   (  55, 97) 320x32 'Open Ctrl+O'
+   (  55,129) 320x32 'Slides to video'
+   (  55,161) 320x32 'Docs to video New'
+   (  55,193) 320x32 'Storyboard'
+   (  55,225) 320x32 'Make a copy ►'
+   (  55,274) 320x32 'Share'
+   (  55,306) 320x32 'Download ►'
+   (  55,338) 320x32 'Export to Drive'
+   (  55,387) 320x32 'Rename'
+   (  55,419) 320x32 'Move'
+   (  55,451) 320x32 'Add shortcut to Drive'
+   (  55,483) 320x32 'Move to trash'
+   (  55,532) 320x32 'Version history ►'
+   (  55,581) 320x32 'Details'
+   (  55,613) 320x32 'Security limitations'
+   (  55,645) 320x32 'Language ►'
+   (  55,694) 320x32 'Video size'
+
+item Download: {"t": "Download ►", "x": 55, "y": 306, "w": 320, "h": 32}
+== gerakkan mouse ke submenu arrow (355,322) ==
+kandidat submenu:
+   (1412,140)  88x48 'AI Video'
+   (1412,140)  88x48 'AI Video'
+   (1412,140)  88x48 'AI Video'
+   ( 375,306) 262x78 'MP4 video (.mp4) GIF animation (.gif)'
+   ( 376,313) 260x32 'MP4 video (.mp4)'
+   ( 392,319) 229x20 'MP4 video (.mp4)'
+   ( 376,345) 260x32 'GIF animation (.gif)'
+   ( 392,351) 229x20 'GIF animation (.gif)'
+
+target: {"t": "MP4 video (.mp4) GIF animation (.gif)", "x": 375, "y": 306, "w": 262, "h": 78}
+== klik target ==
+   TERUNDUH: /root/api-google-flow/output/vids_result.mp4 1940 byte
+
+== pantau 120 detik ==
+   t+ 10s file=ada getexports_isi=1
+
+== respons ekspor ==
+   [200] https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/getexports?token=AJagN6SbvxjOHD43G2zWY3--J
+       )]}' []
+   [200] https://docs.google.com/videos/d/15ZKVtfuIyDWwsQkELzpOxF9Krv3mMyuCi9EiGG5mPvg/startexport?outputFormat=gif&token=AJagN6S
+       )]}' ["operations/CkF0eXBlLmdvb2dsZWFwaXMuY29tL2FwcHMuZmxpeC52aWRlb19leHBvcnQub3BlcmF0aW9ucy5PcGVyYXRpb25JZBI7EhxBQm54aXlOaEdncDRLRUVsaUpCcFpYVm8yYWtHIgtjNW9wWUFWYk1mUSoMCIrx4tUGEPCLr40BMAE\u003d",["type.googleapis.com/apps.flix.lroproto.DownloadLinkMetadata",[null,null,null,5000,1,0,0]]]
+
+== file output ==
+    vids_result.mp4 1940

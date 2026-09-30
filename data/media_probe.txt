@@ -1,0 +1,10 @@
+=== PROBE MEDIA: yekfvj@gumdel.com ===
+url: https://flow.google.com/?pli=1
+
+id media di galeri: 0
+
+=== A. page.request.get (cara yang dipakai pool) ===
+
+=== B. fetch dari dalam halaman ===
+
+=== C. URL gambar asli dari DOM (bagaimana UI memuatnya) ===

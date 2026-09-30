@@ -1,0 +1,152 @@
+=== ZERO-UI v3: yxqrfs@gumdel.com ===
+tombol Generate: {"disabled": false}
+generate diklik (UI)
+
+=== PAYLOAD ===
+  cara     : xhr
+  method   : POST
+  url_len  : 108  (key tertanam di query)
+  header   : ['Accept-Language', 'Authorization', 'Content-Type', 'X-Goog-AuthUser', 'X-Server-Token']
+  body_len : 596
+  payload disimpan: data/genai_payload.json
+
+=== BODY (JSON payload) ===
+[
+ 374,
+ null,
+ [
+  9,
+  null,
+  null,
+  null,
+  "goog_1455787034",
+  null,
+  "0",
+  null,
+  [
+   null,
+   null,
+   null,
+   [
+    [
+     [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      [
+       null,
+       null,
+       [
+        [
+         "1obU1aOuF8pNcnLVm4CmFew_vY8-3p3C-gkyZyQDD6ow",
+         "application/vnd.google-apps.flix",
+         null,
+         null,
+         1
+        ]
+       ]
+      ]
+     ]
+    ]
+   ]
+  ],
+  null,
+  null,
+  [
+   24,
+   0
+  ],
+  null,
+  "en",
+  null,
+  null,
+  null,
+  null,
+  null,
+  1,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  0
+ ],
+ [
+  null,
+  null,
+  null,
+  [
+   [
+    [
+     null,
+     null,
+     "a pink square on a white background"
+    ]
+   ]
+  ]
+ ],
+ [
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  [
+   0,
+   12,
+   null,
+   0,
+   1,
+   null,
+   null,
+   null,
+   10
+  ]
+ ],
+ [
+  1,
+  null,
+  [
+   [
+    null,
+    "1",
+    1189
+   ]
+  ]
+ ],
+ 1
+]
+
+=== RESPONS genai/generate dari UI ===
+
+=== PUTAR ULANG (payload sama, tanpa UI) ===
+  {"status":200,"body":"[[[[[null,null,null,null,null,null,[null,null,null,null,[\"55a35a081a07a3c300065c76327acf74042d4126c9189b42\",\"bard_storage\",\"temp_data\",\"lookup_temp_data\",\"https://contribution-rt.usercontent.google.com/download?c=CgxiYXJkX3N0b3JhZ2USTBIJdGVtcF9kYXRhGj8KMDU1YTM1YTA4MWEwN2EzYzMwMDA2NWM3NjMyN2FjZjc0MDQyZDQxMjZjOTE4OWI0MhILEgcQkYP5uZgeGAE&filename=video.mp4&opi=108436427\",1280,720,[\"10\"]],[12,0]]]]]],null,[null,null,null,null,null,null,3,[null,null,[[142,null,2,null,null,0.1603861,0.26519638],[13253,null,2,null,null,0.20852613,0.29640856],[1051,null,2,null,null,0.19048932,0.28072143],[3656,null,2,null,null,0.22475089,0.28931406],[1800,null,1066,null,null,1.7685837,4.450816],[1197,null,2,null,null,0.1967996,0.25012618],[2271,null,2,null,null,0.39039484,0.614059],[4913,null,2,null,null,0.19416754,0.25661117],[12288,null,0,null,null,101.291115,101.291115],[2522,null,8,null,null,0.18759383,0.333"}

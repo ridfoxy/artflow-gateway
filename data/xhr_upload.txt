@@ -1,0 +1,24 @@
+gambar uji: f_merah.png (6357 B)
+=== UJI XHR UPLOAD: pkxnwa@gumdel.com ===
+
+=== unggah lewat UI (untuk merekam kontrak endpoint) ===
+  set_input_files: OK
+
+=== rekaman unggah: 2 ===
+  [POST] /upload/temporaryblob/videos?authuser=0
+      X-Goog-Upload-Protocol: resumable
+      X-Goog-Upload-Command: start
+      Content-Type: application/x-www-form-urlencoded;charset=utf-8
+      status=200 respLen=0
+  [PUT] https://docs.google.com/upload/temporaryblob/videos?authuser=0&upload_id=AP6rU80jo8y_he-lX_cNK02HM6PFXS2NoPPq7
+      X-Goog-Upload-Command: upload, finalize
+      X-Goog-Upload-Offset: 0
+      Content-Type: application/x-www-form-urlencoded;charset=utf-8
+      status=200 respLen=187
+      respons: ["AVL_0qh_wpzhsb68LC6wy9Rhd_jU17Ljy5UhRi6NBqYSbyR-0QtVAtZ8-hBzYBgnSBnIkehJ5jZUMMp6_E7-vLnugYSTqmoxYeJJUZpSTl03eRwTDaUAI3bHZNdSpPd0dqqLEoLI6gyowwyAvdvZG0iJnI7HJFZO6IQFXqMG7i3UM9QTG43xNXw"]
+
+=== apakah UUID/token muncul di respons unggah? ===
+  UUID ditemukan : 0 []
+  token AVL_     : 1 ['AVL_0qh_wpzhsb68LC6wy9']
+
+=== generate lewat UI (rekam payload bergambar) ===

@@ -1,0 +1,44 @@
+=== OPSI B / langkah 1: pkxnwa@gumdel.com ===
+editor siap
+
+=== kontrol rasio/ukuran terdeteksi: 7 ===
+  [BUTTON] 'Landscape' aria=Create a landscape video
+      cls=appsDocsGettingStartedEntryPointSelectionViewSelectedAspectR disabled=False
+  [BUTTON] 'Portrait' aria=Create a portrait video
+      cls=appsDocsGettingStartedEntryPointSelectionViewUnselectedAspec disabled=False
+  [BUTTON] 'Square' aria=Create a square video
+      cls=appsDocsGettingStartedEntryPointSelectionViewUnselectedAspec disabled=False
+  [BUTTON] 'Omni
+•
+720p
+•
+ 
+•
+10s' aria=Generation settings: Omni, 720p, Landscape, 10 seconds
+      cls=javascriptMaterialdesignGm3WizButtonCustomContent-button jav disabled=False
+  [BUTTON] '720p' aria=None
+      cls=javascriptMaterialdesignGm3WizButtonDropdownFilled-button ja disabled=False
+  [BUTTON] 'Landscape' aria=None
+      cls=javascriptMaterialdesignGm3WizConnectedButtonGroupSharedButt disabled=False
+  [BUTTON] 'Portrait' aria=None
+      cls=javascriptMaterialdesignGm3WizConnectedButtonGroupSharedButt disabled=False
+
+=== teks bilah pengaturan: ['Landscape', 'Portrait', 'Omni • 720p • \xa0 • 10s', 'Omni', '720p', 'Landscape', 'Portrait'] ===
+
+=== pilihan rasio di menu: 5 ===
+  'Landscape' role=None aria=Create a landscape video
+  'Portrait' role=None aria=Create a portrait video
+  'Square' role=None aria=Create a square video
+  'Landscape' role=radio aria=None
+  'Portrait' role=radio aria=None
+
+!! pilihan Portrait tidak ditemukan di menu
+=== bilah pengaturan SESUDAH: ['Landscape', 'Portrait', 'Omni • 720p • \xa0 • 10s', 'Omni', '720p', 'Landscape', 'Portrait'] ===
+
+tombol Generate: {"disabled": false}
+
+=== payload setelah pilih rasio: 1 ===
+BODY:
+[374,null,[9,null,null,null,"goog_2021792819",null,"0",null,[null,null,null,[[[null,null,null,null,null,null,null,[null,null,[["1eXZ3K3vMQRa4kXH1LOs5Vfudy0qpKW7uZyHVzhP7cgM","application/vnd.google-apps.flix",null,null,1]]]]]]],null,null,[24,0],null,"en",null,null,null,null,null,1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,0],[null,null,null,[[[null,null,"portrait ratio probe"]]]],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,[0,12,null,0,1,null,null,null,10]],[1,null,[[null,"1",1189]]],1]
+
+payload disimpan: data/ratio_payloads.json

@@ -1,0 +1,20 @@
+total akun       : 65
+sudah berhasil   : 101
+akan diproses    : 9
+jeda antar akun  : 25s
+
+      [cadangan] xwimjf@gumdel.com: camoufox -> error (53.3s)
+[VER]  1/9 xwimjf@gumdel.com           13.9s  verifikasi setelah email: ketik teks yang anda dengar atau lihat | camoufox: masih di halaman a
+[OK ]  2/9 eaqbtd@gumdel.com          185.3s  sesi lama; Vids terbuka (title=Google Vids)
+[OK ]  3/9 zwfnrh@gumdel.com          190.6s  sesi lama; Vids terbuka (title=Google Vids)
+[OK ]  4/9 sflmoo@gumdel.com          213.9s  sesi lama; Vids terbuka (title=Google Vids)
+[OK ]  5/9 xqkvnh@gumdel.com          200.6s  sesi lama; Vids terbuka (title=Google Vids)
+[OK ]  6/9 bktnzo@gumdel.com          186.9s  sesi lama; Vids terbuka (title=Google Vids)
+[OK ]  7/9 ztogrh@gumdel.com          196.0s  sesi lama; Vids terbuka (title=Google Vids)
+[OK ]  8/9 yemgxn@gumdel.com          194.6s  sesi lama; Vids terbuka (title=Google Vids)
+[OK ]  9/9 seofjs@gumdel.com          188.0s  sesi lama; Vids terbuka (title=Google Vids)
+
+=== SELESAI: ok=8 gagal=0 verifikasi=1 ===
+uji run_camoufox langsung:
+  sflmoo@gumdel.com: ok (86.2s) | camoufox: camoufox; Vids terbuka (title=Google Vids)
+  xqkvnh@gumdel.com: ok (138.2s) | camoufox: camoufox; Vids terbuka (title=Google Vids)
