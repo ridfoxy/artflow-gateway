@@ -823,6 +823,7 @@ async def run_job(cm, pool, job_id, email, prompt, aspect="landscape", images=No
         if images:
             images_attached = await attach_images(page, job_id, images)
             log(f"[{job_id[:8]}] gambar terpasang: {images_attached}/{len(images)}")
+            _set_status(job_id, "running", progress=35)
             if images_attached == 0:
                 log(f"[{job_id[:8]}] tidak ada gambar yang terpasang")
 
@@ -840,6 +841,7 @@ async def run_job(cm, pool, job_id, email, prompt, aspect="landscape", images=No
         use_zero_ui = ZERO_UI and images_attached == 0
         if images_attached and ZERO_UI:
             log(f"[{job_id[:8]}] ada gambar -> pakai jalur UI (bukan zero-UI)")
+            _set_status(job_id, "running", progress=45)
         if use_zero_ui:
             tpl = load_aspect_template("portrait" if want_portrait else "landscape")
             for attempt in range(2):
@@ -889,6 +891,7 @@ async def run_job(cm, pool, job_id, email, prompt, aspect="landscape", images=No
             if not src:
                 return "failed", "video hasil tidak muncul sebelum batas waktu"
             log(f"[{job_id[:8]}] video jadi {src['dur']:.1f}s {src['w']}x{src['h']}")
+            _set_status(job_id, "running", progress=88)
             video_url = src["src"]
 
         # unduh
@@ -1279,6 +1282,11 @@ async def generate_in_session(sess, info):
     if page.is_closed():
         return "retry_account", "halaman sesi sudah tertutup"
 
+    # PROGRES BERTAHAP: angka nyata dari fase kerja (bukan karangan waktu).
+    # Tanpa ini kolom progress tetap 0 selama render, dan bot mengunci bar di
+    # 15% karena mengira belum ada laporan nyata.
+    _set_status(job_id, "running", progress=10)
+
     images = [u for u in (info["images"] or []) if u]
     urls = []
     if images:
@@ -1316,6 +1324,8 @@ async def generate_in_session(sess, info):
             return "ui_fallback", "template tidak tersedia"
         url, body = tpl["url"], build_body(tpl.get("body") or "", prompt)
 
+    _set_status(job_id, "running", progress=35)   # payload siap, generate dikirim
+
     last = ""
     for attempt in range(3):
         hdrs = sess.get("hdrs") or await harvest_token(page, timeout=20, settle=1.5)
@@ -1335,6 +1345,7 @@ async def generate_in_session(sess, info):
             if len(data) < 50000:
                 last = f"file terlalu kecil ({len(data)} B)"
                 continue
+            _set_status(job_id, "running", progress=85)   # video terunduh
             path = OUT / f"vids_{job_id[:8]}.mp4"
             path.write_bytes(data)
             log(f"[{job_id[:8]}] tersimpan {path.name} {len(data)} byte "
@@ -1384,6 +1395,8 @@ async def generate_many_in_session(sess, infos):
             else:
                 bodies = [build_body(tpl.get("body") or "", normalize_prompt(i["prompt"]))
                           for i in fast]
+                for _i in fast:
+                    _set_status(_i["job_id"], "running", progress=35)
                 t0 = time.time()
                 resp = await xhr_post_many(page, tpl["url"], bodies, hdrs)
                 dt = time.time() - t0
