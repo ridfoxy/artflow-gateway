@@ -1,6 +1,8 @@
   Xvfb :99 sudah jalan
-login untuk 1 akun (kredensial tersedia: 6)
-[1/1] login denijfx2@rallse.com (beban 2.1)
-    -> ok: sesi lama; Vids terbuka (title=Google Vids) (23.0s)
-
-=== hasil: 1 berhasil, 0 gagal ===
+login untuk 10 akun (kredensial tersedia: 25)
+[1/10] login denijfx8@rallse.com (beban 0.4)
+    -> ok: sesi lama; Vids terbuka (title=Google Vids) (185.7s)
+[2/10] login denijfx7@rallse.com (beban 0.7)
+    -> needs_human: verifikasi setelah email: ketik teks yang anda dengar atau lihat (6.9s)
+[3/10] login denijfx10@rallse.com (beban 0.8)
+    -> ok: sesi lama; Vids terbuka (title=Google Vids) (183.1s)

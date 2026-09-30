@@ -3160,6 +3160,74 @@ async def api_vids_accounts_template():
     }
 
 
+def _akun_perlu_login(kandidat: list, mode: str) -> tuple:
+    """Saring akun agar yang sudah sehat TIDAK di-login ulang.
+
+    Kembalikan (daftar_perlu_login, jumlah_dilewati).
+
+    Alasan: login memakan ~25-190s per akun dan bisa memicu verifikasi Google.
+    Akun yang sudah ok dan profilnya masih hangat tidak perlu diulang.
+    """
+    import json as _json
+    import os as _os
+    from pathlib import Path as _P
+
+    if (mode or "belum_ok") == "semua":
+        return list(kandidat), 0
+
+    APP = _P("/root/api-google-flow")
+    segar = float(_os.environ.get("LOGIN_FRESH_HOURS", "6")) * 3600
+    now = time.time()
+
+    # 1. hasil login terakhir per akun
+    terakhir = {}
+    rp = APP / "data" / "login_results.jsonl"
+    if rp.exists():
+        for line in rp.read_text(errors="replace").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                d = _json.loads(line)
+            except Exception:
+                continue
+            e = (d.get("email") or "").strip()
+            if e:
+                terakhir[e] = d
+
+    perlu, dilewati = [], 0
+    for email in kandidat:
+        # 2. catatan terakhir: ok & belum kadaluarsa -> lewati
+        d = terakhir.get(email) or {}
+        if str(d.get("state")) == "ok":
+            umur = now - float(d.get("ts") or 0)
+            if umur < segar:
+                dilewati += 1
+                continue
+            # ok tapi catatan lama: cek apakah profilnya masih hangat
+            prof = APP / "chrome_profiles" / email
+            ck = prof / "Default" / "Cookies"
+            if ck.exists() and (now - ck.stat().st_mtime) < segar:
+                dilewati += 1
+                continue
+            perlu.append(email)
+            continue
+
+        # 3. belum pernah dicatat, atau terakhir gagal:
+        #    kalau profilnya baru saja ditulis (sesi mungkin sudah hidup),
+        #    jangan dibuang percuma.
+        prof = APP / "chrome_profiles" / email
+        ck = prof / "Default" / "Cookies"
+        if ck.exists() and ck.stat().st_size > 20000:
+            umur_prof = now - ck.stat().st_mtime
+            if umur_prof < segar and str(d.get("state")) == "ok":
+                dilewati += 1
+                continue
+        perlu.append(email)
+
+    return perlu, dilewati
+
+
 @app.post("/v1/vids/accounts/login", dependencies=[Depends(verify_api_key)])
 async def api_vids_accounts_login(req: VidsLoginRequest):
     """Jalankan LOGIN akun pool di LATAR BELAKANG (tidak menunggu selesai).
@@ -3214,19 +3282,9 @@ async def api_vids_accounts_login(req: VidsLoginRequest):
                 em = line.split("|")[0].strip()
                 if em:
                     kandidat.append(em)
-        if (req.mode or "belum_ok") == "belum_ok":
-            sudah = set()
-            rp = APP / "data" / "login_results.jsonl"
-            if rp.exists():
-                for line in rp.read_text(errors="replace").splitlines():
-                    try:
-                        d = _json.loads(line)
-                    except Exception:
-                        continue
-                    if str(d.get("state")) == "ok":
-                        sudah.add((d.get("email") or "").strip())
-            kandidat = [e for e in kandidat if e not in sudah]
-            logger.info("auto-login: %d akun dilewati (sudah ok)", len(sudah))
+        kandidat, dilewati = _akun_perlu_login(kandidat, req.mode or "belum_ok")
+        logger.info("auto-login: %d akun dilewati (sudah sehat), %d perlu login",
+                    dilewati, len(kandidat))
 
     if not kandidat:
         return {"status": "ok", "diproses": 0,

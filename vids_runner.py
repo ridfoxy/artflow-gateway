@@ -1362,7 +1362,7 @@ def build_image_body(prompt, token):
     return rec.get("url"), body
 
 
-def mark_dead_session(email, hours=168):
+def mark_dead_session(email, hours=int(os.environ.get("VIDS_DEAD_SESSION_HOURS", "12"))):
     """Tandai akun sesi-mati langsung (7 hari), jangan lewat has_login_cookies.
 
     Cookie bisa masih ADA tapi tidak sah, sehingga pemeriksaan cookie tidak
@@ -1373,7 +1373,8 @@ def mark_dead_session(email, hours=168):
         c.execute("""INSERT INTO vids_accounts (email, state, note, until, updated_at)
                      VALUES (?, 'no_login', 'sesi mati (perlu login ulang)', ?, ?)
                      ON CONFLICT(email) DO UPDATE SET
-                       state='no_login', note='sesi mati (perlu login ulang)',
+                       state='no_login',
+                       note='sesi mati — login ulang lewat panel bot untuk memulihkan',
                        until=excluded.until, updated_at=excluded.updated_at""",
                   (email, until, int(time.time())))
 
@@ -1418,8 +1419,8 @@ async def open_session(cm, pool, email):
             hdrs = await harvest_token(page, timeout=UI_PROBE_SECONDS,
                                        settle=2.0 if attempt == 0 else 1.2)
             if hdrs:
-                return {"email": email, "page": page, "hdrs": hdrs,
-                        "t0": time.time(), "n": 0}
+                return {"email": email, "page": page, "ctx": ctx,
+                        "hdrs": hdrs, "t0": time.time(), "n": 0}
             # mendarat di login setelah klik?
             try:
                 cur = page.url or ""
@@ -1445,10 +1446,23 @@ async def open_session(cm, pool, email):
 
 
 async def close_session(sess):
+    """Tutup sesi dengan RAPI supaya cookie tersimpan ke profil.
+
+    Dulu hanya halaman yang ditutup; konteks Chrome dibiarkan hidup/dibunuh
+    paksa, sehingga penulisan cookie ke disk bisa tidak selesai — akun yang
+    tadinya sehat lalu diminta login lagi. Sekarang konteks ditutup dulu
+    (Chrome menulis cookie + Local Storage), baru dilepas.
+    """
     try:
         await sess["page"].close()
     except Exception:
         pass
+    ctx = sess.get("ctx")
+    if ctx:
+        try:
+            await ctx.close()          # <- flush cookie ke profil
+        except Exception:
+            pass
 
 
 async def generate_in_session(sess, info, fase="penuh"):
@@ -1985,6 +1999,7 @@ async def main():
     sem = asyncio.Semaphore(MAX_CONCURRENT)
     async with async_playwright() as pw:
         cm = ContextManager(pw)
+        globals()["_CM_SINGLETON"] = cm
         try:
             while True:
                 with db() as c:
@@ -1999,5 +2014,39 @@ async def main():
             await cm.close_all()
 
 
+async def _berhenti_rapi():
+    """Tutup semua konteks Chrome dengan rapi saat runner dihentikan.
+
+    Tanpa ini, systemd mengirim SIGTERM lalu membunuh Chrome, dan cookie yang
+    belum ditulis ke profil bisa hilang -> akun sehat mendadak minta login.
+    """
+    try:
+        inst = globals().get("_CM_SINGLETON")
+        if inst:
+            await inst.close_all()
+            log("semua konteks ditutup rapi (cookie tersimpan)")
+    except Exception as e:
+        log(f"penutupan rapi gagal: {e!r}")
+
+
 if __name__ == "__main__":
+    import signal as _sig
+
+    def _handler(signum, frame):
+        log(f"menerima sinyal {signum} — menutup konteks dengan rapi...")
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                loop.create_task(_berhenti_rapi())
+            else:
+                loop.run_until_complete(_berhenti_rapi())
+        except Exception:
+            pass
+        raise SystemExit(0)
+
+    for _s in (_sig.SIGTERM, _sig.SIGINT):
+        try:
+            _sig.signal(_s, _handler)
+        except Exception:
+            pass
     asyncio.run(main())
