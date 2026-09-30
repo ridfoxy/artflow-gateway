@@ -492,8 +492,20 @@ def build_body(template_body, prompt):
 
     WAJIB pakai json.dumps: prompt yang mengandung kurawal, kutip, atau baris
     baru akan merusak payload kalau ditempel mentah (Google membalas 400).
+
+    PENGAMAN (bug nyata 30 Sep): satu template tersimpan tanpa penanda
+    "warmup" (isinya teks tetap "portrait final via xhr"). Akibatnya
+    replace() tidak mengubah apa pun dan prompt pengguna DIAM-DIAM dibuang —
+    Google merender dari teks tetap itu, sehingga video tidak sesuai prompt
+    (dilaporkan: prompt 'mukhang mie korea' menghasilkan video lain).
+    Sekarang ketiadaan penanda dijadikan galat yang jelas, bukan diam.
     """
-    return template_body.replace('"' + WARMUP_MARK + '"', json.dumps(prompt))
+    hasil = template_body.replace('"' + WARMUP_MARK + '"', json.dumps(prompt))
+    if hasil == template_body and prompt:
+        raise ValueError(
+            "template tanpa penanda prompt (warmup): prompt pengguna tidak "
+                        "akan masuk ke payload - perbaiki data/*.json")
+    return hasil
 
 
 # Kolom prompt Vids berubah label setelah gambar diunggah:
