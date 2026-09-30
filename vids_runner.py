@@ -41,6 +41,16 @@ STREAM_SAVE = APP / "data" / "vids_streamed.json"
 MAX_CONCURRENT = int(os.environ.get("VIDS_MAX_CONCURRENT", "1"))
 MAX_CONTEXTS = int(os.environ.get("VIDS_MAX_CONTEXTS", "1"))
 IDLE_CLOSE_SECONDS = int(os.environ.get("VIDS_IDLE_CLOSE", "180"))
+# "Kirim dulu, panen kemudian": Vids menerima prompt baru sementara yang lain
+# masih render ("Generate multiple clips at once", Google Workspace Jun 2026).
+# Untuk job bergambar, kirim SEMUA dulu lalu panen hasilnya — waktu render
+# tidak lagi dijalani satu per satu.
+KIRIM_DULU = os.environ.get("VIDS_KIRIM_DULU", "1") not in ("0", "false", "no")
+# MUAT ULANG AKUN: akun yang disetor SETELAH runner start tidak dikenal kalau
+# accounts.txt hanya dibaca sekali. Akibatnya job gagal "tidak ada akun yang
+# bisa membuka sesi" padahal akunnya ada. Muat ulang berkala menutup celah ini.
+RELOAD_ACCOUNTS = os.environ.get("VIDS_RELOAD_ACCOUNTS", "1") not in ("0", "false", "no")
+RELOAD_EVERY = float(os.environ.get("VIDS_RELOAD_SETIAP", "120"))
 # WORKER HOLD: worker tanpa sesi yang menemukan antrian kosong JANGAN langsung
 # mati. Kalau mati, hanya worker pertama yang bekerja (terbukti dari log: hanya
 # "b0" yang muncul) sehingga konkurensi efektif menjadi 1 dan job teks
@@ -130,6 +140,25 @@ class AccountPool:
         # dan membuang ~2,5 menit tiap kali gagal.
         blocked = {r["email"] for r in rows if (r["until"] or 0) > now}
         return [e for e in self.emails if e not in blocked]
+
+    def muat_ulang(self):
+        """Baca accounts.txt lagi; TAMBAHKAN akun baru tanpa membuang yang lama.
+
+        Dipakai berkala oleh run_batch: akun yang disetor lewat panel bot
+        setelah runner start harus bisa langsung dipakai.
+        Kembalikan jumlah akun BARU yang ditambahkan.
+        """
+        try:
+            terkini = load_accounts()
+        except Exception as e:
+            log(f"muat ulang akun gagal: {e!r}")
+            return 0
+        baru = [e for e in terkini if e not in self.emails]
+        if baru:
+            self.emails.extend(baru)
+            log(f"akun baru terdeteksi: {len(baru)} "
+                f"(total sekarang {len(self.emails)})")
+        return len(baru)
 
     def next_account(self):
         pool = self.available()
@@ -870,8 +899,17 @@ async def download_url(page, url):
     return base64.b64decode(b64)
 
 
-async def run_job(cm, pool, job_id, email, prompt, aspect="landscape", images=None):
-    """Generate satu video di akun tertentu; simpan MP4; kembalikan (status, path/err)."""
+async def run_job(cm, pool, job_id, email, prompt, aspect="landscape", images=None,
+                  fase="penuh"):
+    """Generate satu video di akun tertentu; simpan MP4; kembalikan (status, path/err).
+
+    `fase`:
+      "penuh" (bawaan) -> kirim + tunggu video jadi + unduh (perilaku lama)
+      "kirim"          -> cukup klik Generate lalu berhenti; dipanen belakangan
+      "panen"          -> tunggu video muncul + unduh (tanpa kirim ulang)
+    Fase terpisah ini menghapus antrean: Vids mengizinkan prompt baru dikirim
+    sementara yang lain masih dirender ("generate multiple clips at once").
+    """
     ctx = await cm.get(email)
     page = await ctx.new_page()
     try:
@@ -991,10 +1029,27 @@ async def run_job(cm, pool, job_id, email, prompt, aspect="landscape", images=No
                 return "retry_account", f"tombol Generate tidak bisa diklik: {str(e)[:80]}"
             log(f"[{job_id[:8]}] generate dikirim (UI)")
 
+            # FASE "kirim": cukup dikirim, hasil dipanen belakangan supaya job
+            # berikutnya bisa dikirim sementara ini masih dirender Google.
+            if fase == "kirim":
+                _set_status(job_id, "running", progress=55)
+                return "terkirim", "generate dikirim; menunggu panen"
+
             src = await wait_video_ready(page, timeout=GEN_TIMEOUT, poll=2)
             if not src:
                 return "failed", "video hasil tidak muncul sebelum batas waktu"
             log(f"[{job_id[:8]}] video jadi {src['dur']:.1f}s {src['w']}x{src['h']}")
+            _set_status(job_id, "running", progress=88)
+            video_url = src["src"]
+
+        # FASE "panen": job sudah terkirim lebih dulu (fase "kirim").
+        # Di sini hanya menunggu video muncul di galeri Vids lalu mengunduhnya.
+        if fase == "panen":
+            src = await wait_video_ready(page, timeout=GEN_TIMEOUT, poll=2)
+            if not src:
+                return "failed", "video hasil tidak muncul sebelum batas waktu"
+            log(f"[{job_id[:8]}] panen: video jadi {src['dur']:.1f}s "
+                f"{src['w']}x{src['h']}")
             _set_status(job_id, "running", progress=88)
             video_url = src["src"]
 
@@ -1396,7 +1451,7 @@ async def close_session(sess):
         pass
 
 
-async def generate_in_session(sess, info):
+async def generate_in_session(sess, info, fase="penuh"):
     """Kirim satu job memakai token sesi. Kembalikan (status, detail)."""
     job_id = info["job_id"]
     prompt = normalize_prompt(info["prompt"])
@@ -1633,8 +1688,18 @@ async def run_batch(name, cm, pool):
     sess = None
     idle_since = None
     kosong_sejak = None       # sejak kapan antrian kosong (worker tanpa sesi)
+    reload_terakhir = 0.0     # kapan accounts.txt terakhir dimuat ulang
     try:
         while True:
+            # MUAT ULANG AKUN berkala: akun yang disetor setelah runner start
+            # harus bisa dipakai tanpa restart (kalau tidak: job gagal
+            # "tidak ada akun yang bisa membuka sesi" padahal akunnya ada).
+            if RELOAD_ACCOUNTS and (time.time() - reload_terakhir) > RELOAD_EVERY:
+                reload_terakhir = time.time()
+                try:
+                    pool.muat_ulang()
+                except Exception:
+                    pass
             batch = []
             # UJI KUOTA: bila akun sesi ini belum terbukti punya kuota, ambil
             # SATU job dulu. Kalau job itu sukses, akun masuk daftar
@@ -1724,8 +1789,21 @@ async def run_batch(name, cm, pool):
                         break
                     pool.mark_ui_retry(cand)
                 if sess is None:
+                    # Sebelum menyerah: mungkin akun BARU saja disetor dan
+                    # belum termuat. Muat ulang lalu coba sekali lagi.
+                    if RELOAD_ACCOUNTS:
+                        n_baru = pool.muat_ulang()
+                        if n_baru:
+                            log(f"tidak ada akun -> muat ulang: {n_baru} akun baru")
+                            reload_terakhir = time.time()
+                            for it in batch:
+                                _requeue(it["job_id"], "akun baru dimuat",
+                                         hitung=False)
+                            await asyncio.sleep(1)
+                            continue
                     for it in batch:
-                        _requeue(it["job_id"], "tidak ada akun yang bisa membuka sesi")
+                        _requeue(it["job_id"], "tidak ada akun yang bisa membuka sesi",
+                                 hitung=False)
                     await asyncio.sleep(3)
                     continue
 
@@ -1739,6 +1817,7 @@ async def run_batch(name, cm, pool):
             except Exception as e:
                 hasil = {i["job_id"]: ("failed", str(e)[:200]) for i in batch}
 
+            tunggu_panen = []          # job yang sudah dikirim, belum dipanen
             limit_hit = False
             for it in batch:
                 jid = it["job_id"]
@@ -1756,16 +1835,25 @@ async def run_batch(name, cm, pool):
                 if status == "ui_fallback":
                     # jalur UI lama (terbukti) menangani job ini
                     log(f"[{jid[:8]}] beralih ke jalur UI: {str(detail)[:70]}")
+                    # KIRIM DULU: cukup klik Generate, tanpa menunggu video jadi,
+                    # supaya job bergambar berikutnya tidak menunggu render
+                    # job sebelumnya (~90s). Dipanen setelah semua terkirim.
+                    _fase = "kirim" if KIRIM_DULU else "penuh"
                     try:
                         st2, d2 = await asyncio.wait_for(
                             run_job(cm, pool, jid, email, it["prompt"],
-                                    aspect=it["aspect"], images=it["images"]),
+                                    aspect=it["aspect"], images=it["images"],
+                                    fase=_fase),
                             timeout=JOB_HARD_TIMEOUT)
                     except asyncio.TimeoutError:
                         st2, d2 = "failed", f"batas waktu {JOB_HARD_TIMEOUT}s (UI)"
                     except Exception as e:
                         st2, d2 = "failed", str(e)[:200]
                     log(f"[{jid[:8]}] jalur UI -> {st2}: {str(d2)[:80]}")
+
+                    if st2 == "terkirim":
+                        tunggu_panen.append((jid, email, it))
+                        continue
                     sess["n"] += 1
                     if st2 == "completed":
                         pool.mark_ok(email)
@@ -1816,6 +1904,54 @@ async def run_batch(name, cm, pool):
                     continue
 
                 _set_status(jid, "failed", account=email, error=str(detail)[:300])
+
+            # FASE PANEN: semua job bergambar sudah dikirim; sekarang tunggu
+            # hasilnya satu per satu lalu unduh. Ini menghapus antrean karena
+            # pengiriman tidak lagi menunggu render satu per satu.
+            if tunggu_panen:
+                log(f"kirim-dulu: {len(tunggu_panen)} job bergambar terkirim, "
+                    f"sekarang panen hasilnya")
+                for jid, em, it in tunggu_panen:
+                    try:
+                        st2, d2 = await asyncio.wait_for(
+                            run_job(cm, pool, jid, em, it["prompt"],
+                                    aspect=it["aspect"], images=it["images"],
+                                    fase="panen"),
+                            timeout=JOB_HARD_TIMEOUT)
+                    except asyncio.TimeoutError:
+                        st2, d2 = "failed", f"batas waktu panen {JOB_HARD_TIMEOUT}s"
+                    except Exception as e:
+                        st2, d2 = "failed", str(e)[:200]
+                    log(f"[{jid[:8]}] panen -> {st2}: {str(d2)[:80]}")
+                    sess["n"] += 1
+                    if st2 == "completed":
+                        pool.mark_ok(em)
+                        _AKUN_PUNYA_KUOTA.add(em)
+                        _set_status(jid, "completed", account=em, progress=100,
+                                    result_path=str(d2))
+                    else:
+                        # panen gagal -> coba jalur penuh sekali (kirim ulang)
+                        log(f"[{jid[:8]}] panen gagal — coba jalur penuh")
+                        try:
+                            st3, d3 = await asyncio.wait_for(
+                                run_job(cm, pool, jid, em, it["prompt"],
+                                        aspect=it["aspect"], images=it["images"]),
+                                timeout=JOB_HARD_TIMEOUT)
+                        except asyncio.TimeoutError:
+                            st3, d3 = "failed", f"batas waktu {JOB_HARD_TIMEOUT}s"
+                        except Exception as e:
+                            st3, d3 = "failed", str(e)[:200]
+                        log(f"[{jid[:8]}] jalur penuh -> {st3}: {str(d3)[:70]}")
+                        if st3 == "completed":
+                            pool.mark_ok(em)
+                            _set_status(jid, "completed", account=em, progress=100,
+                                        result_path=str(d3))
+                        elif st3 == "limited":
+                            pool.mark_limited(em)
+                            _requeue(jid, "limit (UI)", hitung=False)
+                        else:
+                            _set_status(jid, "failed", account=em,
+                                        error=str(d3)[:300])
 
             if limit_hit:
                 await close_session(sess)
