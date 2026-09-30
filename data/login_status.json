@@ -653,5 +653,56 @@
     "state": "ok",
     "detail": "sesi lama; Vids terbuka (title=Google Vids)",
     "at": "2026-09-29T12:17:32.250648+00:00"
-  }
+  },
+  "denijfx8@rallse.com": {
+    "state": "needs_human",
+    "detail": "verifikasi setelah email: ketik teks yang anda dengar atau lihat",
+    "at": "2026-09-30T15:19:20.850561+00:00"
+  },
+  "denijfx6@rallse.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-30T14:51:55.861747+00:00"
+  },
+  "denijfx7@rallse.com": {
+    "state": "needs_human",
+    "detail": "verifikasi setelah email: ketik teks yang anda dengar atau lihat",
+    "at": "2026-09-30T15:19:53.218390+00:00"
+  },
+  "denijfx5@rallse.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-30T14:55:57.124276+00:00"
+  },
+  "denijfx3@rallse.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-30T14:59:26.059786+00:00"
+  },
+  "denijfx1@rallse.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-30T15:02:54.750659+00:00"
+  },
+  "denijfx9@rallse.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-30T15:06:23.693285+00:00"
+  },
+  "denijfx10@rallse.com": {
+    "state": "needs_human",
+    "detail": "verifikasi setelah email: ketik teks yang anda dengar atau lihat",
+    "at": "2026-09-30T15:06:55.780187+00:00"
+  },
+  "denijfx4@rallse.com": {
+    "state": "needs_human",
+    "detail": "verifikasi setelah email: ketik teks yang anda dengar atau lihat",
+    "at": "2026-09-30T15:07:27.379313+00:00"
+  },
+  "denijfx2@rallse.com": {
+    "state": "ok",
+    "detail": "sesi lama; Vids terbuka (title=Google Vids)",
+    "at": "2026-09-30T15:32:48.496468+00:00"
+  },
+  "running": false
 }

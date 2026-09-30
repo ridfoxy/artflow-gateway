@@ -6,6 +6,7 @@ from typing import Optional, List, Dict, Any
 import asyncio
 import os
 import re
+import subprocess
 import uuid
 import logging
 import sqlite3
@@ -2803,6 +2804,12 @@ def _vids_db():
     return conn
 
 
+class VidsLoginRequest(BaseModel):
+    """Permintaan login akun. emails null = semua dari accounts.txt."""
+    emails: Optional[List[str]] = None
+    mode: Optional[str] = "belum_ok"     # "belum_ok" (lewati yang sudah ok) | "semua"
+
+
 class VidsCreateRequest(BaseModel):
     prompt: str
     account: Optional[str] = None      # paksa akun tertentu (opsional)
@@ -3151,6 +3158,144 @@ async def api_vids_accounts_template():
         "jumlah_sekarang": len(acc),
         "punya_password": sum(1 for a in acc if a.split("|", 1)[1].strip()),
     }
+
+
+@app.post("/v1/vids/accounts/login", dependencies=[Depends(verify_api_key)])
+async def api_vids_accounts_login(req: VidsLoginRequest):
+    """Jalankan LOGIN akun pool di LATAR BELAKANG (tidak menunggu selesai).
+
+    Kenapa asinkron: 10 akun x ~25s = ~4 menit, jauh melebihi batas Cloudflare
+    (~100s) -> bot menerima "524 Server Error" padahal login masih berjalan.
+    Sekarang endpoint langsung membalas; kemajuannya dipantau lewat
+    GET /v1/vids/accounts/login-status.
+    """
+    import json as _json
+    from pathlib import Path as _P
+
+    APP = _P("/root/api-google-flow")
+    PY = "/root/geminiomni/venv/bin/python"
+    SCRIPT = APP / "_login_jalan.py"
+    STATUS = APP / "data" / "login_proses.json"
+    LOGF = APP / "data" / "login_last.log"
+
+    # sudah ada yang berjalan? jangan dobel
+    st = {}
+    if STATUS.exists():
+        try:
+            st = _json.loads(STATUS.read_text())
+        except Exception:
+            st = {}
+    if st.get("running"):
+        pid_lama = st.get("pid")
+        hidup = False
+        if pid_lama:
+            try:
+                import os as _os
+                _os.kill(int(pid_lama), 0)
+                hidup = True
+            except Exception:
+                hidup = False
+        if hidup:
+            return {"status": "sudah_jalan", "pid": pid_lama,
+                    "diproses": st.get("jumlah"), "message": "login sedang berjalan"}
+        st = {}
+
+    # pilih kandidat
+    kandidat = []
+    if req.emails:
+        kandidat = [e.strip() for e in req.emails if e and e.strip()]
+    else:
+        f = APP / "accounts.txt"
+        if f.exists():
+            for line in f.read_text(errors="replace").splitlines():
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                em = line.split("|")[0].strip()
+                if em:
+                    kandidat.append(em)
+        if (req.mode or "belum_ok") == "belum_ok":
+            sudah = set()
+            rp = APP / "data" / "login_results.jsonl"
+            if rp.exists():
+                for line in rp.read_text(errors="replace").splitlines():
+                    try:
+                        d = _json.loads(line)
+                    except Exception:
+                        continue
+                    if str(d.get("state")) == "ok":
+                        sudah.add((d.get("email") or "").strip())
+            kandidat = [e for e in kandidat if e not in sudah]
+            logger.info("auto-login: %d akun dilewati (sudah ok)", len(sudah))
+
+    if not kandidat:
+        return {"status": "ok", "diproses": 0,
+                "message": "tidak ada akun yang perlu login"}
+
+    batch = kandidat[:10]
+    logger.info("auto-login dimulai (latar belakang): %d akun dari %d kandidat",
+                len(batch), len(kandidat))
+
+    logf = open(LOGF, "w", encoding="utf-8")
+    proc = subprocess.Popen(
+        [PY, str(SCRIPT), ",".join(batch)],
+        cwd=str(APP), stdout=logf, stderr=subprocess.STDOUT,
+        start_new_session=True, env={**os.environ, "DISPLAY": ":99"})
+
+    STATUS.write_text(_json.dumps({
+        "running": True, "pid": proc.pid, "jumlah": len(batch),
+        "kandidat": len(kandidat), "mulai": int(time.time()),
+    }), encoding="utf-8")
+
+    return {"status": "mulai", "pid": proc.pid, "diproses": len(batch),
+            "sisa_kandidat": max(0, len(kandidat) - len(batch)),
+            "message": f"login {len(batch)} akun berjalan di latar belakang"}
+
+
+@app.get("/v1/vids/accounts/login-status", dependencies=[Depends(verify_api_key)])
+async def api_vids_login_status():
+    """Keadaan proses login latar belakang (untuk pemantauan bot)."""
+    import json as _json
+    import os as _os
+    from pathlib import Path as _P
+
+    APP = _P("/root/api-google-flow")
+    STATUS = APP / "data" / "login_proses.json"
+    LOGF = APP / "data" / "login_last.log"
+
+    st = {}
+    if STATUS.exists():
+        try:
+            st = _json.loads(STATUS.read_text())
+        except Exception:
+            st = {}
+
+    hidup = False
+    pid = st.get("pid")
+    if pid:
+        try:
+            _os.kill(int(pid), 0)
+            hidup = True
+        except Exception:
+            hidup = False
+
+    if st and not hidup:
+        st["running"] = False
+        STATUS.write_text(_json.dumps(st), encoding="utf-8")
+
+    # ringkasan hasil dari log terakhir
+    hasil, baris = {}, []
+    if LOGF.exists():
+        teks = LOGF.read_text(errors="replace")
+        for l in teks.splitlines()[-40:]:
+            if "-> " in l and "@" in l:
+                baris.append(l.strip()[:120])
+            if "=== hasil:" in l:
+                hasil["ringkas"] = l.strip()
+    st["running"] = hidup
+    st["hasil_terakhir"] = baris[-10:]
+    st["ringkas"] = hasil.get("ringkas")
+    return st
 
 
 @app.get("/v1/vids/accounts/login-log", dependencies=[Depends(verify_api_key)])

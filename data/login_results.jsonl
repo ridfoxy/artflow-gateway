@@ -1,0 +1,17 @@
+{"email": "denijfx8@rallse.com", "state": "error", "detail": "AttributeError(\"'coroutine' object has no attribute 'lower'\")", "at": "2026-09-30T14:35:32.512721+00:00", "ts": 1790778932}
+{"email": "denijfx8@rallse.com", "state": "error", "detail": "BrowserType.launch_persistent_context: Target page, context or browser has been closed", "secs": 1.6, "at": "2026-09-30T14:37:41.386477+00:00", "ts": 1790779061}
+{"email": "denijfx8@rallse.com", "state": "error", "detail": "BrowserType.launch_persistent_context: Target page, context or browser has been closed", "secs": 1.0, "at": "2026-09-30T14:40:06.925387+00:00", "ts": 1790779206}
+{"email": "denijfx8@rallse.com", "state": "needs_human", "detail": "verifikasi setelah email: ketik teks yang anda dengar atau lihat", "secs": 7.3, "at": "2026-09-30T14:44:28.803111+00:00", "ts": 1790779468}
+{"email": "denijfx8@rallse.com", "state": "needs_human", "detail": "verifikasi setelah email: ketik teks yang anda dengar atau lihat", "secs": 9.1, "at": "2026-09-30T14:48:21.832584+00:00", "ts": 1790779701}
+{"email": "denijfx6@rallse.com", "state": "ok", "detail": "sesi lama; Vids terbuka (title=Google Vids)", "secs": 189.2, "at": "2026-09-30T14:51:56.083273+00:00", "ts": 1790779916}
+{"email": "denijfx7@rallse.com", "state": "needs_human", "detail": "verifikasi setelah email: ketik teks yang anda dengar atau lihat", "secs": 7.9, "at": "2026-09-30T14:52:28.977750+00:00", "ts": 1790779948}
+{"email": "denijfx5@rallse.com", "state": "ok", "detail": "sesi lama; Vids terbuka (title=Google Vids)", "secs": 183.4, "at": "2026-09-30T14:55:57.387673+00:00", "ts": 1790780157}
+{"email": "denijfx3@rallse.com", "state": "ok", "detail": "sesi lama; Vids terbuka (title=Google Vids)", "secs": 184.0, "at": "2026-09-30T14:59:26.360877+00:00", "ts": 1790780366}
+{"email": "denijfx1@rallse.com", "state": "ok", "detail": "sesi lama; Vids terbuka (title=Google Vids)", "secs": 183.6, "at": "2026-09-30T15:02:54.976370+00:00", "ts": 1790780574}
+{"email": "denijfx9@rallse.com", "state": "ok", "detail": "sesi lama; Vids terbuka (title=Google Vids)", "secs": 184.0, "at": "2026-09-30T15:06:23.971633+00:00", "ts": 1790780783}
+{"email": "denijfx10@rallse.com", "state": "needs_human", "detail": "verifikasi setelah email: ketik teks yang anda dengar atau lihat", "secs": 7.0, "at": "2026-09-30T15:06:55.990663+00:00", "ts": 1790780815}
+{"email": "denijfx4@rallse.com", "state": "needs_human", "detail": "verifikasi setelah email: ketik teks yang anda dengar atau lihat", "secs": 6.6, "at": "2026-09-30T15:07:27.600346+00:00", "ts": 1790780847}
+{"email": "denijfx2@rallse.com", "state": "ok", "detail": "sesi lama; Vids terbuka (title=Google Vids)", "secs": 184.1, "at": "2026-09-30T15:10:56.750438+00:00", "ts": 1790781056}
+{"email": "denijfx8@rallse.com", "state": "needs_human", "detail": "verifikasi setelah email: ketik teks yang anda dengar atau lihat", "secs": 9.8, "at": "2026-09-30T15:19:21.108664+00:00", "ts": 1790781561}
+{"email": "denijfx7@rallse.com", "state": "needs_human", "detail": "verifikasi setelah email: ketik teks yang anda dengar atau lihat", "secs": 6.8, "at": "2026-09-30T15:19:53.416422+00:00", "ts": 1790781593}
+{"email": "denijfx2@rallse.com", "state": "ok", "detail": "sesi lama; Vids terbuka (title=Google Vids)", "secs": 23.0, "at": "2026-09-30T15:32:48.775216+00:00", "ts": 1790782368}
