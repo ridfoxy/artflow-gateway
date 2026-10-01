@@ -1195,6 +1195,18 @@ def ensure_xvfb():
 # SESI EDITOR DIPAKAI ULANG (tanpa antri antar job)
 # ─────────────────────────────────────────────────────────────
 IMAGE_RECORD = APP / "data" / "with_image_payload.json"
+
+# ── RPC 2 GAMBAR (langkah 2) ────────────────────────────────────────────
+# Basis WAJIB rekaman nyata: template polos ditolak 400. Rekaman dibuat
+# dengan cara benar (unggah-1 -> tombol Add avatar -> unggah-2), bukti chip
+# ['@Image1','@Image2'] dan penampung [2][25] berisi 2 entri.
+IMAGE2_RECORD = APP / "data" / "with_2images_payload_REAL.json"
+# Matikan (0) untuk kembali ke jalur UI: perilaku sebelum patch ini.
+IMG2_XHR = os.environ.get("VIDS_IMG2_XHR", "1") not in ("0", "false", "no")
+# Jalur prompt di payload (dari peta rekaman).
+IMG2_PROMPT_PATH = (3, 3, 0, 0, 2)
+IMG2_AVL_PATH = (2, 25, 0, 0, 7, 1, 11, 8, 3)
+#                 ^ indeks gambar disisipkan di posisi [2]. Jalur lengkap gambar ke-i: (2, 25, i, 0, 7, 1, 11, 8, 3)
 SESSION_MAX_JOBS = int(os.environ.get("VIDS_SESSION_JOBS", "12"))
 # Jeda antar percobaan saat sesi rusak. Tanpa ini 4-5 percobaan terjadi
 # di detik yang sama: pool terlihat kosong padahal akun sehat tersedia.
@@ -1362,6 +1374,65 @@ def build_image_body(prompt, token):
     return rec.get("url"), body
 
 
+def _set_path(arr, jalur, nilai):
+    """Isi nilai pada jalur bersarang (list). Kembalikan True bila berhasil."""
+    node = arr
+    for k in jalur[:-1]:
+        if not isinstance(node, list) or k >= len(node):
+            return False
+        node = node[k]
+    akhir = jalur[-1]
+    if not isinstance(node, list) or akhir >= len(node):
+        return False
+    node[akhir] = nilai
+    return True
+
+
+def build_2image_body(prompt, tokens):
+    """Payload generate untuk 1-2 gambar via RPC.
+
+    Struktur (dari rekaman nyata, lihat data/PETA-2GAMBAR.json):
+      [0]                       -> 376 (mode bergambar)
+      [2][25][i][0][7][0]       -> UUID gambar (dari basis, dibiarkan)
+      [2][25][i][0][7][1][11][8][3] -> token AVL gambar ke-i
+      [3][3][0][0][2]           -> prompt
+
+    Basis harus rekaman nyata: template polos ditolak 400 karena merujuk
+    dokumen proyek lama. Kembalikan (url, body_json_string) atau (None, None).
+    """
+    try:
+        rec = json.loads(IMAGE2_RECORD.read_text())
+    except Exception:
+        return None, None
+    body = rec.get("body") or ""
+    if not body:
+        return None, None
+    try:
+        arr = json.loads(body)
+    except Exception:
+        return None, None
+
+    # isi token AVL untuk tiap gambar yang dikirim
+    for i, tok in enumerate(tokens or []):
+        if not tok:
+            continue
+        jalur = (2, 25, i) + IMG2_AVL_PATH[3:]
+        if not _set_path(arr, jalur, tok):
+            return None, None
+    # potong bila gambar lebih sedikit dari basis? TIDAK: basis 2 gambar,
+    # jumlah entri harus sama dengan jumlah token.
+    wadah = arr[2][25] if len(arr) > 2 and isinstance(arr[2], list) else None
+    n_tok = len(tokens or [])
+    if isinstance(wadah, list):
+        if n_tok > len(wadah):
+            return None, None          # minta lebih banyak gambar dari basis
+        del wadah[n_tok:]              # pangkas ke jumlah gambar yang dikirim
+    # prompt
+    if not _set_path(arr, IMG2_PROMPT_PATH, prompt):
+        return None, None
+    return rec.get("url"), json.dumps(arr, separators=(",", ":"))
+
+
 def mark_dead_session(email, hours=int(os.environ.get("VIDS_DEAD_SESSION_HOURS", "12"))):
     """Tandai akun sesi-mati langsung (7 hari), jangan lewat has_login_cookies.
 
@@ -1494,9 +1565,11 @@ async def generate_in_session(sess, info, fase="penuh"):
             urls.append(t)
         if len(urls) != len(images[:2]):
             return "ui_fallback", "gambar tidak siap via XHR"
-        if len(urls) > 1:
-            # struktur payload 2 gambar belum terbukti -> pakai jalur UI
-            return "ui_fallback", "2 gambar: struktur payload belum terbukti"
+        # 2 gambar: pakai RPC bila direkam-basis tersedia & flag ON.
+        # Bukti rekaman: chip ['@Image1','@Image2'], penampung [2][25] len=2,
+        # payload 1423 char. Bila gagal -> jatuh ke jalur UI (perilaku lama).
+        if len(urls) > 1 and not (IMG2_XHR and IMAGE2_RECORD.exists()):
+            return "ui_fallback", "2 gambar: RPC mati/tanpa basis -> jalur UI"
 
     want_portrait = str(info["aspect"] or "").lower().startswith("port")
     if urls and want_portrait:
@@ -1506,7 +1579,15 @@ async def generate_in_session(sess, info, fase="penuh"):
         # 720x1280) daripada mengirim rasio yang salah tanpa memberi tahu.
         return "ui_fallback", "gambar + portrait: perlu dokumen proyek (UI)"
     if urls:
-        url, body = build_image_body(prompt, urls[0])
+        if len(urls) > 1 and IMG2_XHR:
+            url, body = build_2image_body(prompt, urls)
+            if url and body:
+                log(f"[{job_id[:8]}] 2 gambar: payload RPC siap "
+                    f"({len(body)} char)")
+            else:
+                return "ui_fallback", "rakit payload 2 gambar gagal"
+        else:
+            url, body = build_image_body(prompt, urls[0])
         if not url or not body:
             return "ui_fallback", "template bergambar tidak tersedia"
     else:

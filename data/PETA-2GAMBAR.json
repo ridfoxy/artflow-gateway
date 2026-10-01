@@ -1,0 +1,55 @@
+{
+  "berkas_basis": "with_2images_payload_REAL.json",
+  "dasar": "WAJIB pakai rekaman nyata (template polos ditolak 400)",
+  "penanda_mode": {
+    "jalur": [
+      0
+    ],
+    "nilai_2gambar": 376,
+    "catatan": "376 = ada gambar; 374 = teks saja"
+  },
+  "penampung_gambar": {
+    "jalur": [
+      2,
+      25
+    ],
+    "jenis": "list",
+    "panjang_isi": "jumlah gambar (1 atau 2)",
+    "per_gambar": {
+      "uuid": "[2][25][i][0][7][0]",
+      "token_avl": "[2][25][i][0][7][1][11][8][3]"
+    }
+  },
+  "prompt": {
+    "jalur": [
+      3,
+      3,
+      0,
+      0,
+      2
+    ]
+  },
+  "rujukan_dokumen": "[2][8][3][0][0][7][2][0] (ikut basis, jangan diubah)",
+  "cara_rakit": [
+    "1. muat with_2images_payload_REAL.json",
+    "2. ganti token AVL di [2][25][0][0][7][1][11][8][3] (gambar 1)",
+    "3. ganti token AVL di [2][25][1][0][7][1][11][8][3] (gambar 2)",
+    "4. ganti prompt di [3][3][0][0][2]",
+    "5. kirim body (string JSON) via xhr_post ke url rekaman"
+  ],
+  "bukti_rekaman": {
+    "akun": "denijfx8@rallse.com",
+    "chip": [
+      "@Image1",
+      "@Image2"
+    ],
+    "thumbnail": 4,
+    "body_len": 1423
+  },
+  "token_avl": {
+    "gambar_1": "AVL_REDACTED",
+    "gambar_2": "AVL_REDACTED",
+    "uuid_gambar_1": "F14CD278-2B03-490B-9697-793D0B244D3C",
+    "uuid_gambar_2": "9E423288-7DE7-4C3B-909D-31440250A596"
+  }
+}

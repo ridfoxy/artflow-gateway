@@ -1,0 +1,13 @@
+{
+  "how": "xhr",
+  "url": "https://appsgenaiserver-pa.clients6.google.com/v1/genai/generate?key=AIzaSyA-njTXslyyMKk1VOogRfVP59F6fNGeNW8",
+  "method": "POST",
+  "headers": {
+    "Accept-Language": "en",
+    "X-Server-Token": "CAMSGhUR9NL9N67auQayvgSuUb6_BqcGt6CSAB0H",
+    "X-Goog-AuthUser": "0",
+    "Authorization": "SAPISIDHASH 1790816613_36e537430aae4aec1b9304f9f62016e9c0fba373 SAPISID1PHASH 1790816613_36e537430aae4aec1b9304f9f62016e9c0fba373 SAPISID3PHASH 1790816613_36e537430aae4aec1b9304f9f62016e9c0fba373",
+    "Content-Type": "application/json+protobuf"
+  },
+  "body": "[376,null,[9,null,null,null,\"goog_2009389397\",null,\"0\",null,[null,null,null,[[[null,null,null,null,null,null,null,[null,null,[[\"1pA8HKCO32iwlYTm8zWbHHkp-_Mt4-d8oomxrqyxKa6A\",\"application/vnd.google-apps.flix\",null,null,1]]]]]]],null,null,[24,0],null,\"en\",null,null,null,null,null,1,null,null,null,null,null,[[[null,null,null,null,null,null,null,[\"F14CD278-2B03-490B-9697-793D0B244D3C\",[null,null,null,null,null,null,null,null,null,null,null,[null,null,null,null,null,null,null,null,[null,null,null,\"AVL_REDACTED\",1],null,null,null,null,\"Image1\"]]]]],[[null,null,null,null,null,null,null,[\"9E423288-7DE7-4C3B-909D-31440250A596\",[null,null,null,null,null,null,null,null,null,null,null,[null,null,null,null,null,null,null,null,[null,null,null,\"AVL_REDACTED\",1],null,null,null,null,\"Image2\"]]]]]],null,null,null,null,null,null,null,null,null,null,null,null,null,null,0],[null,null,null,[[[null,null,\"rekam-2gambar: dua kucing berbeda warna\"]]]],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,[0,12,null,0,1,null,null,null,10]],[1,null,[[null,\"1\",1189]]],1]"
+}
