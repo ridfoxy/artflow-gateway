@@ -35,6 +35,8 @@ APP_DIR = Path("/root/api-google-flow")
 os.environ.setdefault("DISPLAY", ":99")
 ACCOUNTS = APP_DIR / "accounts.txt"
 PROFILES = APP_DIR / "chrome_profiles"
+# Profil Firefox (Camoufox) — WAJIB terpisah dari profil Chrome.
+PROFILES_FF = APP_DIR / "firefox_profiles"
 VIDS_URL = "https://docs.google.com/videos/"
 SIGNIN = ("https://accounts.google.com/signin/v2/identifier"
           "?flowName=GlifWebSignIn&flowEntry=ServiceLogin")
@@ -180,6 +182,129 @@ def accept_terms(page):
     return click_next(page)
 
 
+
+def scroll_to_bottom_soft(page, rounds=12, log_fn=print):
+    """Gulir sampai dasar (halaman persyaratan Workspace menyembunyikan tombol).
+
+    Terbukti di gsuite_login.py: tombol "Saya mengerti"/"I understand" baru ada
+    setelah teksnya habis dibaca. Tanpa ini klik tidak pernah menemukannya.
+    """
+    posisi_lama = -1
+    for i in range(rounds):
+        try:
+            page.evaluate("""() => {
+                const all = [...document.querySelectorAll('div,section,main,article')];
+                for (const e of all) {
+                    if (e.scrollHeight > e.clientHeight + 20) e.scrollTop = e.scrollHeight;
+                }
+                window.scrollTo(0, document.body.scrollHeight);
+                const d = document.scrollingElement;
+                if (d) d.scrollTop = d.scrollHeight;
+            }""")
+        except Exception:
+            pass
+        try:
+            posisi = page.evaluate("() => window.scrollY || document.scrollingElement.scrollTop || 0")
+            tinggi = page.evaluate("() => Math.max(document.body.scrollHeight, document.scrollingElement.scrollHeight)")
+            if abs(float(tinggi) - (float(posisi) + float(page.evaluate("() => window.innerHeight || 800")))) <= 5:
+                break
+            posisi_lama = posisi
+        except Exception:
+            posisi_lama = -1
+        time.sleep(0.4)
+    try:
+        page.keyboard.press("End")
+    except Exception:
+        pass
+
+
+def tawaran_setuju(page):
+    """True bila tombol setuju benar-benar ADA dan terlihat di halaman ini."""
+    for sel in ('button:has-text("Saya mengerti")',
+                'button:has-text("Saya setuju")',
+                'button:has-text("Setuju")',
+                'button:has-text("Terima")',
+                'button:has-text("I understand")',
+                'button:has-text("I agree")',
+                'button:has-text("Accept")',
+                'button:has-text("Agree")'):
+        try:
+            el = page.query_selector(sel)
+            if el and el.is_visible():
+                return True
+        except Exception:
+            continue
+    return False
+
+
+def klik_setuju_kalau_ada(page, log_fn=log, maks=6):
+    """Klik tombol setuju dengan SABAR (tunggu muncul, gulir, klik, ulangi).
+
+    Diuji di lapangan: tombol "Saya mengerti" pada halaman
+    workspacetermsofservice TERLIHAT & aktif, tetapi bila diklik terlalu cepat
+    (halaman belum selesai dimuat) kliknya tidak berpengaruh. Jadi: TUNGGU
+    tombolnya muncul, gulir, klik, lalu PASTIKAN halaman berpindah; kalau belum,
+    ulangi sampai `maks` kali.
+    """
+    for putaran in range(maks):
+        url_awal = ""
+        try:
+            url_awal = page.url
+        except Exception:
+            pass
+
+        # 1. tunggu tombolnya benar-benar ada (naikkan waktu tiap putaran)
+        sabar = 3 + putaran * 3
+        try:
+            page.wait_for_selector(
+                'button:has-text("Saya mengerti"), button:has-text("Setuju"), '
+                'button:has-text("Terima"), button:has-text("I understand"), '
+                'button:has-text("I agree"), button:has-text("Accept")',
+                timeout=sabar * 1000)
+        except Exception:
+            pass
+
+        # 2. gulir sampai dasar (tombol muncul setelah teks dibaca)
+        scroll_to_bottom_soft(page, rounds=10, log_fn=log_fn)
+        time.sleep(1.0)
+
+        # 3. klik
+        klik = None
+        for lab in ("Saya mengerti", "Saya setuju", "Setuju", "Terima",
+                    "I understand", "I agree", "Accept", "Agree", "Lanjutkan",
+                    "Continue"):
+            try:
+                el = page.get_by_role("button", name=lab, exact=False).first
+                if el and el.is_visible():
+                    el.click(timeout=6000)
+                    klik = lab
+                    break
+            except Exception:
+                continue
+        if not klik:
+            klik = click_next(page)
+        log_fn(f"    setuju putaran {putaran + 1}: klik={klik}")
+
+        # 4. tunggu halaman berpindah
+        batas = time.time() + 12
+        while time.time() < batas:
+            time.sleep(1.0)
+            try:
+                sekarang = page.url
+            except Exception:
+                sekarang = url_awal
+            if "accounts.google.com" not in sekarang:
+                log_fn(f"    keluar dari halaman akun -> {sekarang[:70]}")
+                return True
+            if sekarang != url_awal:
+                return True
+
+    try:
+        return "accounts.google.com" not in page.url
+    except Exception:
+        return False
+
+
 def check_vids(page):
     """Buka Vids dan pastikan sesinya benar-benar tersimpan.
 
@@ -230,7 +355,12 @@ def main():
     args = ap.parse_args()
 
     email, password = load_account(args.email)
-    profile = Path(args.profile) if args.profile else (PROFILES / email)
+    # FOLDER TERPISAH dari Chromium. Chrome dan Firefox tidak boleh berbagi
+    # user_data_dir: isinya bercampur (Default/Cookies milik Chrome, cookies.sqlite
+    # + cert9.db milik Firefox) sehingga SESI TIDAK TERBACA oleh keduanya.
+    # Runner tetap memakai PROFILES / email (Chrome); Camoufox memakai <email>__ff.
+    profil_ff = PROFILES_FF / email
+    profile = Path(args.profile) if args.profile else profil_ff
     profile.mkdir(parents=True, exist_ok=True)
 
     deadline = time.time() + args.timeout
@@ -335,27 +465,50 @@ def main():
                 hay = text_low(page)
                 if find(CHALLENGE, hay) or find(BAD, hay):
                     break
-                if "speedbump" in url or "workspaceterms" in url.lower():
-                    break
+                # Halaman persyaratan: tangani DI SINI, jangan keluar dari loop
+                # hanya karena URL-nya speedbump (tombolnya belum tentu dimuat).
+                if "speedbump" in url or "terms" in url.lower():
+                    if tawaran_setuju(page):
+                        klik_setuju_kalau_ada(page, log_fn=log)
+                        if "accounts.google.com" not in page.url:
+                            break
+                    else:
+                        time.sleep(2)
+                        continue
                 time.sleep(1.5)
+
+            # Kalau langsung mendarat di halaman persyaratan, klik setuju.
+            try:
+                if "accounts.google.com" in page.url and (
+                        "terms" in page.url.lower() or "speedbump" in page.url):
+                    klik_setuju_kalau_ada(page)
+                    time.sleep(2)
+            except Exception:
+                pass
 
             # Selesaikan halaman antara (persetujuan/konfirmasi).
             # Halaman syarat Workspace perlu DIGULIR sampai dasar dulu: tombol
             # setujunya baru muncul setelah teksnya habis dibaca.
-            for _ in range(6):
+            for _ in range(8):
                 u = page.url
                 if "accounts.google.com" not in u:
                     break
                 hay = text_low(page)
                 if find(CHALLENGE, hay) or find(BAD, hay):
                     break
-                if "speedbump" in u or "workspaceterms" in u.lower():
-                    scroll_to_bottom(page)
+                if "speedbump" in u or "terms" in u.lower():
+                    # GULIR dulu + ULANG sampai benar-benar berpindah.
+                    if klik_setuju_kalau_ada(page, log_fn=log):
+                        continue
+                    time.sleep(2)
+                    continue
                 if not click_next(page):
-                    break
-                time.sleep(5)
+                    time.sleep(1.5)
+                    continue
+                time.sleep(3)
 
-            time.sleep(3)
+            # Beri waktu halaman akun selesai dimuat sebelum diperiksa.
+            time.sleep(6)
             url = page.url
             hay = text_low(page)
 

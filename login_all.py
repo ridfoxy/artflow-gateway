@@ -83,7 +83,10 @@ def run_camoufox(email, test_vids=True, timeout=300):
     """
     if not os.path.exists(CAMOUFOX_PY) or not CAMOUFOX_SCRIPT.exists():
         return "skip", "camoufox tidak tersedia", 0.0
-    cmd = [CAMOUFOX_PY, str(CAMOUFOX_SCRIPT), "--email", email]
+    # Profil Firefox terpisah; dikirim eksplisit supaya tidak ada kebingungan.
+    profil_ff = APP / "firefox_profiles" / email
+    cmd = [CAMOUFOX_PY, str(CAMOUFOX_SCRIPT), "--email", email,
+           "--profile", str(profil_ff)]
     if test_vids:
         cmd.append("--test-vids")
     t0 = time.time()
@@ -154,7 +157,9 @@ def main():
 
         state, detail, secs = run_one(email)
 
-        # Chromium kena CAPTCHA? Coba Camoufox sebelum menyerah.
+        # Chromium kena CAPTCHA/verifikasi? Coba Camoufox (Firefox anti-deteksi)
+        # sebelum menyerah. Camoufox memakai folder profil TERPISAH
+        # (firefox_profiles/) supaya tidak merusak profil Chromium.
         if state == "needs_human":
             cf_state, cf_detail, cf_secs = run_camoufox(email)
             print(f"      [cadangan] {email}: camoufox -> {cf_state} ({cf_secs}s)",
