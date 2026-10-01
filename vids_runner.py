@@ -1205,6 +1205,15 @@ IMAGE2_RECORD = APP / "data" / "with_2images_payload_REAL.json"
 IMG2_XHR = os.environ.get("VIDS_IMG2_XHR", "1") not in ("0", "false", "no")
 # Jalur prompt di payload (dari peta rekaman).
 IMG2_PROMPT_PATH = (3, 3, 0, 0, 2)
+# Rasio video ada DI DALAM payload: 1 = landscape, 2 = portrait.
+# Dibuktikan dengan membandingkan genai_template vs portrait_template:
+# satu-satunya beda struktural selain id dokumen adalah [4][15][4].
+# Karena itu gambar + portrait TIDAK butuh dokumen proyek Vids (dugaan lama
+# salah) — cukup mengisi angka rasio di payload.
+RASIO_PATH = (4, 15, 4)
+RASIO_NILAI = {"landscape": 1, "portrait": 2}
+# Flag untuk jalur RPC bergambar (portrait & 2 gambar). 0 = kembali ke UI.
+IMG_XHR = os.environ.get("VIDS_IMG_XHR", "1") not in ("0", "false", "no")
 IMG2_AVL_PATH = (2, 25, 0, 0, 7, 1, 11, 8, 3)
 #                 ^ indeks gambar disisipkan di posisi [2]. Jalur lengkap gambar ke-i: (2, 25, i, 0, 7, 1, 11, 8, 3)
 SESSION_MAX_JOBS = int(os.environ.get("VIDS_SESSION_JOBS", "12"))
@@ -1388,7 +1397,7 @@ def _set_path(arr, jalur, nilai):
     return True
 
 
-def build_2image_body(prompt, tokens):
+def build_2image_body(prompt, tokens, aspect="landscape"):
     """Payload generate untuk 1-2 gambar via RPC.
 
     Struktur (dari rekaman nyata, lihat data/PETA-2GAMBAR.json):
@@ -1430,6 +1439,12 @@ def build_2image_body(prompt, tokens):
     # prompt
     if not _set_path(arr, IMG2_PROMPT_PATH, prompt):
         return None, None
+    # rasio: isi dari peta (1=landscape, 2=portrait). Bila jalur tidak ada,
+    # biarkan apa adanya (payload basis tetap sah).
+    r = RASIO_NILAI.get(str(aspect or "landscape").lower().startswith("port")
+                        and "portrait" or "landscape")
+    if r:
+        _set_path(arr, RASIO_PATH, r)
     return rec.get("url"), json.dumps(arr, separators=(",", ":"))
 
 
@@ -1572,15 +1587,15 @@ async def generate_in_session(sess, info, fase="penuh"):
             return "ui_fallback", "2 gambar: RPC mati/tanpa basis -> jalur UI"
 
     want_portrait = str(info["aspect"] or "").lower().startswith("port")
-    if urls and want_portrait:
-        # Gambar + portrait: rasio portrait hidup di dokumen proyek Vids yang
-        # dibuat lewat UI. Jalur zero-UI gambar memakai dokumen landscape, jadi
-        # hasilnya akan 1280x720 — lebih baik pindah ke jalur UI (terbukti
-        # 720x1280) daripada mengirim rasio yang salah tanpa memberi tahu.
-        return "ui_fallback", "gambar + portrait: perlu dokumen proyek (UI)"
+    # Gambar + portrait: DULU beralih ke UI karena rasio dianggap hidup di
+    # dokumen proyek. SALAH: rasio ada di payload ([4][15][4], 2=portrait).
+    # Sekarang tetap di jalur RPC; hanya jatuh ke UI bila flag mati.
+    if urls and want_portrait and not (IMG_XHR and IMAGE2_RECORD.exists()):
+        return "ui_fallback", "gambar + portrait: RPC mati -> jalur UI"
     if urls:
-        if len(urls) > 1 and IMG2_XHR:
-            url, body = build_2image_body(prompt, urls)
+        if IMG_XHR and IMAGE2_RECORD.exists():
+            url, body = build_2image_body(
+                prompt, urls, "portrait" if want_portrait else "landscape")
             if url and body:
                 log(f"[{job_id[:8]}] 2 gambar: payload RPC siap "
                     f"({len(body)} char)")
