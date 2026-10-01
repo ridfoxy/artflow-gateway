@@ -30,6 +30,39 @@ logger = logging.getLogger("pool")
 
 PROJECT_ID = os.environ.get("FLOW_PROJECT_ID", "0f21b6bf-24a7-4cfe-81ec-0e674b324f4a")
 OUTPUT_DIR = "/root/api-google-flow/output"
+
+# ── ID MEDIA: UUID (lama) atau token /asb/ (sekarang) ───────────────────
+# Media Flow kini di flow.google.com/asb/<token ~183 char>. UUID 36-char TIDAK
+# punya URL yang bisa diambil (flow/asb/<uuid> -> 400, labs.google -> 401).
+# Terukur: halaman proyek punya 85 token /asb/, 0 UUID yang bisa diambil.
+FLOW_TOKEN_ASB = os.environ.get("FLOW_TOKEN_ASB", "1") not in ("0", "false", "no")
+# Simpan URL LENGKAP (dengan ?Expires=&Signature=) dari src elemen, bukan
+# hanya UUID-nya. Terbukti: URL utuh -> page.request 200 image/jpeg 753.971 B;
+# URL yang dibangun ulang dari UUID -> 400/401.
+FLOW_URL_UTUH = os.environ.get("FLOW_URL_UTUH", "1") not in ("0", "false", "no")
+
+
+def id_media_valid(tail):
+    """Apakah potongan URL ini id media yang BISA diambil?
+
+    UUID 36 char   : bentuk lama (masih diterima, endpoint redirect)
+    token >= 60    : bentuk baru -> flow.google.com/asb/<token>
+    """
+    t = str(tail or "")
+    if len(t) == 36 and t.count("-") == 4:
+        return True
+    if FLOW_TOKEN_ASB and len(t) >= 60 and "/" not in t and " " not in t:
+        return True
+    return False
+
+
+def url_media_dari_id(media_id):
+    """URL pengambilan untuk token /asb/. None untuk UUID (pakai redirect)."""
+    m = str(media_id or "")
+    if FLOW_TOKEN_ASB and len(m) >= 60:
+        return f"https://flow.google.com/asb/{m}"
+    return None
+
 DB_PATH = "/root/api-google-flow/data/gateway.db"
 
 # Measured safe concurrency on a 2-vCPU host.
@@ -195,12 +228,14 @@ class FlowPool:
                 if "flow-content.google" not in u and "/asb/" not in u:
                     return
                 tail = u.rsplit("/", 1)[-1].split("?")[0]
-                if len(tail) == 36 and tail.count("-") == 4:
+                if id_media_valid(tail):
                     if tail in EXCLUDE_FROM_RESULT:
                         return
-                    if tail not in seen:
-                        seen.add(tail)
-                        order.append(tail)
+                    # Simpan URL LENGKAP (dengan tanda tangan) bila ada.
+                    kunci = u if (FLOW_URL_UTUH and u != tail) else tail
+                    if kunci not in seen:
+                        seen.add(kunci)
+                        order.append(kunci)
             except Exception:
                 pass
 
@@ -241,8 +276,15 @@ class FlowPool:
             return set()
         out = set()
         for u in urls or []:
-            m = str(u).rsplit("/", 1)[-1].split("?")[0]
-            if len(m) == 36 and m.count("-") == 4:
+            s = str(u)
+            m = s.rsplit("/", 1)[-1].split("?")[0]
+            if not id_media_valid(m):
+                continue
+            # FLOW_URL_UTUH: simpan URL LENGKAP (tanda tangan ikut). Ini yang
+            # membuat pengambilan berhasil: URL utuh -> 200; UUID saja -> 401.
+            if FLOW_URL_UTUH and s != m:
+                out.add(s)
+            else:
                 out.add(m)
         return out
 
@@ -912,6 +954,119 @@ class FlowPool:
         The signed CDN url is browser-bound (a swapped /video/ path 403s), so the
         bytes are pulled with an in-page fetch and decoded here.
         """
+        # JALUR UTAMA: id berupa URL LENGKAP (flow-content.google/image/<uuid>
+        # ?Expires=...&Signature=...) ATAU token /asb/.
+        # Terbukti: page.request.get(URL utuh) -> 200 image/jpeg 753.971 B.
+        # fetch JS diblokir CORS -> JANGAN pakai fetch untuk URL ini.
+        _url_utuh = None
+        _mid = str(media_id or "")
+        if _mid.startswith("http://") or _mid.startswith("https://"):
+            _url_utuh = _mid
+        else:
+            _url_utuh = url_media_dari_id(media_id)   # token /asb/
+        if _url_utuh:
+            try:
+                _resp = await page.request.get(_url_utuh, max_redirects=5,
+                                               timeout=60000)
+                _b = await _resp.body()
+                _c = (_resp.headers or {}).get("content-type", "").lower()
+            except Exception as _e:
+                _b, _c = None, ""
+                logger.info(f"job {job_id[:8]}: page.request gagal ({str(_e)[:70]})")
+            if _b and len(_b) > 1024 and "text/html" not in _c:
+                _vid = ("video" in _c) or _b[4:8] == b"ftyp"
+                if _b[:3] == b"\xff\xd8\xff" or _b[:4] == b"RIFF" or \
+                        _b[:4] == b"\x89PNG":
+                    _vid = False
+                if want_video is not None and _vid != want_video:
+                    raise Exception(f"wrong media type: got video={_vid}, "
+                                    f"wanted {want_video}")
+                _ext = ".webp" if _b[:4] == b"RIFF" else (
+                    ".mp4" if _vid else ".jpg")
+                os.makedirs(OUTPUT_DIR, exist_ok=True)
+                _path = os.path.join(OUTPUT_DIR, f"{job_id}{_ext}")
+                with open(_path, "wb") as _f:
+                    _f.write(_b)
+                _hasil = {
+                    "id": job_id, "media_id": _mid, "file_path": _path,
+                    "content_type": _c or ("video/mp4" if _vid else "image/jpeg"),
+                    "is_video": _vid, "size_bytes": len(_b),
+                    "download_url": f"/v1/google-flow/media/{job_id}",
+                    "model": getattr(req, "model", None), "type": job_type,
+                }
+                # WAJIB: tandai job selesai (tanpa ini job tetap queued 99%).
+                self._store_result(job_id, _hasil)
+                self.stats["completed"] += 1
+                logger.info(f"job {job_id[:8]}: media {_mid[:26]} "
+                            f"{len(_b)} B ({_c or '?'}) -> completed")
+                return
+            logger.info(f"job {job_id[:8]}: URL tidak menghasilkan media "
+                        f"(ct={_c or '?'}), coba cara lama")
+
+        # JALUR CADANGAN: token /asb/ = URL media langsung. Terbukti HTTP 200
+        # image/webp dari halaman (galeri maupun proyek, termasuk saat job
+        # berjalan). Tidak butuh token ya29 sama sekali.
+        _url_asb = url_media_dari_id(media_id)
+        if _url_asb:
+            _body = None
+            try:
+                _resp = await page.request.get(_url_asb, max_redirects=5,
+                                               timeout=45000)
+                _body = await _resp.body()
+                _ct = (_resp.headers or {}).get("content-type", "").lower()
+            except Exception as _e:
+                logger.info(f"job {job_id[:8]}: /asb/ page.request gagal "
+                            f"({str(_e)[:70]}), coba fetch halaman")
+                try:
+                    _d = await page.evaluate("""async (u) => {
+                        const r = await fetch(u, {credentials: 'include'});
+                        if (!r.ok) return null;
+                        const b = await r.blob();
+                        const buf = await b.arrayBuffer();
+                        let bin = '';
+                        const arr = new Uint8Array(buf);
+                        for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
+                        return {ct: r.headers.get('content-type') || '',
+                                b64: btoa(bin)};
+                    }""", _url_asb)
+                    if isinstance(_d, dict) and _d.get("b64"):
+                        import base64 as _b64
+                        _body = _b64.b64decode(_d["b64"])
+                        _ct = (_d.get("ct") or "").lower()
+                except Exception as _e2:
+                    logger.info(f"job {job_id[:8]}: /asb/ fetch juga gagal "
+                                f"({str(_e2)[:70]})")
+            if _body and len(_body) > 1024:
+                _vid = ("video" in _ct) or _body[4:8] == b"ftyp"
+                if _body[:3] == b"\xff\xd8\xff" or _body[:4] == b"RIFF" or \
+                        _body[:4] == b"\x89PNG":
+                    _vid = False
+                if want_video is not None and _vid != want_video:
+                    raise Exception(f"wrong media type: got video={_vid}, "
+                                    f"wanted {want_video}")
+                _ext = ".webp" if _body[:4] == b"RIFF" else (
+                    ".mp4" if _vid else ".jpg")
+                os.makedirs(OUTPUT_DIR, exist_ok=True)
+                _path = os.path.join(OUTPUT_DIR, f"{job_id}{_ext}")
+                with open(_path, "wb") as _f:
+                    _f.write(_body)
+                _hasil = {
+                    "id": job_id, "media_id": media_id, "file_path": _path,
+                    "content_type": _ct or ("video/mp4" if _vid else "image/jpeg"),
+                    "is_video": _vid, "size_bytes": len(_body),
+                    "download_url": f"/v1/google-flow/media/{job_id}",
+                    "model": getattr(req, "model", None), "type": job_type,
+                }
+                # WAJIB: tandai job selesai. Tanpa ini job tetap "queued 99%"
+                # dan bot tidak pernah mengirim hasil ke user.
+                self._store_result(job_id, _hasil)
+                self.stats["completed"] += 1
+                logger.info(f"job {job_id[:8]}: media /asb/ {len(_body)} B "
+                            f"({_ct or '?'}) -> completed")
+                return
+            logger.info(f"job {job_id[:8]}: /asb/ tidak menghasilkan media "
+                        f"(ct={_ct or '?'}), coba cara lama")
+
         url = f"https://labs.google/fx/api/trpc/media.getMediaUrlRedirect?name={media_id}"
         # page.request follows the 302 to the signed CDN url and carries this
         # page's session; an in-page fetch() of the redirect target fails because

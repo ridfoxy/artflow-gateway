@@ -668,6 +668,134 @@ async def api_start_browser():
         logger.error(f"Browser start failed: {e}")
         return {"success": False, "error": str(e)}
 
+@app.get("/v1/browser/net-spy")
+async def api_net_spy(bersihkan: bool = False):
+    """SEMENTARA: lihat lalu lintas jaringan yang tercatat pengintai.
+
+    Menjawab: apakah panggilan ke aisandbox-pa benar-benar terjadi?
+    """
+    import browser_manager
+    if bersihkan:
+        browser_manager.spy_clear()
+        return {"dibersihkan": True}
+    try:
+        return browser_manager.spy_data()
+    except Exception as e:
+        return {"error": str(e)[:150]}
+
+
+class ExecCodeKeRequest2(BaseModel):
+    code: str
+    indeks: int = 0
+
+
+@app.post("/v1/browser/exec-in-page-ke")
+async def api_exec_in_page_ke2(req: ExecCodeKeRequest2):
+    """SEMENTARA: jalankan JS di halaman ke-N (diagnosa)."""
+    import browser_manager
+    ctx = browser_manager._browser_context
+    if not ctx or not ctx.pages:
+        return {"error": "Browser not running"}
+    i = int(getattr(req, "indeks", 0) or 0)
+    if i < 0 or i >= len(ctx.pages):
+        return {"error": f"indeks {i} di luar jangkauan (0..{len(ctx.pages)-1})"}
+    pg = ctx.pages[i]
+    try:
+        return {"indeks": i, "url": (pg.url or "")[:100],
+                "result": await pg.evaluate(req.code)}
+    except Exception as e:
+        return {"indeks": i, "error": str(e)[:150]}
+
+
+class FetchUrlRequest(BaseModel):
+    url: str
+    indeks: int = 0
+
+
+@app.post("/v1/browser/fetch-url")
+async def api_fetch_url(req: FetchUrlRequest):
+    """SEMENTARA: ambil URL lewat page.request (tidak terikat origin halaman).
+
+    Dipakai untuk menguji apakah /asb/ bisa diambil tanpa fetch JS.
+    """
+    import browser_manager
+    ctx = browser_manager._browser_context
+    if not ctx or not ctx.pages:
+        return {"error": "Browser not running"}
+    i = int(req.indeks or 0)
+    if i < 0 or i >= len(ctx.pages):
+        return {"error": f"indeks di luar jangkauan (0..{len(ctx.pages)-1})"}
+    pg = ctx.pages[i]
+    out = {"url": req.url[:120], "indeks": i}
+    # cara 1: page.request.get (tidak terikat origin)
+    try:
+        r = await pg.request.get(req.url, max_redirects=5, timeout=45000)
+        b = await r.body()
+        out["page_request"] = {
+            "status": r.status,
+            "ct": (r.headers or {}).get("content-type", ""),
+            "bytes": len(b),
+            "awal_hex": b[:8].hex() if b else "",
+        }
+    except Exception as e:
+        out["page_request"] = {"error": str(e)[:150]}
+    # cara 2: context.request.get
+    try:
+        r2 = await ctx.request.get(req.url, max_redirects=5, timeout=45000)
+        b2 = await r2.body()
+        out["context_request"] = {
+            "status": r2.status,
+            "ct": (r2.headers or {}).get("content-type", ""),
+            "bytes": len(b2),
+        }
+    except Exception as e:
+        out["context_request"] = {"error": str(e)[:150]}
+    # cara 3: fetch JS di halaman (pembanding)
+    try:
+        out["fetch_js"] = await pg.evaluate("""async (u) => {
+            try {
+                const r = await fetch(u, {credentials: 'include'});
+                const b = await r.blob();
+                return {status: r.status, bytes: b.size};
+            } catch(e) { return {err: String(e).slice(0, 70)}; }
+        }""", req.url)
+    except Exception as e:
+        out["fetch_js"] = {"error": str(e)[:100]}
+    return out
+
+
+@app.get("/v1/browser/pages")
+async def api_browser_pages2():
+    """SEMENTARA: daftar SEMUA halaman (diagnosa)."""
+    import browser_manager
+    ctx = browser_manager._browser_context
+    if not ctx or not ctx.pages:
+        return {"error": "Browser not running", "jumlah": 0}
+    daftar = []
+    for i, pg in enumerate(ctx.pages):
+        try:
+            info = await pg.evaluate("""() => {
+                const set = new Set();
+                document.querySelectorAll('img, video, source').forEach(e => {
+                    const s = e.src || e.currentSrc || '';
+                    if (s.includes('/asb/')) {
+                        const t = s.split('/').pop().split('?')[0];
+                        if (t.length >= 60) set.add(t);
+                    }
+                });
+                return {token_asb: set.size,
+                        ada_prompt: !!document.querySelector('.ProseMirror, [contenteditable=true]')};
+            }""")
+        except Exception as e:
+            info = {"error": str(e)[:70]}
+        try:
+            judul = (await pg.title())[:45]
+        except Exception:
+            judul = "?"
+        daftar.append({"indeks": i, "url": (pg.url or "")[:100], "judul": judul, **info})
+    return {"jumlah": len(ctx.pages), "halaman": daftar}
+
+
 @app.get("/v1/browser/page-info")
 async def api_page_info():
     import browser_manager
@@ -2213,7 +2341,7 @@ async def api_custom_docs_dashboard():
                 <div class="label">Authentication Header</div>
                 <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">Pass in header via <code>X-API-Key</code> or <code>Authorization: Bearer</code></div>
             </div>
-            <div class="key-code">gflow_live_ab1623b6697a4117ac721099</div>
+            <div class="key-code">GATEWAY_API_KEY_REDACTED</div>
         </div>
 
         <!-- SECTION 1 -->
@@ -2314,7 +2442,7 @@ async def api_custom_docs_dashboard():
             <div class="code-block-header">💻 Contoh Request Body (JSON)</div>
             <pre><code>POST http://104.64.15.167:8088/v1/google-flow/videos/create
 Headers:
-  X-API-Key: gflow_live_ab1623b6697a4117ac721099
+  X-API-Key: GATEWAY_API_KEY_REDACTED
   Content-Type: application/json
 
 {
@@ -2417,7 +2545,7 @@ Headers:
             <div class="code-block-header">💻 Contoh Request Body (JSON)</div>
             <pre><code>POST http://104.64.15.167:8088/v1/google-flow/images/create
 Headers:
-  X-API-Key: gflow_live_ab1623b6697a4117ac721099
+  X-API-Key: GATEWAY_API_KEY_REDACTED
   Content-Type: application/json
 
 {
@@ -2458,7 +2586,7 @@ Headers:
             <div class="code-block-header">💻 Contoh Request</div>
             <pre><code>GET http://104.64.15.167:8088/v1/google-flow/jobs/f9672d84-5cbb-4953-a295-f79350a41f2f
 Headers:
-  X-API-Key: gflow_live_ab1623b6697a4117ac721099</code></pre>
+  X-API-Key: GATEWAY_API_KEY_REDACTED</code></pre>
 
             <div class="code-block-header">⏳ Response Saat Masih Diproses (Status: processing)</div>
             <pre><code>{
@@ -2520,7 +2648,7 @@ Headers:
 
 GET http://104.64.15.167:8088/v1/google-flow/jobs?status=completed&limit=10
 Headers:
-  X-API-Key: gflow_live_ab1623b6697a4117ac721099</code></pre>
+  X-API-Key: GATEWAY_API_KEY_REDACTED</code></pre>
         </div>
 
         <!-- SECTION 4 -->
@@ -2537,7 +2665,7 @@ Headers:
             </div>
             <pre><code>GET http://104.64.15.167:8088/v1/google-flow/models
 Headers:
-  X-API-Key: gflow_live_ab1623b6697a4117ac721099
+  X-API-Key: GATEWAY_API_KEY_REDACTED
 
 // Response 200 OK
 {
@@ -2592,7 +2720,7 @@ Headers:
             </div>
             <pre><code>POST http://104.64.15.167:8088/v1/google-flow/accounts/add
 Headers:
-  X-API-Key: gflow_live_ab1623b6697a4117ac721099
+  X-API-Key: GATEWAY_API_KEY_REDACTED
   Content-Type: application/json
 
 {
@@ -2621,7 +2749,7 @@ Headers:
             </div>
             <pre><code>POST http://104.64.15.167:8088/v1/google-flow/auth/refresh
 Headers:
-  X-API-Key: gflow_live_ab1623b6697a4117ac721099
+  X-API-Key: GATEWAY_API_KEY_REDACTED
 
 // Response 200 OK
 {
