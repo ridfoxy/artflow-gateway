@@ -1214,6 +1214,11 @@ RASIO_PATH = (4, 15, 4)
 RASIO_NILAI = {"landscape": 1, "portrait": 2}
 # Flag untuk jalur RPC bergambar (portrait & 2 gambar). 0 = kembali ke UI.
 IMG_XHR = os.environ.get("VIDS_IMG_XHR", "1") not in ("0", "false", "no")
+# Izinkan job BERGAMBAR ikut jalur paralel (kirim serentak bersama job teks).
+# Aman karena URL endpoint sama (dibuktikan) dan payload bergambar sudah
+# terbukti untuk 1/2 gambar + portrait. Bila rakit gagal -> turun ke jalur
+# urut otomatis. Matikan (0) untuk kembali ke perilaku lama.
+IMG_XHR_PARALEL = os.environ.get("VIDS_IMG_PARALEL", "1") not in ("0", "false", "no")
 IMG2_AVL_PATH = (2, 25, 0, 0, 7, 1, 11, 8, 3)
 #                 ^ indeks gambar disisipkan di posisi [2]. Jalur lengkap gambar ke-i: (2, 25, i, 0, 7, 1, 11, 8, 3)
 SESSION_MAX_JOBS = int(os.environ.get("VIDS_SESSION_JOBS", "12"))
@@ -1663,6 +1668,36 @@ async def generate_in_session(sess, info, fase="penuh"):
     return "failed", last or "gagal tanpa keterangan"
 
 
+def rakit_body_untuk(info, tpl_lan, tpl_port, img_tokens=None):
+    """Rakit body generate untuk SATU job. Murni: tanpa browser, tanpa I/O.
+
+    Kembalikan (body, None) bila siap, atau (None, alasan) bila tidak.
+    Job bergambar memakai build_2image_body (payload rekaman nyata + rasio);
+    job teks memakai template sesuai rasio.
+
+    Dipisah sebagai fungsi murni supaya bisa diuji terpisah sebelum dipakai
+    di jalur produksi.
+    """
+    port = str(info.get("aspect") or "").lower().startswith("port")
+    imgs = [u for u in (info.get("images") or []) if u]
+    prompt = normalize_prompt(info.get("prompt") or "")
+    if imgs:
+        if not (IMG_XHR_PARALEL and IMAGE2_RECORD.exists()):
+            return None, "RPC bergambar mati"
+        toks = list(img_tokens or [])
+        if len(toks) != len(imgs[:2]):
+            return None, f"token gambar kurang ({len(toks)}/{len(imgs[:2])})"
+        url, body = build_2image_body(prompt, toks,
+                                      "portrait" if port else "landscape")
+        if not url or not body:
+            return None, "rakit payload bergambar gagal"
+        return body, None
+    tpl = (tpl_port or tpl_lan) if port else (tpl_lan or tpl_port)
+    if not tpl:
+        return None, "template tidak tersedia"
+    return build_body(tpl.get("body") or "", prompt), None
+
+
 async def generate_many_in_session(sess, infos):
     """Kirim BEBERAPA job sekaligus dari satu sesi. Kembalikan {job_id: (st, detail)}.
 
@@ -1683,7 +1718,10 @@ async def generate_many_in_session(sess, infos):
         # membuktikan teks portrait lewat XHR menghasilkan 720x1280 yang benar
         # dan selesai ~35s, sedangkan jalur UI membuatnya mengantri di belakang
         # job bergambar (terukur: menunggu ~3,5 menit).
-        lambat = bool(imgs) or (port and not ZERO_UI_PORTRAIT)
+        # Job bergambar boleh masuk jalur paralel (payload RPC terbukti
+        # untuk 1/2 gambar + portrait). Bila flag mati -> perilaku lama.
+        lambat = (bool(imgs) and not IMG_XHR_PARALEL) or (
+            port and not ZERO_UI_PORTRAIT and not imgs)
         (slow if lambat else fast).append(info)
 
     if fast:
@@ -1701,14 +1739,44 @@ async def generate_many_in_session(sess, infos):
                 for info in fast:
                     hasil[info["job_id"]] = ("ui_fallback", "template tidak tersedia")
             else:
-                bodies, aspek_port = [], []
+                # Susun body untuk setiap job. Job bergambar: unggah dulu
+                # tokennya via XHR, lalu rakit payload bergambar. Job yang
+                # gagal disiapkan DITURUNKAN ke jalur urut (slow), tidak
+                # dibuang — jadi tidak ada job yang hilang.
+                bodies, aspek_port, fast2 = [], [], []
                 for _i in fast:
-                    _p = str(_i.get("aspect") or "").lower().startswith("port")
-                    _t = (tpl_port or tpl_lan) if _p else (tpl_lan or tpl_port)
-                    aspek_port.append(bool(_p))
-                    bodies.append(build_body(_t.get("body") or "",
-                                             normalize_prompt(_i["prompt"])))
+                    _im = [u for u in (_i.get("images") or []) if u]
+                    _tok = None
+                    if _im and IMG_XHR_PARALEL and IMAGE2_RECORD.exists():
+                        _tk = []
+                        for _n, _u in enumerate(_im[:2], 1):
+                            _pth = await download_media(_u, _i["job_id"], _n)
+                            if not _pth:
+                                break
+                            _t = await upload_media_xhr(page, _pth)
+                            if not _t:
+                                break
+                            _tk.append(_t)
+                        _tok = _tk if len(_tk) == len(_im[:2]) else None
+                    _b, _galat = rakit_body_untuk(_i, tpl_lan, tpl_port, _tok)
+                    if not _b:
+                        log(f"[{_i['job_id'][:8]}] paralel: {_galat} "
+                            f"-> jalur urut")
+                        slow.append(_i)
+                        continue
+                    _p_asp = str(_i.get("aspect") or "").lower().startswith("port")
+                    aspek_port.append(bool(_p_asp))
+                    bodies.append(_b)
+                    fast2.append(_i)
+                fast = fast2
                 tpl = tpl_lan or tpl_port
+                if not bodies:
+                    # Semua job bergambar gagal disiapkan -> tangani sebagai
+                    # job urut saja (tidak ada yang dibuang).
+                    log("paralel: tidak ada job siap kirim -> semua ke jalur urut")
+                    for _i in list(fast):
+                        slow.append(_i)
+                    fast = []
                 for _i in fast:
                     _set_status(_i["job_id"], "running", progress=35)
                 t0 = time.time()
