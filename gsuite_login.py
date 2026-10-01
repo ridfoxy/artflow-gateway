@@ -393,6 +393,7 @@ def login_one(page, email, password, dry_run=False, test_vids=False,
         except Exception:
             pass
 
+    mulai_tahap()
     log("  buka halaman login Google…")
     try:
         page.goto("https://accounts.google.com/signin/v2/identifier"
@@ -447,6 +448,7 @@ def login_one(page, email, password, dry_run=False, test_vids=False,
             return "ok", "sesi sudah login"
         shot("no-email-field")
         return "error", f"kolom email tidak ditemukan (url={page.url[:90]})"
+    tahap("email terisi")
     time.sleep(0.8)
     click_first(page, NEXT_SELECTORS) or page.keyboard.press("Enter")
 
@@ -485,8 +487,10 @@ def login_one(page, email, password, dry_run=False, test_vids=False,
     if not sel:
         shot("no-password-field")
         return "error", f"kolom password tidak bisa diisi (url={page.url[:90]})"
+    tahap("sandi terisi")
     time.sleep(0.8)
     click_first(page, PWD_NEXT_SELECTORS) or page.keyboard.press("Enter")
+    tahap("sandi terkirim")
 
     # tunggu hasil: pindah keluar dari accounts.google.com, muncul challenge,
     # atau muncul halaman persetujuan Workspace (yang cukup diklik setuju)
@@ -511,7 +515,7 @@ def login_one(page, email, password, dry_run=False, test_vids=False,
         while time.time() < d2 and "accounts.google.com" in page.url:
             if "speedbump" not in page.url and "workspaceterms" not in page.url.lower():
                 break
-            time.sleep(1.5)
+            time.sleep(LOGIN_POLL)
     time.sleep(3)
 
     # ---- evaluate the outcome --------------------------------------------
@@ -599,7 +603,16 @@ def gulir_sampai_bawah(page, log_fn=print, max_langkah=25):
         except Exception:
             posisi = 0
         time.sleep(0.7)
-        if posisi == posisi_akhir:
+        # OPTIMASI #3: toleransi. Dulu harus sama PERSIS, sehingga halaman
+        # yang kontennya dimuat bertahap terus berjalan sampai 25 langkah.
+        # koersi ke angka: page.evaluate bisa mengembalikan None (halaman
+        # transisi), dan abs(None - int) akan meledak TypeError.
+        try:
+            _p = int(posisi)
+        except (TypeError, ValueError):
+            _p = 0
+        posisi = _p
+        if abs(posisi - posisi_akhir) <= LOGIN_GULIR_TOL:
             log_fn(f"  halaman sudah di dasar (langkah {i+1})")
             return True
         posisi_akhir = posisi
@@ -642,13 +655,29 @@ def handle_workspace_terms(page, log_fn=print):
         '[role="button"]:has-text("Mengerti")',
         'input[type="submit"]',
     ]
+    # OPTIMASI #1: cek DOM DULU (instan) sebelum menunggu. Pola ini sudah
+    # dipakai fill_first() lewat _present_now(); tanpa ini 17 selector x
+    # timeout = puluhan detik terbuang ketika tombol ada di urutan belakang.
+    if LOGIN_CEPAT:
+        _pre = _present_now(page, SELECTOR)
+        if _pre:
+            try:
+                page.click(_pre, timeout=LOGIN_KLIK_MS)
+                log_fn(f"  diklik (cek DOM langsung): {_pre}")
+                tahap("persyaratan diklik")
+                time.sleep(LOGIN_POLL)
+                return True
+            except Exception as e:
+                log_fn(f"  klik cek-DOM gagal ({str(e)[:60]}), lanjut cara lama")
+
     for sel in SELECTOR:
         try:
-            el = page.wait_for_selector(sel, timeout=3500, state="visible")
+            el = page.wait_for_selector(sel, timeout=LOGIN_SEL_MS, state="visible")
             if el:
                 el.click()
                 log_fn(f"  diklik: {sel}")
-                time.sleep(4)
+                tahap("persyaratan diklik")
+                time.sleep(1.5 if LOGIN_CEPAT else 4)
                 return True
         except Exception:
             continue
@@ -704,6 +733,34 @@ def handle_workspace_terms(page, log_fn=print):
     log_fn("  tombol setuju TIDAK ditemukan (halaman mungkin berubah)")
     return False
 
+
+
+# ── OPTIMASI (dapat dimatikan: GS_LOGIN_CEPAT=0) ────────────────────────
+# Semua nilai lewat env supaya bisa dikembalikan tanpa mengubah berkas.
+LOGIN_CEPAT = os.environ.get("GS_LOGIN_CEPAT", "1") not in ("0", "false", "no")
+# Timeout klik saat selector sudah dipastikan ADA di DOM (tanpa menunggu).
+LOGIN_KLIK_MS = int(os.environ.get("GS_LOGIN_KLIK_MS", "8000"))
+# Timeout per selector yang belum dipastikan ada. Dulu 3500ms selalu.
+LOGIN_SEL_MS = int(os.environ.get("GS_LOGIN_SEL_MS",
+                                  "1200" if LOGIN_CEPAT else "3500"))
+# Jeda poll saat menunggu halaman berpindah (dulu 1,5s).
+LOGIN_POLL = float(os.environ.get("GS_LOGIN_POLL", "0.5" if LOGIN_CEPAT else "1.5"))
+# Toleransi gulir dianggap "sudah di dasar" (piksel). Dulu harus sama PERSIS.
+LOGIN_GULIR_TOL = int(os.environ.get("GS_LOGIN_GULIR_TOL", "5" if LOGIN_CEPAT else "0"))
+
+_T0 = time.time()
+
+
+def mulai_tahap():
+    """Tandai awal login (untuk pengukuran per tahap)."""
+    global _T0
+    _T0 = time.time()
+
+
+def tahap(nama):
+    """Catat waktu sejak awal login. Dipakai untuk MEMBUKTIKAN percepatan."""
+    if LOGIN_CEPAT:
+        log(f"  [waktu] {nama}: {time.time() - _T0:.1f}s")
 
 
 VIDS_TEST_URL = "https://docs.google.com/videos/"
