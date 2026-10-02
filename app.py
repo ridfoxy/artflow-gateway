@@ -3418,7 +3418,9 @@ async def api_vids_accounts_login(req: VidsLoginRequest):
         return {"status": "ok", "diproses": 0,
                 "message": "tidak ada akun yang perlu login"}
 
-    batch = kandidat[:10]
+    # SEMUA kandidat diproses (bukan hanya 10). Endpoint ini sudah asinkron,
+    # jadi tidak ada alasan membatasi; bot memantau lewat login-status.
+    batch = kandidat
     logger.info("auto-login dimulai (latar belakang): %d akun dari %d kandidat",
                 len(batch), len(kandidat))
 
@@ -3482,6 +3484,24 @@ async def api_vids_login_status():
     st["hasil_terakhir"] = baris[-10:]
     st["ringkas"] = hasil.get("ringkas")
     return st
+
+
+@app.get("/v1/vids/accounts/login-live", dependencies=[Depends(verify_api_key)])
+async def api_vids_login_live():
+    """Status HIDUP login per akun: tahap terkini (untuk panel).
+
+    Sumber: data/login_live.json yang ditulis _login_jalan.py tiap tahap.
+    """
+    import json as _json
+    from pathlib import Path as _P
+
+    p = _P("/root/api-google-flow/data/login_live.json")
+    if not p.exists():
+        return {"akun": {}, "note": "belum ada proses login"}
+    try:
+        return _json.loads(p.read_text(errors="replace"))
+    except Exception as e:
+        return {"akun": {}, "note": f"gagal baca: {str(e)[:80]}"}
 
 
 @app.get("/v1/vids/accounts/login-log", dependencies=[Depends(verify_api_key)])

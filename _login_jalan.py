@@ -44,6 +44,57 @@ TAG_STATE = (("-> ok:", "ok"), ("-> needs_human:", "needs_human"),
              ("-> error:", "error"), ("-> dry_run:", "dry_run"))
 
 
+# Berkas status hidup: panel memakai ini untuk menampilkan
+# "akun X sedang <tahap>" tanpa menunggu akun selesai.
+LIVE = APP / "data" / "login_live.json"
+
+# Frasa pada keluaran gsuite_login -> nama tahap yang mudah dibaca.
+TAHAP_POLA = (
+    ("membuka browser", ("membuka", "launch", "browser dibuka", "profil")),
+    ("mengisi email", ("email:", "isi email", "mengisi email")),
+    ("mengirim email", ("tombol berikutnya", "berikutnya", "klik email")),
+    ("mengisi sandi", ("sandi", "password")),
+    ("mengirim sandi", ("terkirim", "sesudah sandi", "klik sandi")),
+    ("halaman persyaratan", ("persyaratan", "saya mengerti", "terms", "speedbump")),
+    ("menunggu halaman akun", ("menunggu", "tunggu")),
+    ("cek akses Vids", ("vids",)),
+    ("selesai", ("ok:", "berhasil")),
+)
+
+
+def tahap_dari(teks):
+    """Tebak tahap dari satu baris keluaran gsuite_login."""
+    t = (teks or "").lower()
+    for nama, kunci in TAHAP_POLA:
+        if any(k in t for k in kunci):
+            return nama
+    return None
+
+
+def tulis_live(email, tahap, info="", state=None, selesai=False):
+    """Catat status terkini satu akun (untuk panel)."""
+    try:
+        data = {}
+        if LIVE.exists():
+            try:
+                data = json.loads(LIVE.read_text())
+            except Exception:
+                data = {}
+        akun = data.get("akun") or {}
+        akun[email] = {
+            "tahap": tahap, "info": str(info)[:120], "state": state,
+            "selesai": bool(selesai), "at": int(time.time()),
+        }
+        data["akun"] = akun
+        data["diperbarui"] = int(time.time())
+        tmp = LIVE.with_suffix(".json.tmp")
+        tmp.parent.mkdir(parents=True, exist_ok=True)
+        tmp.write_text(json.dumps(data, ensure_ascii=False))
+        tmp.replace(LIVE)
+    except Exception:
+        pass
+
+
 def catat(email, state, detail="", secs=None):
     with open(RESULTS, "a", encoding="utf-8") as f:
         f.write(json.dumps({
@@ -75,23 +126,54 @@ def kredensial():
 
 
 def jalankan_satu(email):
-    """Panggil CLI gsuite_login untuk satu akun. Kembalikan (state, detail, detik)."""
+    """Panggil CLI gsuite_login untuk satu akun — keluaran dibaca BARIS DEMI BARIS.
+
+    Tiap baris yang bermakna dicatat sebagai tahap (membuka browser, mengisi
+    email, mengirim sandi, ...) supaya operator bisa melihat akun itu sedang
+    di langkah mana. Kembalikan (state, detail, detik).
+    """
     cmd = [PY, "gsuite_login.py", "--email", email, "--test-vids"]
     t0 = time.time()
-    try:
-        r = subprocess.run(cmd, cwd=str(APP), capture_output=True, text=True,
-                           timeout=PER_AKUN_TIMEOUT,
-                           env={**os.environ, "DISPLAY": ":99"})
-    except subprocess.TimeoutExpired:
-        return "error", "timeout", round(time.time() - t0, 1)
-    out = (r.stdout or "") + (r.stderr or "")
     state, detail = "error", ""
-    for line in out.splitlines():
+    tahap_terakhir = "mulai"
+    try:
+        p = subprocess.Popen(cmd, cwd=str(APP), stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT, text=True,
+                             env={**os.environ, "DISPLAY": ":99"},
+                             bufsize=1)
+    except Exception as e:
+        return "error", f"gagal menjalankan: {str(e)[:100]}", 0.0
+
+    batas = t0 + PER_AKUN_TIMEOUT
+    for baris in iter(p.stdout.readline, ""):
+        baris = baris.rstrip()
+        if not baris:
+            continue
+        # tampilkan juga ke log berkas, dengan awalan akun
+        print(f"    [{email}] {baris[:150]}", flush=True)
+        # tahap mudah dibaca
+        th = tahap_dari(baris)
+        if th and th != tahap_terakhir:
+            tahap_terakhir = th
+            tulis_live(email, th, baris[:100])
+        # state akhir
         for tag, nama in TAG_STATE:
-            if tag in line:
-                state, detail = nama, line.split(tag, 1)[1].strip()
+            if tag in baris:
+                state, detail = nama, baris.split(tag, 1)[1].strip()
+        if time.time() > batas:
+            print(f"    [{email}] !! melewati batas {PER_AKUN_TIMEOUT:.0f}s", flush=True)
+            break
+    try:
+        p.wait(timeout=max(5, batas - time.time()))
+    except Exception:
+        try:
+            p.kill()
+        except Exception:
+            pass
+        state, detail = "error", "timeout"
     if not detail:
-        detail = out.strip().splitlines()[-1][:200] if out.strip() else "tanpa keluaran"
+        detail = "selesai tanpa keterangan"
+    tulis_live(email, state, detail[:100], state=state, selesai=True)
     return state, detail, round(time.time() - t0, 1)
 
 
@@ -144,6 +226,7 @@ def jalankan_camoufox(email):
         return None, "camoufox_login.py tidak ada"
     py = CAMOUFOX_PY if Path(CAMOUFOX_PY).exists() else PY
     cmd = [py, str(skrip), "--email", email, "--test-vids"]
+    tulis_live(email, "camoufox (cadangan)", "login lewat Firefox")
     t0 = time.time()
     try:
         r = subprocess.run(cmd, cwd=str(APP), capture_output=True, text=True,
@@ -152,6 +235,9 @@ def jalankan_camoufox(email):
     except subprocess.TimeoutExpired:
         return "error", "camoufox timeout", round(time.time() - t0, 1)
     out = (r.stdout or "") + (r.stderr or "")
+    for baris in out.splitlines():
+        if baris.strip():
+            print(f"    [{email}] {baris.strip()[:150]}", flush=True)
     state, detail = "error", ""
     for line in out.splitlines():
         for tag, nama in TAG_STATE:
@@ -184,9 +270,20 @@ def main():
     target = list(kred) if args[0] == "--semua" else [
         e.strip() for e in args[0].split(",") if e.strip()]
 
-    print(f"login untuk {len(target)} akun (kredensial tersedia: {len(kred)})")
+    print(f"login untuk {len(target)} akun (kredensial tersedia: {len(kred)})",
+          flush=True)
+    print(f"jeda antar akun: {DELAY}s | batas per akun: {PER_AKUN_TIMEOUT:.0f}s | "
+          f"beban maks: {LOAD_MAX}", flush=True)
+    # kosongkan status hidup supaya panel mulai dari nol
+    try:
+        LIVE.parent.mkdir(parents=True, exist_ok=True)
+        LIVE.write_text(json.dumps({"akun": {}, "mulai": int(time.time()),
+                                    "total": len(target)}))
+    except Exception:
+        pass
 
     berhasil = gagal = 0
+    t_mulai = time.time()
     for i, email in enumerate(target, 1):
         b = beban()
         if b > LOAD_MAX:
@@ -195,14 +292,19 @@ def main():
             break
         if email not in kred:
             print(f"[{i}/{len(target)}] {email}: TIDAK ADA sandi di accounts.txt")
-            catat(email, "error", "sandi tidak ada")
+            catat(email, "error", "sandi tidak ada di accounts.txt")
+            tulis_live(email, "dilewati", "sandi tidak ada di accounts.txt",
+                       state="error", selesai=True)
             gagal += 1
             continue
 
-        print(f"[{i}/{len(target)}] login {email} (beban {b:.1f})", flush=True)
+        print(f"\n[{i}/{len(target)}] {email} — mulai (beban {b:.1f})", flush=True)
+        tulis_live(email, "mulai", "menyiapkan browser")
         bersihkan_kunci(email)
         state, detail, secs = jalankan_satu(email)
-        print(f"    -> {state}: {detail[:90]} ({secs}s)", flush=True)
+        print(f"    -> {state}: {detail[:110]} ({secs}s)", flush=True)
+        print(f"       progres: {i}/{len(target)} | berhasil {berhasil} | "
+              f"gagal {gagal} | berjalan {time.time() - t_mulai:.0f}s", flush=True)
 
         # FALLBACK CAMOUFOX: Chromium kena CAPTCHA -> coba Camoufox sekali.
         # Jangan menunggu timeout panjang; CAPTCHA sudah jelas masalahnya.
@@ -224,7 +326,16 @@ def main():
         if i < len(target):
             time.sleep(DELAY)
 
-    print(f"\n=== hasil: {berhasil} berhasil, {gagal} gagal ===")
+    print(f"\n=== hasil: {berhasil} berhasil, {gagal} gagal "
+          f"(total {time.time() - t_mulai:.0f}s) ===", flush=True)
+    try:
+        data = json.loads(LIVE.read_text()) if LIVE.exists() else {}
+        data["selesai"] = int(time.time())
+        data["berhasil"] = berhasil
+        data["gagal"] = gagal
+        LIVE.write_text(json.dumps(data, ensure_ascii=False))
+    except Exception:
+        pass
     return 0
 
 
