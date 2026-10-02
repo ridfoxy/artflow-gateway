@@ -10,6 +10,7 @@ import hashlib
 import json
 import logging
 import os
+import sys
 import signal
 import sqlite3
 import subprocess
@@ -53,7 +54,10 @@ _browser_context = None
 # ── Pemilihan profil per akun (di belakang FLOW_ENABLE_ACCOUNT_SWITCH) ──────
 # Satu konteks browser per akun, tiap konteks memakai profilnya sendiri. Kalau
 # saklar mati, semua kembali memakai _browser_context tunggal seperti semula.
-ACCOUNT_CONTEXTS = {}          # email -> BrowserContext
+ACCOUNT_CONTEXTS = {}
+# Objek Camoufox (pemegang konteks) per akun — wajib disimpan supaya bisa
+# ditutup dengan benar (Camoufox bukan Playwright biasa).
+ACCOUNT_CONTEXTS_CM = {}          # email -> BrowserContext
 ACCOUNT_LOCK = None            # diisi asyncio.Lock saat dipakai
 
 
@@ -92,7 +96,21 @@ async def get_context_for(account_email=None):
     async with ACCOUNT_LOCK:
         if email in ACCOUNT_CONTEXTS:
             return ACCOUNT_CONTEXTS[email]
-        logger.info(f"meluncurkan konteks browser untuk akun {email}")
+        logger.info(f"meluncurkan konteks browser untuk akun {email} "
+                    f"(mesin={_BROWSER_ENGINE})")
+        # ── MESIN CAMOUFOX ──────────────────────────────────────────
+        if _BROWSER_ENGINE == "camoufox":
+            hasil = await _luncurkan_camoufox(email)
+            if hasil:
+                cm, ctx = hasil
+                if not ctx.pages:
+                    await ctx.new_page()
+                ACCOUNT_CONTEXTS[email] = ctx
+                ACCOUNT_CONTEXTS_CM[email] = cm        # simpan untuk penutupan
+                logger.info(f"konteks CAMOUFOX siap: {email}")
+                return ctx
+            logger.warning("Camoufox gagal — turun ke Chromium untuk akun ini")
+        # ── MESIN CHROMIUM (perilaku lama) ──────────────────────────
         pw = await async_playwright().start()
         try:
             ctx = await pw.chromium.launch_persistent_context(
@@ -120,7 +138,17 @@ async def get_context_for(account_email=None):
 
 
 async def close_account_context(email):
-    ctx = ACCOUNT_CONTEXTS.pop(str(email).strip(), None)
+    kunci = str(email).strip()
+    cm = ACCOUNT_CONTEXTS_CM.pop(kunci, None)
+    if cm is not None:
+        try:
+            await cm.__aexit__(None, None, None)
+            logger.info(f"konteks CAMOUFOX ditutup: {email}")
+            ACCOUNT_CONTEXTS.pop(kunci, None)
+            return True
+        except Exception as e:
+            logger.warning(f"gagal menutup Camoufox {email}: {str(e)[:100]}")
+    ctx = ACCOUNT_CONTEXTS.pop(kunci, None)
     if ctx:
         try:
             await ctx.close()
@@ -131,11 +159,79 @@ async def close_account_context(email):
     return False
 
 
+# ── SAKLAR MESIN BROWSER (camoufox / chromium) ──────────────────────────
+# Sesi Google TERIKAT pada mesin browser: sesi hasil login Camoufox (Firefox)
+# tidak bisa dibaca Chromium (terbukti: cookie disuntik -> Google bilang
+# "Telah logout"). Jadi browser yang login HARUS sama dengan yang generate.
+_BROWSER_ENGINE = os.environ.get("FLOW_BROWSER", "camoufox").strip().lower()
+PROFILES_FF = APP_DIR / "firefox_profiles"
+
+# Camoufox dipasang di venv lain; tambahkan path-nya agar bisa diimpor dari
+# proses gateway (Python 3.12 yang sama).
+_CAMOUFOX_SITE = "/root/harbor/venv/lib/python3.12/site-packages"
+
+
+def _pastikan_camoufox():
+    """Impor AsyncCamoufox; tambahkan site-packages venv Camoufox bila perlu."""
+    try:
+        from camoufox.async_api import AsyncCamoufox   # noqa: F401
+        return True
+    except Exception:
+        pass
+    if _CAMOUFOX_SITE not in sys.path and os.path.isdir(_CAMOUFOX_SITE):
+        sys.path.append(_CAMOUFOX_SITE)
+    try:
+        from camoufox.async_api import AsyncCamoufox   # noqa: F401
+        return True
+    except Exception as e:
+        logger.error(f"Camoufox tidak bisa diimpor: {str(e)[:120]}")
+        return False
+
+
+async def _luncurkan_camoufox(email):
+    """Buka konteks Camoufox persisten untuk satu akun.
+
+    Memakai firefox_profiles/<email> — SAMA dengan camoufox_login.py — supaya
+    sesi hasil login langsung terbaca. Mengembalikan objek Camoufox (pemegang
+    konteks) atau None bila gagal.
+    """
+    if not _pastikan_camoufox():
+        return None
+    from camoufox.async_api import AsyncCamoufox
+    from camoufox.utils import launch_options
+
+    profil = PROFILES_FF / str(email).strip()
+    profil.mkdir(parents=True, exist_ok=True)
+    os.environ["DISPLAY"] = DISPLAY
+
+    opts = launch_options(
+        user_data_dir=str(profil),
+        headless=False,
+        humanize=True,
+        locale="id-ID",
+        os=["windows"],
+        i_know_what_im_doing=True,
+    )
+    # Camoufox menerima persistent_context sebagai argumen SENDIRI.
+    opts.pop("persistent_context", None)
+    opts["user_data_dir"] = str(profil)
+    opts["headless"] = False
+    logger.info(f"meluncurkan konteks CAMOUFOX untuk {email} (profil {profil})")
+    try:
+        cm = AsyncCamoufox(persistent_context=True, **opts)
+        ctx = await cm.__aenter__()
+        return cm, ctx
+    except Exception as e:
+        logger.error(f"gagal meluncurkan Camoufox {email}: {str(e)[:150]}")
+        return None
+
+
 def list_account_contexts():
     return sorted(ACCOUNT_CONTEXTS.keys())
 
 _browser_instance = None
 _playwright_instance = None
+_camoufox_stack = None   # pemegang konteks Camoufox (mode FLOW_BROWSER=camoufox)
 _token_refresh_task = None
 _cookie_monitor_task = None
 
@@ -295,6 +391,23 @@ async def _launch_browser(email: str = "default", force: bool = False):
         except Exception:
             pass
 
+    # ── MESIN CAMOUFOX ──────────────────────────────────────────────
+    if _BROWSER_ENGINE == "camoufox":
+        hasil = await _luncurkan_camoufox(email)
+        if hasil:
+            _camoufox_stack, _browser_context = hasil
+            _browser_instance = None
+            try:
+                _browser_context.on("response", _on_response)
+                _browser_context.on("response", _spy_response)
+            except Exception:
+                pass
+            if len(_browser_context.pages) == 0:
+                await _browser_context.new_page()
+            logger.info(f"Browser CAMOUFOX siap untuk {email}")
+            return True
+        logger.warning("Camoufox gagal — turun ke Chromium")
+
     from playwright.async_api import async_playwright
 
     profile_dir = PROFILES_DIR / email
@@ -329,6 +442,7 @@ async def _launch_browser(email: str = "default", force: bool = False):
 
     # Set up network interception for token capture
     _browser_context.on("response", _on_response)
+    _browser_context.on("response", _spy_response)   # SEMENTARA
 
     if len(_browser_context.pages) == 0:
         page = await _browser_context.new_page()
@@ -345,6 +459,70 @@ async def _launch_browser(email: str = "default", force: bool = False):
 
     logger.info(f"Browser launched (persistent) for {email}, navigate to noVNC to complete login")
     return True
+
+
+# ── PENGINTAI JARINGAN (SEMENTARA, untuk diagnostik) ────────────────────
+# Mencatat SEMUA respons: host, metode, ada authorization?, status, panjang.
+# Dipakai untuk menjawab: apakah aisandbox-pa benar-benar dipanggil?
+_SPY_NET = []
+
+
+def spy_clear():
+    _SPY_NET.clear()
+
+
+async def _spy_response(response):
+    """Catat SETIAP respons (bukan hanya aisandbox-pa)."""
+    try:
+        u = response.url or ""
+        # abaikan aset statis agar tidak membanjiri
+        if any(x in u for x in (".js", ".css", ".png", ".jpg", ".svg", ".woff",
+                                ".gif", ".ico", "google-analytics",
+                                "play.google.com/log", "gstatic.com")):
+            return
+        req = response.request
+        auth = ""
+        try:
+            auth = (req.headers or {}).get("authorization", "") or ""
+        except Exception:
+            pass
+        rec = {
+            "host": (u.split("/")[2] if "//" in u else ""),
+            "m": req.method,
+            "status": response.status,
+            "auth": auth[:60],
+            "bearer": auth.startswith("Bearer ya29"),
+            "url": u[:160],
+        }
+        _SPY_NET.append(rec)
+        if len(_SPY_NET) > 400:
+            del _SPY_NET[:100]
+        if rec["bearer"]:
+            logger.info(f"SPY: Bearer ya29 di {rec['host']} {rec['url'][:70]}")
+    except Exception:
+        pass
+
+
+def spy_data():
+    """Ringkasan isi pengintai."""
+    host = {}
+    for r in _SPY_NET:
+        host[r["host"]] = host.get(r["host"], 0) + 1
+    bearer = [r for r in _SPY_NET if r["bearer"]]
+    ada_aisandbox = [r for r in _SPY_NET if "aisandbox" in (r["host"] or "")]
+    return {
+        "total": len(_SPY_NET),
+        "per_host": host,
+        "jumlah_bearer": len(bearer),
+        "contoh_bearer": [{"host": r["host"], "auth": r["auth"][:40],
+                           "url": r["url"][:90]} for r in bearer[:5]],
+        "aisandbox_total": len(ada_aisandbox),
+        "contoh_aisandbox": [{"status": r["status"], "auth": r["auth"][:30],
+                              "url": r["url"][:90]} for r in ada_aisandbox[:5]],
+        "contoh_semua": [{"host": r["host"], "m": r["m"], "status": r["status"],
+                          "url": r["url"][:80]} for r in _SPY_NET[-8:]],
+    }
+# ── AKHIR PENGINTAI ─────────────────────────────────────────────────────
 
 
 async def _on_response(response):
