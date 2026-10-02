@@ -166,10 +166,7 @@ def jalankan_satu(email):
     try:
         p.wait(timeout=max(5, batas - time.time()))
     except Exception:
-        try:
-            p.kill()
-        except Exception:
-            pass
+        bunuh_paksa(p, "chromium-login")
         state, detail = "error", "timeout"
     if not detail:
         detail = "selesai tanpa keterangan"
@@ -213,6 +210,36 @@ def bersihkan_kunci(email):
             pass
 
 
+def bunuh_paksa(proc, nama="proses"):
+    """Bunuh proses BESERTA semua anaknya (hindari Camoufox menggantung)."""
+    if proc is None:
+        return
+    try:
+        import signal
+        import subprocess as _sp
+        # bunuh seluruh grup proses
+        try:
+            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+        except Exception:
+            try:
+                proc.terminate()
+            except Exception:
+                pass
+        try:
+            proc.wait(timeout=8)
+        except Exception:
+            try:
+                os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+            except Exception:
+                try:
+                    proc.kill()
+                except Exception:
+                    pass
+        print(f"    !! {nama} dipaksa berhenti (tidak menutup sendiri)", flush=True)
+    except Exception:
+        pass
+
+
 def jalankan_camoufox(email):
     """Coba login akun yang kena CAPTCHA memakai Camoufox.
 
@@ -228,16 +255,42 @@ def jalankan_camoufox(email):
     cmd = [py, str(skrip), "--email", email, "--test-vids"]
     tulis_live(email, "camoufox (cadangan)", "login lewat Firefox")
     t0 = time.time()
+    batas = t0 + PER_AKUN_TIMEOUT + 60
+    # Popen + batas waktu KERAS: Camoufox pernah menggantung sehingga loop
+    # login berhenti sebelum akun terakhir selesai.
     try:
-        r = subprocess.run(cmd, cwd=str(APP), capture_output=True, text=True,
-                           timeout=PER_AKUN_TIMEOUT + 60,
-                           env={**os.environ, "DISPLAY": ":99"})
-    except subprocess.TimeoutExpired:
-        return "error", "camoufox timeout", round(time.time() - t0, 1)
-    out = (r.stdout or "") + (r.stderr or "")
-    for baris in out.splitlines():
-        if baris.strip():
-            print(f"    [{email}] {baris.strip()[:150]}", flush=True)
+        proc = subprocess.Popen(cmd, cwd=str(APP), stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, text=True, bufsize=1,
+                                start_new_session=True,
+                                env={**os.environ, "DISPLAY": ":99"})
+    except Exception as e:
+        return "error", f"gagal menjalankan camoufox: {str(e)[:90]}", 0.0
+
+    keluaran = []
+    try:
+        for baris in iter(proc.stdout.readline, ""):
+            baris = baris.rstrip()
+            if not baris:
+                continue
+            keluaran.append(baris)
+            print(f"    [{email}] {baris[:150]}", flush=True)
+            if time.time() > batas:
+                print(f"    [{email}] !! camoufox melewati batas "
+                      f"{PER_AKUN_TIMEOUT + 60:.0f}s", flush=True)
+                bunuh_paksa(proc, "camoufox")
+                break
+        if proc.poll() is None:
+            try:
+                proc.wait(timeout=max(5, batas - time.time()))
+            except Exception:
+                bunuh_paksa(proc, "camoufox")
+    finally:
+        try:
+            if proc.poll() is None:
+                bunuh_paksa(proc, "camoufox")
+        except Exception:
+            pass
+    out = "\n".join(keluaran)
     state, detail = "error", ""
     for line in out.splitlines():
         for tag, nama in TAG_STATE:

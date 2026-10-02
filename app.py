@@ -3425,10 +3425,32 @@ async def api_vids_accounts_login(req: VidsLoginRequest):
                 len(batch), len(kandidat))
 
     logf = open(LOGF, "w", encoding="utf-8")
-    proc = subprocess.Popen(
-        [PY, str(SCRIPT), ",".join(batch)],
-        cwd=str(APP), stdout=logf, stderr=subprocess.STDOUT,
-        start_new_session=True, env={**os.environ, "DISPLAY": ":99"})
+    # Jalankan login di cgroup SENDIRI (systemd transient unit) supaya
+    # `systemctl restart artflow-gateway-local` TIDAK mematikannya.
+    # Terbukti: dengan Popen biasa, restart gateway membunuh login yang
+    # sedang berjalan (25 akun berhenti di akun ke-7).
+    pakai_systemd_run = os.environ.get("LOGIN_VIA_SYSTEMD", "1") not in ("0", "false", "no")
+    proc = None
+    if pakai_systemd_run:
+        try:
+            proc = subprocess.Popen(
+                ["systemd-run", "--collect", "--unit", f"artflow-login-job",
+                 "--description", "ArtFlow auto-login (semua akun)",
+                 "--setenv", "DISPLAY=:99",
+                 "--working-directory", str(APP),
+                 PY, str(SCRIPT), ",".join(batch)],
+                stdout=logf, stderr=subprocess.STDOUT)
+            logger.info("auto-login dijalankan via systemd-run (cgroup sendiri)")
+        except Exception as e:
+            logger.warning("systemd-run gagal (%s) — memakai Popen biasa",
+                           str(e)[:90])
+            proc = None
+    if proc is None:
+        proc = subprocess.Popen(
+            [PY, str(SCRIPT), ",".join(batch)],
+            cwd=str(APP), stdout=logf, stderr=subprocess.STDOUT,
+            start_new_session=True, env={**os.environ, "DISPLAY": ":99"})
+        logger.info("auto-login dijalankan via Popen biasa")
 
     STATUS.write_text(_json.dumps({
         "running": True, "pid": proc.pid, "jumlah": len(batch),

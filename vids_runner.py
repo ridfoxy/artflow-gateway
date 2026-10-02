@@ -25,6 +25,7 @@ import asyncio
 import contextlib
 import json
 import os
+import sys
 import re
 import shutil
 import sqlite3
@@ -290,12 +291,65 @@ def load_accounts():
 # ─────────────────────────────────────────────────────────────
 # konteks browser per akun, dengan pembatas
 # ─────────────────────────────────────────────────────────────
+# ── SAKLAR MESIN BROWSER ────────────────────────────────────────────────
+# Sesi Google terikat pada mesin browser: sesi hasil login Camoufox (Firefox)
+# TIDAK terbaca Chromium (cookie disuntik pun Google bilang "Telah logout").
+# Jadi browser yang login HARUS sama dengan yang generate.
+MESIN = (os.environ.get("VIDS_BROWSER")
+         or os.environ.get("FLOW_BROWSER") or "camoufox").strip().lower()
+PROFILES_FF = APP / "firefox_profiles"
+_CAMOUFOX_SITE = "/root/harbor/venv/lib/python3.12/site-packages"
+
+
+def _siapkan_camoufox():
+    """Impor AsyncCamoufox (tambahkan site-packages venv Camoufox bila perlu)."""
+    try:
+        from camoufox.async_api import AsyncCamoufox   # noqa: F401
+        return True
+    except Exception:
+        pass
+    if _CAMOUFOX_SITE not in sys.path and os.path.isdir(_CAMOUFOX_SITE):
+        sys.path.append(_CAMOUFOX_SITE)
+    try:
+        from camoufox.async_api import AsyncCamoufox   # noqa: F401
+        return True
+    except Exception as e:
+        log(f"Camoufox tidak bisa diimpor: {str(e)[:110]}")
+        return False
+
+
+async def buka_konteks_camoufox(email):
+    """Buka konteks Camoufox persisten untuk akun. -> (pemegang, ctx) atau None."""
+    if not _siapkan_camoufox():
+        return None
+    from camoufox.async_api import AsyncCamoufox
+    from camoufox.utils import launch_options
+
+    profil = PROFILES_FF / email
+    profil.mkdir(parents=True, exist_ok=True)
+    opts = launch_options(
+        user_data_dir=str(profil), headless=False, humanize=True,
+        locale="id-ID", os=["windows"], i_know_what_im_doing=True,
+    )
+    opts.pop("persistent_context", None)     # Camoufox menolaknya di dalam opts
+    opts["user_data_dir"] = str(profil)
+    opts["headless"] = False
+    try:
+        cm = AsyncCamoufox(persistent_context=True, **opts)
+        ctx = await cm.__aenter__()
+        return cm, ctx
+    except Exception as e:
+        log(f"gagal buka Camoufox {email}: {str(e)[:130]}")
+        return None
+
+
 class ContextManager:
     """Satu konteks per akun, dibatasi jumlahnya, ditutup saat idle."""
 
     def __init__(self, pw):
         self.pw = pw
         self.ctx = {}          # email -> (context, last_used)
+        self.cm = {}           # email -> pemegang konteks Camoufox (mode camoufox)
         self.lock = asyncio.Lock()
 
     async def get(self, email):
@@ -304,11 +358,7 @@ class ContextManager:
             # tutup yang idle dulu supaya jumlah konteks tetap kecil
             for e, (c, t) in list(self.ctx.items()):
                 if now - t > IDLE_CLOSE_SECONDS:
-                    try:
-                        await c.close()
-                    except Exception:
-                        pass
-                    self.ctx.pop(e, None)
+                    await self._tutup(e)
                     log(f"konteks idle ditutup: {e}")
             if email in self.ctx:
                 c, _ = self.ctx[email]
@@ -317,11 +367,7 @@ class ContextManager:
             # batas konteks hidup
             while len(self.ctx) >= MAX_CONTEXTS:
                 oldest = min(self.ctx, key=lambda k: self.ctx[k][1])
-                c, _ = self.ctx.pop(oldest)
-                try:
-                    await c.close()
-                except Exception:
-                    pass
+                await self._tutup(oldest)
                 log(f"konteks dibuang (batas {MAX_CONTEXTS}): {oldest}")
             # beban VPS: jangan buka konteks baru kalau memori sudah tipis
             try:
@@ -367,6 +413,19 @@ class ContextManager:
                 except Exception:
                     pass
             await asyncio.sleep(1)
+
+            # ── MESIN CAMOUFOX ────────────────────────────────────────
+            if MESIN == "camoufox":
+                hasil = await buka_konteks_camoufox(email)
+                if hasil:
+                    cm, ctx = hasil
+                    self.cm[email] = cm
+                    self.ctx[email] = (ctx, now)
+                    log(f"konteks CAMOUFOX dibuka: {email} (hidup: {len(self.ctx)})")
+                    return ctx
+                log(f"Camoufox gagal untuk {email} — turun ke Chromium")
+
+            # ── MESIN CHROMIUM (perilaku lama) ────────────────────────
             ctx = await self.pw.chromium.launch_persistent_context(
                 user_data_dir=str(prof),
                 executable_path="/usr/bin/google-chrome-stable",
@@ -387,12 +446,25 @@ class ContextManager:
             log(f"konteks dibuka: {email} (hidup: {len(self.ctx)})")
             return ctx
 
-    async def close_all(self):
-        for e, (c, _) in list(self.ctx.items()):
+    async def _tutup(self, email):
+        """Tutup konteks satu akun, termasuk pemegang Camoufox bila ada."""
+        cm = self.cm.pop(email, None)
+        if cm is not None:
             try:
-                await c.close()
+                await cm.__aexit__(None, None, None)
             except Exception:
                 pass
+        item = self.ctx.pop(email, None)
+        if item:
+            try:
+                await item[0].close()
+            except Exception:
+                pass
+
+    async def close_all(self):
+        for e in list(self.ctx.keys()):
+            await self._tutup(e)
+        self.cm.clear()
         self.ctx.clear()
 
 
@@ -1453,12 +1525,75 @@ def build_2image_body(prompt, tokens, aspect="landscape"):
     return rec.get("url"), json.dumps(arr, separators=(",", ":"))
 
 
+# Berapa lama catatan login 'ok' dianggap bukti yang masih berlaku.
+LOGIN_BUKTI_JAM = float(os.environ.get("VIDS_LOGIN_BUKTI_JAM", "6"))
+# Istirahat singkat bila runner gagal padahal catatan login masih segar.
+ISTIRAHAT_MENIT = float(os.environ.get("VIDS_ISTIRAHAT_MENIT", "10"))
+
+
+def bukti_login_segar(email):
+    """True bila akun ini punya catatan login 'ok' yang masih baru.
+
+    Kenapa perlu: akun bisa berhasil login lewat Camoufox (sesi ada di
+    firefox_profiles), tetapi runner Chromium tidak bisa membacanya dan
+    menandai 'sesi mati'. Akibatnya panel menunjukkan akun sehat jauh lebih
+    sedikit daripada yang sebenarnya (pernah terjadi: 4 padahal 25).
+    """
+    try:
+        p = APP / "data" / "login_results.jsonl"
+        if not p.exists():
+            return False
+        terakhir = None
+        for baris in p.read_text(errors="replace").splitlines()[-400:]:
+            baris = baris.strip()
+            if not baris or email not in baris:
+                continue
+            try:
+                d = json.loads(baris)
+            except Exception:
+                continue
+            if (d.get("email") or "").strip().lower() != email.strip().lower():
+                continue
+            terakhir = d
+        if not terakhir or terakhir.get("state") != "ok":
+            return False
+        ts = terakhir.get("ts")
+        if not ts:
+            # pakai waktu berkas sebagai perkiraan
+            ts = p.stat().st_mtime
+        return (time.time() - float(ts)) < LOGIN_BUKTI_JAM * 3600
+    except Exception:
+        return False
+
+
 def mark_dead_session(email, hours=int(os.environ.get("VIDS_DEAD_SESSION_HOURS", "12"))):
-    """Tandai akun sesi-mati langsung (7 hari), jangan lewat has_login_cookies.
+    """Tandai akun sesi-mati — TAPI hormati bukti login yang masih segar.
 
     Cookie bisa masih ADA tapi tidak sah, sehingga pemeriksaan cookie tidak
-    menangkapnya — akibatnya akun berputar (istirahat 900s -> dicoba -> gagal).
+    menangkapnya. Namun sebaliknya juga berbahaya: menandai mati akun yang
+    BARU SAJA berhasil login membuat pool tampak kosong.
+
+    Aturan:
+      - ada catatan login 'ok' segar  -> istirahat singkat saja (jangan matikan)
+      - tidak ada bukti               -> tandai no_login seperti sebelumnya
     """
+    if bukti_login_segar(email):
+        sementara = int(time.time()) + ISTIRAHAT_MENIT * 60
+        with db() as c:
+            c.execute("""INSERT INTO vids_accounts (email, state, note, until, updated_at)
+                         VALUES (?, 'ui_retry', ?, ?, ?)
+                         ON CONFLICT(email) DO UPDATE SET
+                           state='ui_retry',
+                           note=excluded.note,
+                           until=excluded.until, updated_at=excluded.updated_at""",
+                      (email,
+                       f"istirahat {ISTIRAHAT_MENIT:.0f}m (login baru sukses, "
+                       f"browser gagal baca sesi)",
+                       sementara, int(time.time())))
+        log(f"{email}: login baru sukses -> istirahat "
+            f"{ISTIRAHAT_MENIT:.0f}m (TIDAK ditandai mati)")
+        return
+
     until = int(time.time()) + hours * 3600
     with db() as c:
         c.execute("""INSERT INTO vids_accounts (email, state, note, until, updated_at)
