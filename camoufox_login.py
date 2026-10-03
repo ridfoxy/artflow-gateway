@@ -24,6 +24,7 @@ Python: HARUS dari /root/harbor/venv (tempat camoufox 0.5.6 terpasang).
 """
 import argparse
 import os
+import asyncio
 import sys
 import time
 from pathlib import Path
@@ -49,6 +50,11 @@ CHALLENGE = [
     "verifikasi 2 langkah", "dua langkah", "masukkan kode",
     "periksa ponsel", "captcha", "recaptcha",
 ]
+DIHAPUS = [
+    "akun dihapus", "account deleted", "deletedaccount",
+    "tidak dapat memproses login", "couldn't process your sign in",
+    "hubungi admin domain", "contact your domain administrator",
+]
 BAD = [
     "kata sandi salah", "password salah", "wrong password",
     "tidak dapat menemukan akun google", "couldn't find your google account",
@@ -64,6 +70,50 @@ TERMS = [
 
 def log(m):
     print(m, flush=True)
+
+
+
+def tangani_pemilih_akun(page, log_fn=None):
+    """Keluar dari halaman 'Choose an account' -> kolom email.
+
+    Google menampilkan pemilih akun kalau profil masih membawa cookie akun
+    lama/kedaluwarsa. Klik "Use another account" (atau padanannya), lalu
+    tunggu kolom email muncul. -> True kalau pemilih berhasil dilewati.
+    """
+    log_fn = log_fn or log
+    try:
+        if "accountchooser" not in (page.url or "").lower():
+            return False
+        log_fn("    terdeteksi pemilih akun — keluar ke kolom email")
+        teks = [
+            "Use another account", "Gunakan akun lain", "Add another account",
+            "Tambahkan akun lain", "Use a different account",
+        ]
+        for t in teks:
+            try:
+                el = page.query_selector('text="%s"' % t)
+                if el and el.is_visible():
+                    el.click()
+                    log_fn("    diklik: " + t)
+                    page.wait_for_timeout(4000)
+                    return True
+            except Exception:
+                continue
+        try:
+            page.evaluate("""() => {
+                const k = Array.from(document.querySelectorAll('li, div[role="link"], div[role="button"]'));
+                const t = k.find(e => /another account|akun lain|akun lainnya/i.test(e.innerText||''));
+                if (t) t.click();
+            }""")
+            log_fn("    diklik lewat DOM (akun lain)")
+            page.wait_for_timeout(4000)
+            return True
+        except Exception:
+            pass
+    except Exception as e:
+        log_fn("    ! gagal lewati pemilih akun: " + str(e)[:80])
+    return False
+
 
 
 def load_account(email):
@@ -395,6 +445,8 @@ def main():
 
             page.goto(SIGNIN, wait_until="domcontentloaded", timeout=60000)
             try:
+                # Kalau mendarat di pemilih akun, keluar dulu ke kolom email.
+                tangani_pemilih_akun(page)
                 page.wait_for_selector(
                     'input[type="email"], input[type="password"], #identifierId',
                     timeout=8000)
@@ -434,13 +486,41 @@ def main():
                 hay = text_low(page)
                 cap = find(CHALLENGE, hay)
                 if cap:
-                    log(f"  -> needs_human: tantangan setelah email ({cap})")
-                    return 2
+                    # CAPTCHA SETELAH EMAIL: coba audio, lalu LANJUT ke sandi
+                    log(f"  tantangan setelah email ({cap})")
+                    if os.environ.get("CAPTCHA_AUTO", "1") not in ("0", "false", "no"):
+                        try:
+                            sys.path.insert(0, str(APP_DIR))
+                            import captcha_audio
+                            berhasil, ket = asyncio.run(
+                                captcha_audio.selesaikan(page, log=log))
+                            log(f"  hasil captcha: {'LOLOS' if berhasil else 'gagal'} — {ket}")
+                            if berhasil:
+                                time.sleep(5)
+                                hay = text_low(page)
+                                cap = find(CHALLENGE, hay)
+                        except Exception as e:
+                            log(f"  ! captcha audio error: {str(e)[:120]}")
+                    if cap:
+                        log(f"  -> needs_human: tantangan setelah email ({cap})")
+                        return 2
                 bad = find(BAD, hay)
                 if bad:
                     log(f"  -> bad_credentials: {bad}")
                     return 3
                 if not visible(page, 'input[type="password"]'):
+                    # Jangan salahkan selektor: cek dulu apakah akun
+                    # DIHAPUS / ditolak Google (pesan lama menyesatkan).
+                    if "deletedaccount" in (page.url or "").lower():
+                        log("  -> deleted: akun DIHAPUS Google (tidak bisa dipulihkan sendiri)")
+                        return 4
+                    if "rejected" in (page.url or "").lower():
+                        log("  -> deleted: pemulihan DITOLAK Google — hubungi admin domain")
+                        return 4
+                    _hap = find(DIHAPUS, text_low(page))
+                    if _hap:
+                        log(f"  -> deleted: {_hap}")
+                        return 4
                     log("  -> error: kolom sandi tidak muncul")
                     return 1
 
@@ -514,6 +594,36 @@ def main():
 
             cap = find(CHALLENGE, hay)
             if cap:
+                # ── COBA SELESAIKAN CAPTCHA AUDIO (tanpa model lokal) ────
+                if os.environ.get("CAPTCHA_AUTO", "1") not in ("0", "false", "no"):
+                    try:
+                        sys.path.insert(0, str(APP_DIR))
+                        import captcha_audio
+                        log(f"  tantangan ({cap}) — mencoba mode audio")
+                        berhasil, ket = asyncio.run(
+                            captcha_audio.selesaikan(page, log=log))
+                        log(f"  hasil captcha: {'LOLOS' if berhasil else 'gagal'} — {ket}")
+                        if berhasil:
+                            time.sleep(6)
+                            url = page.url
+                            hay = text_low(page)
+                            cap = find(CHALLENGE, hay)
+                            if not cap and "accounts.google.com" not in url:
+                                # lanjut seperti login sukses
+                                try:
+                                    sys.path.insert(0, str(APP_DIR))
+                                    import gsuite_login as G
+                                    G.register_in_pool(email)
+                                except Exception as e:
+                                    log(f"  ! gagal daftar pool: {str(e)[:80]}")
+                                if args.test_vids:
+                                    st, dt = check_vids(page)
+                                    log(f"  -> {st}: camoufox+captcha; {dt}")
+                                    return 0 if st == "ok" else 2
+                                log("  -> ok: login berhasil via Camoufox (captcha audio)")
+                                return 0
+                    except Exception as e:
+                        log(f"  ! captcha audio error: {str(e)[:120]}")
                 log(f"  -> needs_human: tantangan setelah sandi ({cap})")
                 return 2
             bad = find(BAD, hay)

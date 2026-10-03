@@ -37,6 +37,10 @@ PER_AKUN_TIMEOUT = float(os.environ.get("LOGIN_TIMEOUT", "180"))
 CAMOUFOX_PY = os.environ.get("CAMOUFOX_PY", "/root/harbor/venv/bin/python")
 CAMOUFOX_SCRIPT = os.environ.get("CAMOUFOX_SCRIPT", "camoufox_login.py")
 PAKAI_CAMOUFOX = os.environ.get("LOGIN_CAMOUFOX", "1") not in ("0", "false", "no")
+# URUTAN JALUR: Camoufox lebih dulu (bawaan), Chromium jadi cadangan.
+# Sesi pool tersimpan di profil Firefox (firefox_profiles/), jadi
+# Chromium hampir selalu berakhir CAPTCHA. Setel =0 untuk urutan lama.
+UTAMA_CAMOUFOX = os.environ.get("LOGIN_UTAMA_CAMOUFOX", "1") not in ("0", "false", "no")
 # Mesin ini 6 core / 16 GB: load 12 terlalu ketat (terbukti: login berhenti
 # di akun ke-6 dengan beban 15.9 padahal mesin masih longgar).
 LOAD_MAX = float(os.environ.get("LOGIN_LOAD_MAX", "24"))
@@ -432,14 +436,26 @@ def main():
         print(f"\n[{i}/{len(target)}] {email} — mulai (beban {b:.1f})", flush=True)
         tulis_live(email, "mulai", "menyiapkan browser")
         bersihkan_kunci(email)
-        state, detail, secs = jalankan_satu(email)
+        if UTAMA_CAMOUFOX and PAKAI_CAMOUFOX:
+            # Camoufox LEBIH DULU: sesi pool ada di profil Firefox.
+            st2, d2, s2 = jalankan_camoufox(email)
+            if st2 == "ok":
+                state, detail, secs = "ok", f"camoufox; {d2}", s2
+                print(f"    -> camoufox {st2}: {str(d2)[:80]} ({s2}s)", flush=True)
+            else:
+                print(f"    -> camoufox {st2}: {str(d2)[:80]} — coba Chromium",
+                      flush=True)
+                state, detail, secs = jalankan_satu(email)
+        else:
+            state, detail, secs = jalankan_satu(email)
         print(f"    -> {state}: {detail[:110]} ({secs}s)", flush=True)
         print(f"       progres: {i}/{len(target)} | berhasil {berhasil} | "
               f"gagal {gagal} | berjalan {time.time() - t_mulai:.0f}s", flush=True)
 
         # FALLBACK CAMOUFOX: Chromium kena CAPTCHA -> coba Camoufox sekali.
         # Jangan menunggu timeout panjang; CAPTCHA sudah jelas masalahnya.
-        if state == "needs_human" and PAKAI_CAMOUFOX:
+        if (state == "needs_human" and PAKAI_CAMOUFOX
+                and not UTAMA_CAMOUFOX):
             print("    -> CAPTCHA: mencoba jalur cadangan Camoufox...", flush=True)
             st2, d2, s2 = jalankan_camoufox(email)
             print(f"    -> camoufox {st2}: {str(d2)[:80]} ({s2}s)", flush=True)

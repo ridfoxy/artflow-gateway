@@ -201,8 +201,37 @@ class AccountPool:
 
 
 def has_login_cookies(email):
-    """True bila profil chrome akun ini punya cookie sesi Google."""
+    """True bila profil MESIN YANG DIPAKAI punya cookie sesi Google.
+
+    PENTING: lokasi cookie bergantung mesin. Chromium menyimpan di
+    chrome_profiles/<email>/Default/Cookies; Camoufox (Firefox) di
+    firefox_profiles/<email>/cookies.sqlite. Versi lama selalu membaca
+    yang Chromium, sehingga saat MESIN=camoufox SEMUA akun dianggap
+    belum login dan dikecualikan 7 hari.
+    """
     import tempfile
+    if MESIN == "camoufox":
+        ck = PROFILES_FF / email / "cookies.sqlite"
+        if not ck.exists():
+            return False
+        tmp = None
+        try:
+            with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tf:
+                tmp = tf.name
+            shutil.copy2(ck, tmp)
+            c = sqlite3.connect(tmp)
+            n = c.execute("SELECT COUNT(*) FROM moz_cookies "
+                          "WHERE host LIKE '%google.com'").fetchone()[0]
+            c.close()
+            return n > 5
+        except Exception:
+            return False
+        finally:
+            if tmp:
+                try:
+                    Path(tmp).unlink()
+                except Exception:
+                    pass
     ck = APP / "chrome_profiles" / email / "Default" / "Cookies"
     if not ck.exists():
         return False
@@ -895,6 +924,41 @@ async def attach_images(page, job_id, urls):
     return ok
 
 
+
+def pasang_pengintai_token(page):
+    """Simpan header panggilan appsgenaiserver dari event Playwright.
+
+    Dipakai saat hook JS tidak jalan (Camoufox/Firefox). Hasil disimpan di
+    `page.__calls_event` dalam bentuk yang SAMA dengan `window.__calls`
+    (kunci: url, method, headers, body) supaya harvest_token bisa membacanya.
+
+    -> True bila pengintai terpasang.
+    """
+    try:
+        page.__calls_event = []
+    except Exception:
+        return False
+    try:
+        def _dengar(req):
+            try:
+                if "appsgenaiserver" not in req.url:
+                    return
+                hd = {str(k).lower(): str(v) for k, v in (req.headers or {}).items()}
+                page.__calls_event.append({
+                    "how": "event",
+                    "url": req.url,
+                    "method": req.method,
+                    "headers": hd,
+                    "body": req.post_data or "",
+                })
+            except Exception:
+                pass
+        page.on("request", _dengar)
+        return True
+    except Exception:
+        return False
+
+
 async def harvest_token(page, timeout=20, settle=2.0):
     """Ambil Authorization + X-Server-Token dari panggilan quotaSummary.
 
@@ -911,6 +975,15 @@ async def harvest_token(page, timeout=20, settle=2.0):
     while time.time() < deadline:
         try:
             calls = await page.evaluate("() => JSON.stringify(window.__calls || [])")
+            if calls in ("[]", "", "null", None):
+                # Camoufox/Firefox: hook JS tidak jalan. Pakai hasil
+                # pengintai event Playwright (page.__calls_event).
+                try:
+                    _ev = getattr(page, "__calls_event", None) or []
+                    if _ev:
+                        calls = json.dumps(_ev)
+                except Exception:
+                    pass
             for c in json.loads(calls):
                 hl = {k.lower(): v for k, v in (c.get("headers") or {}).items()}
                 if not (hl.get("authorization") and hl.get("x-server-token")):
@@ -965,10 +1038,21 @@ async def download_url(page, url):
             return btoa(bin);
         } catch (e) { return ''; }
     }""", url)
-    if not b64:
-        return None
-    import base64
-    return base64.b64decode(b64)
+    if b64:
+        import base64
+        return base64.b64decode(b64)
+    # ── CADANGAN: fetch() JS bisa diblokir (CORS/URL bertanda tangan) dan
+    # gagal di Camoufox. Ambil lewat konteks permintaan browser, yang tidak
+    # terikat origin halaman. Terbukti untuk media Flow bertanda tangan.
+    try:
+        r = await page.request.get(url, timeout=120000)
+        if r.ok:
+            data = await r.body()
+            if data:
+                return data
+    except Exception as e:
+        log(f"unduh cadangan gagal: {str(e)[:90]}")
+    return None
 
 
 async def run_job(cm, pool, job_id, email, prompt, aspect="landscape", images=None,
@@ -986,6 +1070,7 @@ async def run_job(cm, pool, job_id, email, prompt, aspect="landscape", images=No
     page = await ctx.new_page()
     try:
         await page.add_init_script(HOOK_JS)
+        pasang_pengintai_token(page)   # Camoufox: hook JS tidak jalan, pakai event Playwright
         log(f"[{job_id[:8]}] buka Vids ({email})")
         await page.goto(UPLOAD_DIR, wait_until="domcontentloaded", timeout=90000)
         await wait_until(page,
@@ -1611,6 +1696,7 @@ async def open_session(cm, pool, email):
         ctx = await cm.get(email)
         page = await ctx.new_page()
         await page.add_init_script(HOOK_JS)
+        pasang_pengintai_token(page)   # Camoufox: hook JS tidak jalan, pakai event Playwright
         await page.goto(UPLOAD_DIR, wait_until="domcontentloaded", timeout=90000)
         await wait_until(page,
                          """() => !!document.querySelector('button') &&
