@@ -5,3 +5,6 @@ chrome_profiles/
 __pycache__/
 *.pyc
 .wm_cache/
+accounts.txt
+*.bak-*
+riset/*.bak-*
