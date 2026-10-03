@@ -8,3 +8,7 @@ __pycache__/
 accounts.txt
 *.bak-*
 riset/*.bak-*
+accounts.txt.bak-*
+*.bak-import-*
+*.bak-purge-*
+data/account_state.txt
