@@ -2341,7 +2341,7 @@ async def api_custom_docs_dashboard():
                 <div class="label">Authentication Header</div>
                 <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">Pass in header via <code>X-API-Key</code> or <code>Authorization: Bearer</code></div>
             </div>
-            <div class="key-code">gflow_live_ab1623b6697a4117ac721099</div>
+            <div class="key-code">GATEWAY_API_KEY_REDACTED</div>
         </div>
 
         <!-- SECTION 1 -->
@@ -2442,7 +2442,7 @@ async def api_custom_docs_dashboard():
             <div class="code-block-header">💻 Contoh Request Body (JSON)</div>
             <pre><code>POST http://104.64.15.167:8088/v1/google-flow/videos/create
 Headers:
-  X-API-Key: gflow_live_ab1623b6697a4117ac721099
+  X-API-Key: GATEWAY_API_KEY_REDACTED
   Content-Type: application/json
 
 {
@@ -2545,7 +2545,7 @@ Headers:
             <div class="code-block-header">💻 Contoh Request Body (JSON)</div>
             <pre><code>POST http://104.64.15.167:8088/v1/google-flow/images/create
 Headers:
-  X-API-Key: gflow_live_ab1623b6697a4117ac721099
+  X-API-Key: GATEWAY_API_KEY_REDACTED
   Content-Type: application/json
 
 {
@@ -2586,7 +2586,7 @@ Headers:
             <div class="code-block-header">💻 Contoh Request</div>
             <pre><code>GET http://104.64.15.167:8088/v1/google-flow/jobs/f9672d84-5cbb-4953-a295-f79350a41f2f
 Headers:
-  X-API-Key: gflow_live_ab1623b6697a4117ac721099</code></pre>
+  X-API-Key: GATEWAY_API_KEY_REDACTED</code></pre>
 
             <div class="code-block-header">⏳ Response Saat Masih Diproses (Status: processing)</div>
             <pre><code>{
@@ -2648,7 +2648,7 @@ Headers:
 
 GET http://104.64.15.167:8088/v1/google-flow/jobs?status=completed&limit=10
 Headers:
-  X-API-Key: gflow_live_ab1623b6697a4117ac721099</code></pre>
+  X-API-Key: GATEWAY_API_KEY_REDACTED</code></pre>
         </div>
 
         <!-- SECTION 4 -->
@@ -2665,7 +2665,7 @@ Headers:
             </div>
             <pre><code>GET http://104.64.15.167:8088/v1/google-flow/models
 Headers:
-  X-API-Key: gflow_live_ab1623b6697a4117ac721099
+  X-API-Key: GATEWAY_API_KEY_REDACTED
 
 // Response 200 OK
 {
@@ -2720,7 +2720,7 @@ Headers:
             </div>
             <pre><code>POST http://104.64.15.167:8088/v1/google-flow/accounts/add
 Headers:
-  X-API-Key: gflow_live_ab1623b6697a4117ac721099
+  X-API-Key: GATEWAY_API_KEY_REDACTED
   Content-Type: application/json
 
 {
@@ -2749,7 +2749,7 @@ Headers:
             </div>
             <pre><code>POST http://104.64.15.167:8088/v1/google-flow/auth/refresh
 Headers:
-  X-API-Key: gflow_live_ab1623b6697a4117ac721099
+  X-API-Key: GATEWAY_API_KEY_REDACTED
 
 // Response 200 OK
 {
