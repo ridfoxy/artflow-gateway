@@ -1,0 +1,20 @@
+[Unit]
+Description=Flow Agent Backend (Port 8001)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/af_project/flow-agent/flow-agent
+Environment=OPENAI_API_HOST=0.0.0.0
+Environment=OPENAI_API_PORT=8001
+Environment=API_REQUEST_TIMEOUT=120
+Environment=PUBLIC_BASE_URL=https://artflowgen.com
+ExecStart=/root/af_project/flow-agent/flow-agent/.venv/bin/python main.py --host 0.0.0.0 --port 8001
+Restart=always
+RestartSec=3
+MemoryHigh=1.2G
+MemoryMax=1.5G
+
+[Install]
+WantedBy=multi-user.target

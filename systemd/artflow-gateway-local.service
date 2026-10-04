@@ -1,0 +1,22 @@
+# MODE PRODUKSI: 0.0.0.0:8088 (pengganti gateway 167).
+[Unit]
+Description=ArtFlow Gateway (LOKAL 172) — Google Flow + Vids REST API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/api-google-flow
+Environment=DISPLAY=:99
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Environment=FLOW_USE_PER_JOB_PROJECT=0
+Environment=FLOW_ATTACH_SERIALIZE=0
+Environment=FLOW_ENABLE_FRAME_ATTACH=1
+Environment=FLOW_ENABLE_VIDS_API=1
+Environment=FLOW_SUBMIT_TIMEOUT=120
+ExecStart=/root/geminiomni/venv/bin/python -m uvicorn app:app --host 0.0.0.0 --port 8088
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

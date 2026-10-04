@@ -59,7 +59,12 @@ RELOAD_EVERY = float(os.environ.get("VIDS_RELOAD_SETIAP", "120"))
 WORKER_HOLD = os.environ.get("VIDS_WORKER_HOLD", "1") not in ("0", "false", "no")
 WORKER_IDLE_POLL = float(os.environ.get("VIDS_WORKER_POLL", "2"))
 WORKER_EXIT_AFTER = float(os.environ.get("VIDS_WORKER_EXIT_AFTER", "900"))
-ACCOUNT_COOLDOWN_LIMIT = int(os.environ.get("VIDS_LIMIT_COOLDOWN", "3600"))
+# KUOTA HABIS (429) = SINGKIRKAN, bukan istirahat sebentar.
+# Kuota Vids Google pulih BULANAN, jadi akun yang sudah 429 tidak
+# berguna dicoba lagi sejam kemudian (gagal 429 lagi, buang slot sesi).
+# Bawaan 31 hari = keluar dari rotasi sampai kuota bulanan pulih.
+#   VIDS_LIMIT_COOLDOWN=3600 -> kembali ke perilaku "istirahat 1 jam"
+ACCOUNT_COOLDOWN_LIMIT = int(os.environ.get("VIDS_LIMIT_COOLDOWN", "2678400"))
 GEN_TIMEOUT = int(os.environ.get("VIDS_GEN_TIMEOUT", "240"))
 # Batas beban: satu job tidak boleh menyandera antrian. VPS ini ~4 GB RAM, dan
 # satu Chrome bisa memakai 400 MB, jadi konkurensi 1 adalah setelan aman.
@@ -172,12 +177,18 @@ class AccountPool:
         until = int(time.time()) + seconds
         with db() as c:
             c.execute("""INSERT INTO vids_accounts (email, state, note, until, updated_at)
-                         VALUES (?, 'limited', 'quota reached', ?, ?)
+                         VALUES (?, 'limited', 'kuota habis (429) — disingkirkan sampai kuota bulanan pulih', ?, ?)
                          ON CONFLICT(email) DO UPDATE SET
-                           state='limited', note='quota reached',
+                           state='limited',
+                           note='kuota habis (429) — disingkirkan sampai kuota bulanan pulih',
                            until=excluded.until, updated_at=excluded.updated_at""",
                       (email, until, int(time.time())))
-        log(f"akun {email} limit — cooldown {seconds}s")
+        _hari = seconds / 86400.0
+        if _hari >= 1:
+            log(f"akun {email} KUOTA HABIS — disingkirkan {_hari:.0f} hari "
+                f"(sampai kuota bulanan pulih)")
+        else:
+            log(f"akun {email} limit — cooldown {seconds}s")
 
     def mark_ui_retry(self, email, seconds=900):
         """Akun yang UI-nya tidak siap: istirahatkan sementara, jangan dibuang."""
@@ -558,6 +569,21 @@ async def wait_for_editor(page, timeout=UI_WAIT_SECONDS):
             pass
         await asyncio.sleep(2)
     return False
+
+
+
+def kuota_habis(teks):
+    """True bila respons Google menandakan kuota akun habis (429).
+
+    Bentuk nyata: status 429 + body memuat "Resource has been exhausted
+    (e.g. check quota)". Dipakai untuk MEMINDAHKAN job ke akun lain dan
+    menandai akun itu `limited`, bukan menggagalkan job.
+    """
+    t = str(teks or "").lower()
+    return ("resource has been exhausted" in t
+            or "resource_exhausted" in t
+            or "check quota" in t
+            or (t.strip().startswith("429")))
 
 
 def looks_like_ui_not_ready(detail):
@@ -1378,7 +1404,10 @@ IMG_XHR = os.environ.get("VIDS_IMG_XHR", "1") not in ("0", "false", "no")
 IMG_XHR_PARALEL = os.environ.get("VIDS_IMG_PARALEL", "1") not in ("0", "false", "no")
 IMG2_AVL_PATH = (2, 25, 0, 0, 7, 1, 11, 8, 3)
 #                 ^ indeks gambar disisipkan di posisi [2]. Jalur lengkap gambar ke-i: (2, 25, i, 0, 7, 1, 11, 8, 3)
-SESSION_MAX_JOBS = int(os.environ.get("VIDS_SESSION_JOBS", "12"))
+# BATAS SESI = pengaman, bukan target. Akun sebaiknya dipakai sampai
+# Google bilang kuota habis (429) -> ditandai `limited` + pindah akun.
+# Nilai kecil (dulu 12) memotong akun yang masih punya kuota.
+SESSION_MAX_JOBS = int(os.environ.get("VIDS_SESSION_JOBS", "60"))
 # Jeda antar percobaan saat sesi rusak. Tanpa ini 4-5 percobaan terjadi
 # di detik yang sama: pool terlihat kosong padahal akun sehat tersedia.
 RETRY_PAUSE_SECONDS = float(os.environ.get("VIDS_RETRY_PAUSE", "3"))
@@ -2031,7 +2060,11 @@ async def generate_many_in_session(sess, infos):
                                 + (f" {_dim[0]}x{_dim[1]}" if _dim else ""))
                             hasil[info["job_id"]] = ("completed", str(p))
                             continue
-                        hasil[info["job_id"]] = ("failed", "stream gagal/kecil")
+                        if kuota_habis(text):
+                            hasil[info["job_id"]] = (
+                                "limited", "kuota akun habis (429) — pindah akun")
+                        else:
+                            hasil[info["job_id"]] = ("failed", "stream gagal/kecil")
                         continue
                     if st in (400, 401, 403):
                         retry.append(info)       # token perlu dipanen ulang
@@ -2056,8 +2089,13 @@ async def generate_many_in_session(sess, infos):
                                     p.write_bytes(data)
                                     hasil[info["job_id"]] = ("completed", str(p))
                                     continue
-                            hasil[info["job_id"]] = ("ui_fallback",
-                                                     f"ulang gagal status={st}")
+                            if kuota_habis(text) or st == 429:
+                                hasil[info["job_id"]] = (
+                                    "limited",
+                                    "kuota akun habis (429) — pindah akun")
+                            else:
+                                hasil[info["job_id"]] = ("ui_fallback",
+                                                         f"ulang gagal status={st}")
 
     for info in slow:
         try:

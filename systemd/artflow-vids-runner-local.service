@@ -1,0 +1,19 @@
+# MODE PRODUKSI: 0.0.0.0:8088 (pengganti gateway 167).
+[Unit]
+Description=ArtFlow Vids Runner (LOKAL 172)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/api-google-flow
+Environment=DISPLAY=:99
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Environment=VIDS_IDLE_CLOSE=600
+Environment=VIDS_RETRY_PAUSE=3
+ExecStart=/root/geminiomni/venv/bin/python vids_runner.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

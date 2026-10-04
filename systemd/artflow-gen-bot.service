@@ -1,0 +1,16 @@
+[Unit]
+Description=ArtFlow Telegram Auto-Generate Bot (Omni & Banana)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/bottele
+Environment=PUBLIC_BASE_URL=https://artflowgen.com
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+ExecStart=/root/af_project/flow-agent/flow-agent/.venv/bin/python bot.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

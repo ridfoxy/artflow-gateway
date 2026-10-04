@@ -1,0 +1,12 @@
+[Unit]
+Description=ArtFlow Web Frontend (Port 80)
+After=network.target flow-agent.service
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/artflow
+ExecStart=/usr/bin/node server.mjs
+Restart=always
+RestartSec=3
+[Install]
+WantedBy=multi-user.target
