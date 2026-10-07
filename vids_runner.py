@@ -65,6 +65,10 @@ WORKER_EXIT_AFTER = float(os.environ.get("VIDS_WORKER_EXIT_AFTER", "900"))
 # Bawaan 31 hari = keluar dari rotasi sampai kuota bulanan pulih.
 #   VIDS_LIMIT_COOLDOWN=3600 -> kembali ke perilaku "istirahat 1 jam"
 ACCOUNT_COOLDOWN_LIMIT = int(os.environ.get("VIDS_LIMIT_COOLDOWN", "2678400"))
+# THROTTLE (429 sesaat, kuota BELUM bulanan habis) = istirahat PENDEK saja.
+# Dipilih pemilik sistem: akun sehat tidak boleh dibuang 31 hari gara-gara
+# throttle sesaat. Job dipindahkan ke akun lain, akun ini kembali otomatis.
+THROTTLE_COOLDOWN = int(os.environ.get("VIDS_THROTTLE_COOLDOWN", "900"))
 GEN_TIMEOUT = int(os.environ.get("VIDS_GEN_TIMEOUT", "240"))
 # Batas beban: satu job tidak boleh menyandera antrian. VPS ini ~4 GB RAM, dan
 # satu Chrome bisa memakai 400 MB, jadi konkurensi 1 adalah setelan aman.
@@ -201,6 +205,25 @@ class AccountPool:
                            until=excluded.until, updated_at=excluded.updated_at""",
                       (email, until, int(time.time())))
         log(f"akun {email} UI tidak siap — istirahat {seconds}s")
+
+    def mark_throttled(self, email, seconds=None):
+        """Akun kena 429 SESaat (throttle) — parkir pendek, JANGAN buang.
+
+        Beda dengan mark_limited (31 hari, kuota bulanan benar-benar habis):
+        throttle hilang sendiri dalam hitungan menit, jadi akun ini kembali
+        dipakai otomatis setelah cooldown. Job-nya dipindah ke akun lain.
+        """
+        seconds = THROTTLE_COOLDOWN if seconds is None else seconds
+        until = int(time.time()) + seconds
+        with db() as c:
+            c.execute("""INSERT INTO vids_accounts (email, state, note, until, updated_at)
+                         VALUES (?, 'throttled', 'throttle 429 — istirahat sementara', ?, ?)
+                         ON CONFLICT(email) DO UPDATE SET
+                           state='throttled',
+                           note='throttle 429 — istirahat sementara',
+                           until=excluded.until, updated_at=excluded.updated_at""",
+                      (email, until, int(time.time())))
+        log(f"akun {email} THROTTLE 429 — istirahat {seconds}s, job pindah akun")
 
     def mark_ok(self, email):
         with db() as c:
@@ -2061,15 +2084,23 @@ async def generate_many_in_session(sess, infos):
                             hasil[info["job_id"]] = ("completed", str(p))
                             continue
                         if kuota_habis(text):
+                            # 429 = throttle sesaat → akun diparkir pendek,
+                            # job JANGAN dimatikan.
                             hasil[info["job_id"]] = (
-                                "limited", "kuota akun habis (429) — pindah akun")
+                                "throttled", "throttle 429 — pindah akun")
                         else:
                             hasil[info["job_id"]] = ("failed", "stream gagal/kecil")
                         continue
                     if st in (400, 401, 403):
                         retry.append(info)       # token perlu dipanen ulang
                         continue
-                    hasil[info["job_id"]] = ("failed", f"status={st} {(text or '')[:110]}")
+                    if st == 429:
+                        # BUG LAMA: 429 dengan body kosong jatuh ke sini dan
+                        # mematikan job tanpa menandai akun. Sekarang throttle.
+                        hasil[info["job_id"]] = (
+                            "throttled", "throttle 429 — pindah akun")
+                    else:
+                        hasil[info["job_id"]] = ("failed", f"status={st} {(text or '')[:110]}")
                 if retry:
                     sess["hdrs"] = None
                     await asyncio.sleep(1.5)
@@ -2091,8 +2122,8 @@ async def generate_many_in_session(sess, infos):
                                     continue
                             if kuota_habis(text) or st == 429:
                                 hasil[info["job_id"]] = (
-                                    "limited",
-                                    "kuota akun habis (429) — pindah akun")
+                                    "throttled",
+                                    "throttle 429 — pindah akun")
                             else:
                                 hasil[info["job_id"]] = ("ui_fallback",
                                                          f"ulang gagal status={st}")
@@ -2296,12 +2327,25 @@ async def run_batch(name, cm, pool):
                         pool.mark_ok(email)
                         _set_status(jid, "completed", account=email, progress=100,
                                     result_path=str(d2))
+                    elif st2 == "throttled":
+                        pool.mark_throttled(email)
+                        limit_hit = True
+                        _requeue(jid, "throttle 429 (jalur UI)", hitung=False)
                     elif st2 == "limited":
                         pool.mark_limited(email)
                         limit_hit = True
                         _requeue(jid, "limit (UI)", hitung=False)
                     else:
                         _set_status(jid, "failed", account=email, error=str(d2)[:300])
+                    continue
+
+                if status == "throttled":
+                    # Throttle sesaat: parkir pendek + job pindah akun.
+                    # TIDAK memakai mark_limited (31 hari) supaya akun sehat
+                    # tidak terbuang.
+                    pool.mark_throttled(email)
+                    limit_hit = True          # tutup sesi → akun lain dipakai
+                    _requeue(jid, "throttle 429 (pindah akun)", hitung=False)
                     continue
 
                 if status == "limited":
@@ -2383,6 +2427,9 @@ async def run_batch(name, cm, pool):
                             pool.mark_ok(em)
                             _set_status(jid, "completed", account=em, progress=100,
                                         result_path=str(d3))
+                        elif st3 == "throttled":
+                            pool.mark_throttled(em)
+                            _requeue(jid, "throttle 429 (jalur penuh)", hitung=False)
                         elif st3 == "limited":
                             pool.mark_limited(em)
                             _requeue(jid, "limit (UI)", hitung=False)
