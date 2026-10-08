@@ -12,3 +12,7 @@ accounts.txt.bak-*
 *.bak-import-*
 *.bak-purge-*
 data/account_state.txt
+
+# rahasia (jangan pernah di-commit)
+.cf_token
+.gh_token
