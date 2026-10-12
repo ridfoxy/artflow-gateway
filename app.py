@@ -2341,7 +2341,7 @@ async def api_custom_docs_dashboard():
                 <div class="label">Authentication Header</div>
                 <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">Pass in header via <code>X-API-Key</code> or <code>Authorization: Bearer</code></div>
             </div>
-            <div class="key-code">[REDACTED]</div>
+            <div class="key-code">GATEWAY_KEY_REDACTED</div>
         </div>
 
         <!-- SECTION 1 -->
@@ -2442,7 +2442,7 @@ async def api_custom_docs_dashboard():
             <div class="code-block-header">💻 Contoh Request Body (JSON)</div>
             <pre><code>POST http://104.64.15.167:8088/v1/google-flow/videos/create
 Headers:
-  X-API-Key: [REDACTED]
+  X-API-Key: API_KEY_REDACTED
   Content-Type: application/json
 
 {
@@ -2545,7 +2545,7 @@ Headers:
             <div class="code-block-header">💻 Contoh Request Body (JSON)</div>
             <pre><code>POST http://104.64.15.167:8088/v1/google-flow/images/create
 Headers:
-  X-API-Key: [REDACTED]
+  X-API-Key: API_KEY_REDACTED
   Content-Type: application/json
 
 {
@@ -2586,7 +2586,7 @@ Headers:
             <div class="code-block-header">💻 Contoh Request</div>
             <pre><code>GET http://104.64.15.167:8088/v1/google-flow/jobs/f9672d84-5cbb-4953-a295-f79350a41f2f
 Headers:
-  X-API-Key: [REDACTED]</code></pre>
+  X-API-Key: API_KEY_REDACTED</code></pre>
 
             <div class="code-block-header">⏳ Response Saat Masih Diproses (Status: processing)</div>
             <pre><code>{
@@ -2648,7 +2648,7 @@ Headers:
 
 GET http://104.64.15.167:8088/v1/google-flow/jobs?status=completed&limit=10
 Headers:
-  X-API-Key: [REDACTED]</code></pre>
+  X-API-Key: API_KEY_REDACTED</code></pre>
         </div>
 
         <!-- SECTION 4 -->
@@ -2665,7 +2665,7 @@ Headers:
             </div>
             <pre><code>GET http://104.64.15.167:8088/v1/google-flow/models
 Headers:
-  X-API-Key: [REDACTED]
+  X-API-Key: API_KEY_REDACTED
 
 // Response 200 OK
 {
@@ -2720,7 +2720,7 @@ Headers:
             </div>
             <pre><code>POST http://104.64.15.167:8088/v1/google-flow/accounts/add
 Headers:
-  X-API-Key: [REDACTED]
+  X-API-Key: API_KEY_REDACTED
   Content-Type: application/json
 
 {
@@ -2749,7 +2749,7 @@ Headers:
             </div>
             <pre><code>POST http://104.64.15.167:8088/v1/google-flow/auth/refresh
 Headers:
-  X-API-Key: [REDACTED]
+  X-API-Key: API_KEY_REDACTED
 
 // Response 200 OK
 {
@@ -2932,10 +2932,141 @@ def _vids_db():
     return conn
 
 
+class VidsCheckRequest(BaseModel):
+    emails: List[str] = []      # kosong = seluruh pool
+
+
+@app.post("/v1/vids/accounts/check", dependencies=[Depends(verify_api_key)])
+async def api_vids_accounts_check(req: VidsCheckRequest):
+    """Cek status akun (email-saja, tanpa password) di LATAR BELAKANG.
+
+    Jauh lebih murah dari login penuh (~15s vs ~60-190s/akun) dan tanpa
+    risiko lockout. Hasil dipakai _akun_perlu_login untuk melewati akun
+    mati (dihapus/dinonaktifkan) selama 7 hari."""
+    import json as _json
+    from pathlib import Path as _P
+
+    APP = _P("/root/api-google-flow")
+    SCRIPT = APP / "_cek_akun_massal.py"
+    STATUS = APP / "data" / "check_proses.json"
+    LOGF = APP / "data" / "check_last.log"
+
+    if not SCRIPT.exists():
+        return {"status": "error", "message": "_cek_akun_massal.py tidak ada"}
+
+    st = {}
+    if STATUS.exists():
+        try:
+            st = _json.loads(STATUS.read_text())
+        except Exception:
+            st = {}
+    if st.get("running"):
+        try:
+            pid = int(st.get("pid") or 0)
+            os.kill(pid, 0)
+            return {"status": "sudah_jalan", "pid": pid,
+                    "message": "pemeriksaan sedang berjalan"}
+        except (OSError, ValueError):
+            st = {}
+
+    if req.emails:
+        target = ",".join(e.strip() for e in req.emails if e and e.strip())
+    else:
+        target = "--semua"
+
+    LOCKF = APP / "data" / "check_job.lock"
+    LOCKF.parent.mkdir(parents=True, exist_ok=True)
+    import fcntl as _fcntl
+    lockfh = open(LOCKF, "w")
+    try:
+        _fcntl.flock(lockfh, _fcntl.LOCK_EX | _fcntl.LOCK_NB)
+    except OSError:
+        return {"status": "sudah_jalan",
+                "message": "pemeriksaan lain sedang dimulai"}
+
+    logf = open(LOGF, "w", encoding="utf-8")
+    proc = None
+    unit = None
+    try:
+        proc = subprocess.Popen(
+            ["systemd-run", "--collect", "--unit", "artflow-check-job",
+             "--description", "ArtFlow cek akun massal",
+             "--setenv", "DISPLAY=:99",
+             "--working-directory", str(APP),
+             "/root/geminiomni/venv/bin/python", str(SCRIPT), target],
+            stdout=logf, stderr=subprocess.STDOUT)
+        if proc.wait(timeout=15) != 0:
+            raise RuntimeError("systemd-run gagal")
+        unit = "artflow-check-job.service"
+    except Exception:
+        proc = subprocess.Popen(
+            ["/root/geminiomni/venv/bin/python", str(SCRIPT), target],
+            cwd=str(APP), stdout=logf, stderr=subprocess.STDOUT,
+            start_new_session=True, env={**os.environ, "DISPLAY": ":99"})
+
+    STATUS.write_text(_json.dumps({
+        "running": True, "pid": proc.pid, "unit": unit,
+        "mulai": int(time.time()),
+    }), encoding="utf-8")
+    lockfh.close()
+    return {"status": "mulai", "pid": proc.pid,
+            "message": "pemeriksaan akun berjalan di latar"}
+
+
+@app.get("/v1/vids/accounts/check-status", dependencies=[Depends(verify_api_key)])
+async def api_vids_check_status():
+    """Hasil/progress pemeriksaan akun massal."""
+    import json as _json
+    from pathlib import Path as _P
+
+    APP = _P("/root/api-google-flow")
+    STATUS = APP / "data" / "check_proses.json"
+    HASIL = APP / "data" / "akun_check.json"
+
+    st = {}
+    if STATUS.exists():
+        try:
+            st = _json.loads(STATUS.read_text())
+        except Exception:
+            st = {}
+    hidup = False
+    try:
+        pid = int(st.get("pid") or 0)
+        if pid:
+            os.kill(pid, 0)
+            hidup = True
+    except (OSError, ValueError, TypeError):
+        hidup = False
+    if st and not hidup:
+        st["running"] = False
+        try:
+            STATUS.write_text(_json.dumps(st), encoding="utf-8")
+        except Exception:
+            pass
+
+    out = {"running": hidup}
+    if HASIL.exists():
+        try:
+            d = _json.loads(HASIL.read_text())
+            akun = d.get("akun") or {}
+            from collections import Counter as _C
+            out["total"] = d.get("total")
+            out["selesai"] = d.get("selesai")
+            out["ringkas"] = d.get("ringkas") or dict(
+                _C(v.get("status") for v in akun.values()))
+            out["mati"] = sum(1 for v in akun.values()
+                              if v.get("status") in ("dihapus", "dinonaktifkan",
+                                                     "tidak_ada"))
+        except Exception:
+            pass
+    return out
+
+
 class VidsLoginRequest(BaseModel):
     """Permintaan login akun. emails null = semua dari accounts.txt."""
     emails: Optional[List[str]] = None
     mode: Optional[str] = "belum_ok"     # "belum_ok" (lewati yang sudah ok) | "semua"
+    gpt: bool = False                    # True = login GABUNGAN VIDS+GPT
 
 
 class VidsCreateRequest(BaseModel):
@@ -3182,7 +3313,10 @@ class VidsAccountEntry(BaseModel):
 
 class VidsAccountsImport(BaseModel):
     entries: List[VidsAccountEntry]
-    mode: str = "replace"          # "replace" (ganti total) | "append" (tambah)
+    # default APPEND: replace menghapus seluruh pool lama, terlalu berisiko
+    # untuk jadi bawaan. Mode selain append/replace ditolak (dulu typo mode
+    # diam-diam jatuh ke cabang replace).
+    mode: str = "append"
 
 
 def _accounts_path() -> str:
@@ -3235,7 +3369,10 @@ async def api_vids_accounts_import(req: VidsAccountsImport):
         return {"status": "error", "written": 0, "skipped": skipped,
                 "message": "tidak ada baris valid untuk ditulis"}
 
-    mode = (req.mode or "replace").strip().lower()
+    mode = (req.mode or "append").strip().lower()
+    if mode not in ("append", "replace"):
+        return {"status": "error", "written": 0, "skipped": skipped,
+                "message": f"mode tidak valid: {mode!r} (harus append/replace)"}
     old_acc, other = _read_accounts_file()
 
     # cadangan sebelum menyentuh berkas.
@@ -3250,6 +3387,9 @@ async def api_vids_accounts_import(req: VidsAccountsImport):
             _shutil.copy2(p, bak)
             logger.info(f"cadangan accounts.txt: {bak}")
         except Exception as exc:
+            if mode == "replace":
+                return {"status": "error", "written": 0, "skipped": skipped,
+                        "message": f"cadangan gagal ({exc}); replace DITOLAK"}
             logger.warning(f"gagal membuat cadangan accounts.txt: {exc}")
 
     if mode == "append" and old_acc:
@@ -3262,7 +3402,12 @@ async def api_vids_accounts_import(req: VidsAccountsImport):
                 added += 1
         body = merged
         result_mode = f"append (+{added})"
+    elif mode == "append":
+        body = entries
+        result_mode = "append (baru)"
     else:
+        # replace: tanpa cadangan yang berhasil, TOLAK (jangan timpa pool
+        # tanpa jejak pemulihan)
         body = entries
         result_mode = "replace"
 
@@ -3296,6 +3441,31 @@ async def api_vids_accounts_template():
     }
 
 
+def _login_pid_aktif(st: dict):
+    """Ambil PID unit login, bukan PID peluncur systemd-run."""
+    if st.get("unit") or os.environ.get("LOGIN_VIA_SYSTEMD", "1") not in ("0", "false", "no"):
+        try:
+            hasil = subprocess.run(
+                ["systemctl", "show", st.get("unit") or "artflow-login-job.service",
+                 "--property=MainPID", "--value"],
+                capture_output=True, text=True, timeout=5)
+            pid = int(hasil.stdout.strip() or 0)
+            if hasil.returncode == 0 and pid > 0:
+                return pid
+        except (OSError, ValueError, subprocess.TimeoutExpired):
+            pass
+        if st.get("unit"):
+            return None
+    try:
+        pid = int(st.get("pid") or 0)
+        if pid > 0:
+            os.kill(pid, 0)
+            return pid
+    except (OSError, ValueError, TypeError):
+        pass
+    return None
+
+
 def _akun_perlu_login(kandidat: list, mode: str) -> tuple:
     """Saring akun agar yang sudah sehat TIDAK di-login ulang.
 
@@ -3312,8 +3482,24 @@ def _akun_perlu_login(kandidat: list, mode: str) -> tuple:
         return list(kandidat), 0
 
     APP = _P("/root/api-google-flow")
-    segar = float(_os.environ.get("LOGIN_FRESH_HOURS", "6")) * 3600
+    segar = float(_os.environ.get("LOGIN_FRESH_HOURS", "48")) * 3600
     now = time.time()
+
+    # 0. akun MATI (dihapus/dinonaktifkan/tidak_ada) dari pemeriksa massal:
+    #    tidak ada gunanya login — Google menolaknya di tahap email.
+    #    Hasil berlaku 7 hari (akun bisa dipulihkan admin domain).
+    cek_mati = {}
+    cp = APP / "data" / "akun_check.json"
+    if cp.exists():
+        try:
+            cd = _json.loads(cp.read_text())
+            for e, v in (cd.get("akun") or {}).items():
+                if str(v.get("status")) in ("dihapus", "dinonaktifkan",
+                                            "tidak_ada"):
+                    if now - float(v.get("at") or 0) < 7 * 86400:
+                        cek_mati[e.strip().lower()] = v.get("status")
+        except Exception:
+            pass
 
     # 1. hasil login terakhir per akun
     terakhir = {}
@@ -3333,6 +3519,15 @@ def _akun_perlu_login(kandidat: list, mode: str) -> tuple:
 
     perlu, dilewati = [], 0
     for email in kandidat:
+        # akun mati dari pemeriksaan massal -> lewati
+        if email.lower() in cek_mati:
+            dilewati += 1
+            continue
+        # catatan login terakhir "deleted" -> lewati (dari TAG_STATE exit-4)
+        d0 = terakhir.get(email) or {}
+        if str(d0.get("state")) == "deleted":
+            dilewati += 1
+            continue
         # 2. catatan terakhir: ok & belum kadaluarsa -> lewati
         d = terakhir.get(email) or {}
         if str(d.get("state")) == "ok":
@@ -3341,8 +3536,8 @@ def _akun_perlu_login(kandidat: list, mode: str) -> tuple:
                 dilewati += 1
                 continue
             # ok tapi catatan lama: cek apakah profilnya masih hangat
-            prof = APP / "chrome_profiles" / email
-            ck = prof / "Default" / "Cookies"
+            prof = APP / "firefox_profiles" / email
+            ck = prof / "cookies.sqlite"
             if ck.exists() and (now - ck.stat().st_mtime) < segar:
                 dilewati += 1
                 continue
@@ -3352,8 +3547,8 @@ def _akun_perlu_login(kandidat: list, mode: str) -> tuple:
         # 3. belum pernah dicatat, atau terakhir gagal:
         #    kalau profilnya baru saja ditulis (sesi mungkin sudah hidup),
         #    jangan dibuang percuma.
-        prof = APP / "chrome_profiles" / email
-        ck = prof / "Default" / "Cookies"
+        prof = APP / "firefox_profiles" / email
+        ck = prof / "cookies.sqlite"
         if ck.exists() and ck.stat().st_size > 20000:
             umur_prof = now - ck.stat().st_mtime
             if umur_prof < segar and str(d.get("state")) == "ok":
@@ -3390,19 +3585,16 @@ async def api_vids_accounts_login(req: VidsLoginRequest):
         except Exception:
             st = {}
     if st.get("running"):
-        pid_lama = st.get("pid")
-        hidup = False
+        pid_lama = _login_pid_aktif(st)
         if pid_lama:
-            try:
-                import os as _os
-                _os.kill(int(pid_lama), 0)
-                hidup = True
-            except Exception:
-                hidup = False
-        if hidup:
             return {"status": "sudah_jalan", "pid": pid_lama,
                     "diproses": st.get("jumlah"), "message": "login sedang berjalan"}
         st = {}
+        # job lama benar-benar mati: bersihkan status supaya tidak menghalangi
+        try:
+            STATUS.write_text(_json.dumps({"running": False}))
+        except Exception:
+            pass
 
     # pilih kandidat
     kandidat = []
@@ -3432,22 +3624,59 @@ async def api_vids_accounts_login(req: VidsLoginRequest):
     logger.info("auto-login dimulai (latar belakang): %d akun dari %d kandidat",
                 len(batch), len(kandidat))
 
+    # LOCK lintas proses: dua klik bersamaan hanya boleh membuat SATU job.
+    # (dulu: cek `running` -> spawn -> tulis status punya jendela race, dan
+    #  unit systemd bernama tetap membuat job kedua ditolak lalu fallback
+    #  Popen mendobel login.)
+    LOCKF = APP / "data" / "login_job.lock"
+    LOCKF.parent.mkdir(parents=True, exist_ok=True)
+    import fcntl as _fcntl
+    lockfh = open(LOCKF, "w")
+    _fcntl.flock(lockfh, _fcntl.LOCK_EX | _fcntl.LOCK_NB)
+    # di dalam lock: cek ulang status (pemain lain mungkin baru menulis)
+    if STATUS.exists():
+        try:
+            st2 = _json.loads(STATUS.read_text())
+        except Exception:
+            st2 = {}
+        if st2.get("running"):
+            pid2 = _login_pid_aktif(st2)
+            if pid2:
+                lockfh.close()
+                return {"status": "sudah_jalan", "pid": pid2,
+                        "diproses": st2.get("jumlah"),
+                        "message": "login sedang berjalan"}
+    # tulis starting SEBELUM spawn supaya polling tidak menganggap job mati
+    STATUS.write_text(_json.dumps({
+        "running": True, "pid": None, "jumlah": len(batch),
+        "kandidat": len(kandidat), "mulai": int(time.time()),
+        "starting": True,
+    }), encoding="utf-8")
+
     logf = open(LOGF, "w", encoding="utf-8")
+    # LOGIN GABUNGAN (VIDS+GPT): skrip lain, unit lain.
+    if req.gpt:
+        SCRIPT = APP / "_login_gabung.py"
+        UNIT = "artflow-login-gabung-job"
     # Jalankan login di cgroup SENDIRI (systemd transient unit) supaya
     # `systemctl restart artflow-gateway-local` TIDAK mematikannya.
     # Terbukti: dengan Popen biasa, restart gateway membunuh login yang
     # sedang berjalan (25 akun berhenti di akun ke-7).
     pakai_systemd_run = os.environ.get("LOGIN_VIA_SYSTEMD", "1") not in ("0", "false", "no")
     proc = None
+    unit = None
     if pakai_systemd_run:
         try:
             proc = subprocess.Popen(
-                ["systemd-run", "--collect", "--unit", f"artflow-login-job",
+                ["systemd-run", "--collect", "--unit", UNIT,
                  "--description", "ArtFlow auto-login (semua akun)",
                  "--setenv", "DISPLAY=:99",
                  "--working-directory", str(APP),
                  PY, str(SCRIPT), ",".join(batch)],
                 stdout=logf, stderr=subprocess.STDOUT)
+            if proc.wait(timeout=15) != 0:
+                raise RuntimeError("systemd-run gagal memulai unit login")
+            unit = f"{UNIT}.service"
             logger.info("auto-login dijalankan via systemd-run (cgroup sendiri)")
         except Exception as e:
             logger.warning("systemd-run gagal (%s) — memakai Popen biasa",
@@ -3460,12 +3689,17 @@ async def api_vids_accounts_login(req: VidsLoginRequest):
             start_new_session=True, env={**os.environ, "DISPLAY": ":99"})
         logger.info("auto-login dijalankan via Popen biasa")
 
+    # PID yang disimpan adalah PID PROSES LOGIN bila Popen; untuk systemd-run
+    # PID peluncur sudah keluar, deteksi lewat unit MainPID di _login_pid_aktif.
+    pid_simpan = proc.pid if unit is None else None
     STATUS.write_text(_json.dumps({
-        "running": True, "pid": proc.pid, "jumlah": len(batch),
+        "running": True, "pid": pid_simpan, "jumlah": len(batch),
+        "unit": unit,
         "kandidat": len(kandidat), "mulai": int(time.time()),
     }), encoding="utf-8")
+    lockfh.close()
 
-    return {"status": "mulai", "pid": proc.pid, "diproses": len(batch),
+    return {"status": "mulai", "pid": pid_simpan, "diproses": len(batch),
             "sisa_kandidat": max(0, len(kandidat) - len(batch)),
             "message": f"login {len(batch)} akun berjalan di latar belakang"}
 
@@ -3488,18 +3722,24 @@ async def api_vids_login_status():
         except Exception:
             st = {}
 
-    hidup = False
-    pid = st.get("pid")
-    if pid:
-        try:
-            _os.kill(int(pid), 0)
-            hidup = True
-        except Exception:
-            hidup = False
+    pid = _login_pid_aktif(st)
+    hidup = bool(pid)
+    if hidup:
+        st["pid"] = pid
+    elif st.get("starting"):
+        # masih dalam jendela spawn (lock dipegang peluncur): jangan
+        # dianggap mati dan jangan menulis ulang status dari GET
+        st["running"] = True
+        st["hasil_terakhir"] = []
+        st["ringkas"] = None
+        return st
 
     if st and not hidup:
         st["running"] = False
-        STATUS.write_text(_json.dumps(st), encoding="utf-8")
+        try:
+            STATUS.write_text(_json.dumps(st), encoding="utf-8")
+        except Exception:
+            pass
 
     # ringkasan hasil dari log terakhir
     hasil, baris = {}, []
@@ -3514,6 +3754,61 @@ async def api_vids_login_status():
     st["hasil_terakhir"] = baris[-10:]
     st["ringkas"] = hasil.get("ringkas")
     return st
+
+
+@app.post("/v1/vids/accounts/login-cancel", dependencies=[Depends(verify_api_key)])
+async def api_vids_login_cancel():
+    """Hentikan job login yang sedang berjalan (dipakai tombol Stop admin)."""
+    import json as _json
+    import signal as _signal
+    from pathlib import Path as _P
+
+    APP = _P("/root/api-google-flow")
+    STATUS = APP / "data" / "login_proses.json"
+
+    st = {}
+    if STATUS.exists():
+        try:
+            st = _json.loads(STATUS.read_text())
+        except Exception:
+            st = {}
+    if not st.get("running"):
+        return {"status": "tidak_ada", "message": "tidak ada login berjalan"}
+
+    pid = _login_pid_aktif(st)
+    if not pid:
+        st["running"] = False
+        try:
+            STATUS.write_text(_json.dumps(st), encoding="utf-8")
+        except Exception:
+            pass
+        return {"status": "tidak_ada", "message": "job login sudah tidak hidup"}
+
+    terhenti = False
+    # hentikan lewat unit systemd bila ada (membersihkan cgroup juga),
+    # kalau tidak: kirim SIGTERM ke grup proses login
+    if st.get("unit"):
+        try:
+            r = subprocess.run(["systemctl", "stop", str(st["unit"])],
+                               capture_output=True, timeout=15)
+            terhenti = r.returncode == 0
+        except Exception:
+            terhenti = False
+    if not terhenti:
+        try:
+            import os as _os
+            _os.killpg(_os.getpgid(int(pid)), _signal.SIGTERM)
+            terhenti = True
+        except Exception:
+            try:
+                _os.kill(int(pid), _signal.SIGTERM)
+                terhenti = True
+            except Exception:
+                pass
+    return {"status": "dihentikan" if terhenti else "gagal",
+            "pid": pid,
+            "message": "job login dihentikan" if terhenti
+                       else "tidak bisa menghentikan (cek manual)"}
 
 
 @app.get("/v1/vids/accounts/login-live", dependencies=[Depends(verify_api_key)])
@@ -3613,6 +3908,10 @@ async def api_vids_accounts():
             "state": "limited" if limited else r["state"],
             "cooldown_left": max(0, r["until"] - now) if limited else 0,
             "note": r["note"],
+            # dipakai aturan penggabungan di bawah: apakah masa istirahat
+            # ('until') sudah lewat? Tanpa ini, label kedaluwarsa tetap
+            # menutupi akun yang sudah login sukses.
+            "_until": r["until"] or 0,
         }
 
     # Keberhasilan login dicatat di tabel `accounts` (gateway.db) sebagai
@@ -3628,11 +3927,33 @@ async def api_vids_accounts():
     except Exception as e:
         logger.warning(f"vids accounts: gagal baca tabel accounts: {e}")
 
+    # PERBAIKAN: login yang BERHASIL (accounts.status='active') harus menang
+    # atas label negatif yang bisa sudah kedaluwarsa.
+    #
+    # Sebelumnya 'ok' hanya dipasang kalau baris vids_accounts BELUM ada,
+    # sehingga baris 'no_login' MENUTUPI 185 akun yang sebenarnya sehat dan
+    # panel menampilkan "akun sehat: 1".
+    #
+    # Aturan sekarang:
+    #   - akun active -> 'ok', KECUALI masih diistirahatkan karena THROTTLE,
+    #     atau no_login yang masa istirahatnya belum lewat.
+    #   - 'limited' (kuota bulanan habis) tetap dihormati: itu keputusan user
+    #     untuk memensiunkan akun sebulan.
     for e in active_emails:
-        cur = states.get(e)
-        if cur is None or cur.get("state") in (None, "", "unknown"):
-            states[e] = {"state": "ok", "cooldown_left": 0,
-                         "note": "login sukses (pool gateway)"}
+        cur = states.get(e) or {}
+        st = cur.get("state") or "unknown"
+        until = cur.get("_until") or 0
+        masih_istirahat = until > now
+
+        if st == "limited":
+            continue                                  # hormati pensiun sebulan
+        if st == "throttled" and masih_istirahat:
+            continue                                  # 429 nyata, masih jeda
+        if st == "no_login" and masih_istirahat:
+            continue                                  # sesi belum terbentuk
+        # ui_retry / no_login kedaluwarsa / unknown -> akun ini SEHAT
+        states[e] = {"state": "ok", "cooldown_left": 0,
+                     "note": "login sukses (pool gateway)"}
     # daftar akun dari accounts.txt
     all_acc = []
     acc_file = "/root/api-google-flow/accounts.txt"
@@ -3643,7 +3964,19 @@ async def api_vids_accounts():
                 e = line.split("|")[0].strip()
                 if "@" in e:
                     all_acc.append(e)
-    ready = [e for e in all_acc if states.get(e, {}).get("state") != "limited"]
+    # ready = benar-benar sehat: state ok, tanpa cooldown aktif.
+    # (dulu: "semua kecuali limited" — unknown/no_login/throttled ikut
+    # dihitung siap, membuat angka ready menyesatkan)
+    def _siap(e):
+        st = states.get(e, {})
+        if st.get("state") != "ok":
+            return False
+        cd = st.get("cooldown_left") or 0
+        try:
+            return float(cd) <= 0
+        except (TypeError, ValueError):
+            return True
+    ready = [e for e in all_acc if _siap(e)]
     by_state = {}
     for e in all_acc:
         s = states.get(e, {}).get("state") or "unknown"
@@ -3651,8 +3984,10 @@ async def api_vids_accounts():
     return {"total": len(all_acc), "ready": len(ready),
             "by_state": by_state,
             "limited": [e for e in all_acc if states.get(e, {}).get("state") == "limited"],
-            "accounts": [{"email": e, **states.get(e, {"state": "unknown",
-                                                       "cooldown_left": 0, "note": ""})}
+            "accounts": [{"email": e,
+                          **{k: v for k, v in states.get(
+                              e, {"state": "unknown", "cooldown_left": 0,
+                                  "note": ""}).items() if not k.startswith("_")}}
                          for e in all_acc]}
 
 
@@ -3685,6 +4020,15 @@ def _gptimage_db():
         job_id TEXT PRIMARY KEY, account TEXT, prompt TEXT, status TEXT,
         progress INTEGER DEFAULT 0, created_at INTEGER, updated_at INTEGER,
         result_path TEXT, size TEXT, error TEXT, attempts INTEGER DEFAULT 0)""")
+    # MIGRASI: kolom referensi (idempoten — dicek dulu, bukan diasumsikan).
+    # Tanpa kolom ini, foto referensi tidak bisa disimpan di antrian.
+    try:
+        kolom = {r[1] for r in conn.execute("PRAGMA table_info(gptimage_jobs)")}
+        if "referensi" not in kolom:
+            conn.execute("ALTER TABLE gptimage_jobs ADD COLUMN referensi TEXT")
+            logger.info("gptimage_jobs: kolom 'referensi' ditambahkan")
+    except Exception as _e:
+        logger.warning(f"migrasi kolom referensi gagal: {_e}")
     conn.commit()
     return conn
 
@@ -3692,6 +4036,10 @@ def _gptimage_db():
 class GptImageCreateRequest(BaseModel):
     prompt: str
     account: Optional[str] = None
+    # Foto referensi (opsional). Sebelumnya field ini TIDAK ADA, jadi gambar
+    # yang dikirim user dibuang diam-diam oleh pydantic -> job selalu gagal
+    # "SSE tidak memuat gambar" walau prompt-nya benar.
+    images: Optional[List[str]] = None
 
 
 @app.post("/v1/gptimage/images/create", dependencies=[Depends(verify_api_key)])
@@ -3705,11 +4053,15 @@ async def api_gptimage_create(req: GptImageCreateRequest):
     now = int(time.time())
     conn = _gptimage_db()
     try:
+        # Simpan referensi sebagai JSON supaya worker bisa meneruskannya.
+        _ref = [u for u in (req.images or []) if u][:4]
         conn.execute(
             """INSERT INTO gptimage_jobs (job_id, account, prompt, status,
-                                          progress, created_at, updated_at)
-               VALUES (?, ?, ?, 'queued', 0, ?, ?)""",
-            (job_id, req.account or "", req.prompt, now, now))
+                                          progress, created_at, updated_at,
+                                          referensi)
+               VALUES (?, ?, ?, 'queued', 0, ?, ?, ?)""",
+            (job_id, req.account or "", req.prompt, now, now,
+             json.dumps(_ref) if _ref else None))
         conn.commit()
     finally:
         conn.close()
@@ -3796,18 +4148,199 @@ class GptImagePurgeRequest(BaseModel):
 
 @app.post("/v1/gptimage/accounts/purge", dependencies=[Depends(verify_api_key)])
 async def api_gptimage_purge(req: GptImagePurgeRequest):
-    """Bersihkan catatan status akun (bukan menghapus akun dari pool)."""
+    """Bersihkan catatan status akun (bukan menghapus akun dari pool).
+
+    emails kosong = seluruh status. Dengan emails: HANYA akun tersebut
+    (dulu: seluruh berkas dihapus walau hanya beberapa email diminta)."""
     if not _gptimage_enabled():
         raise HTTPException(status_code=503, detail="GPT Image API nonaktif")
     try:
         import gptimage_runner as _g
         from pathlib import Path as _P
         p = _P(_g.STATUS_PATH)
-        if p.exists():
+        if not p.exists():
+            return {"dibersihkan": True, "jumlah": 0}
+        import json as _json
+        data = _json.loads(p.read_text(errors="replace") or "{}")
+        if not req.emails:
             p.unlink()
-        return {"dibersihkan": True, "jumlah": len(req.emails or [])}
+            return {"dibersihkan": True, "jumlah": len(data)}
+        target = {e.strip().lower() for e in req.emails if e and e.strip()}
+        kunci = [k for k in list(data.keys())
+                 if str(k).split("@")[0].lower() in
+                 {t.split("@")[0] for t in target}]
+        for k in kunci:
+            data.pop(k, None)
+        tmp = p.with_suffix(".json.tmp")
+        tmp.write_text(_json.dumps(data, ensure_ascii=False))
+        tmp.replace(p)
+        return {"dibersihkan": True, "jumlah": len(kunci)}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)[:200])
+
+
+class GptImageLoginRequest(BaseModel):
+    emails: List[str] = []      # kosong = semua akun pool yang belum punya profil
+
+
+@app.post("/v1/gptimage/accounts/login", dependencies=[Depends(verify_api_key)])
+async def api_gptimage_accounts_login(req: GptImageLoginRequest):
+    """Jalankan login ChatGPT untuk akun pool di LATAR BELAKANG.
+
+    Sama seperti endpoint Vids: balas cepat, pantau lewat
+    GET /v1/gptimage/accounts/login-status. Satu job pada satu waktu
+    (lock lintas proses, unit systemd terpisah dari Vids)."""
+    import json as _json
+    from pathlib import Path as _P
+
+    if not _gptimage_enabled():
+        raise HTTPException(status_code=503, detail="GPT Image API nonaktif")
+
+    APP = _P("/root/api-google-flow")
+    PY = "/root/harbor/venv/bin/python"
+    SCRIPT = APP / "login_chatgpt2.py"
+    STATUS = APP / "data" / "gpt_login_proses.json"
+    LOGF = APP / "data" / "gpt_login_last.log"
+
+    if not SCRIPT.exists():
+        return {"status": "error", "message": "login_chatgpt2.py tidak ada"}
+
+    st = {}
+    if STATUS.exists():
+        try:
+            st = _json.loads(STATUS.read_text())
+        except Exception:
+            st = {}
+    if st.get("running"):
+        try:
+            pid = int(st.get("pid") or 0)
+            os.kill(pid, 0)
+            return {"status": "sudah_jalan", "pid": pid,
+                    "diproses": st.get("jumlah"),
+                    "message": "login GPT sedang berjalan"}
+        except (OSError, ValueError):
+            st = {}
+
+    # kandidat: email eksplisit, atau seluruh pool yang BELUM punya profil GPT
+    if req.emails:
+        kandidat = [e.strip().lower() for e in req.emails if e and e.strip()]
+    else:
+        kandidat = []
+        f = APP / "accounts.txt"
+        if f.exists():
+            for line in f.read_text(errors="replace").splitlines():
+                line = line.strip()
+                if not line or line.startswith("#") or "|" not in line:
+                    continue
+                em = line.split("|")[0].strip().lower()
+                if em and not (_P(f"/root/chatgpt_profil_{em.split('@')[0]}").exists()
+                               or _P(f"/root/chatgpt_profil_{em.split('@')[0]}_"
+                                     f"{em.split('@')[1].replace('.', '')}").exists()):
+                    kandidat.append(em)
+    # buang yang tidak punya password di pool
+    if (APP / "accounts.txt").exists():
+        punya_pw = set()
+        for line in (APP / "accounts.txt").read_text(errors="replace").splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and "|" in line:
+                em, _, pw = line.partition("|")
+                if pw.strip():
+                    punya_pw.add(em.strip().lower())
+        kandidat = [e for e in kandidat if e in punya_pw]
+
+    if not kandidat:
+        return {"status": "ok", "diproses": 0,
+                "message": "tidak ada akun GPT yang perlu login"}
+
+    LOCKF = APP / "data" / "gpt_login_job.lock"
+    LOCKF.parent.mkdir(parents=True, exist_ok=True)
+    import fcntl as _fcntl
+    lockfh = open(LOCKF, "w")
+    try:
+        _fcntl.flock(lockfh, _fcntl.LOCK_EX | _fcntl.LOCK_NB)
+    except OSError:
+        return {"status": "sudah_jalan",
+                "message": "job login GPT lain sedang dimulai"}
+    STATUS.write_text(_json.dumps({
+        "running": True, "pid": None, "jumlah": len(kandidat),
+        "mulai": int(time.time()), "starting": True,
+    }), encoding="utf-8")
+
+    # satu wrapper job: loop akun -> panggil login_chatgpt2.py per akun
+    # (bash sederhana; $em perlu di-escape supaya tidak dievaluasi bash)
+    wrapper = APP / "data" / "_gpt_login_loop.sh"
+    isi = "#!/bin/bash\nset -u\n"
+    for em in kandidat:
+        isi += (f'echo "== {em}"\n'
+                f'DISPLAY=:99 timeout 300 {PY} {SCRIPT} {em}; rc=$?\n'
+                f'echo "-> hasil {em} exit=$rc"\n'
+                f'sleep 20\n')
+    wrapper.write_text(isi)
+    os.chmod(wrapper, 0o700)
+
+    logf = open(LOGF, "w", encoding="utf-8")
+    proc = None
+    unit = None
+    try:
+        proc = subprocess.Popen(
+            ["systemd-run", "--collect", "--unit", "artflow-gpt-login-job",
+             "--description", "ArtFlow GPT auto-login",
+             "--setenv", "DISPLAY=:99",
+             "--working-directory", str(APP),
+             "/bin/bash", str(wrapper)],
+            stdout=logf, stderr=subprocess.STDOUT)
+        if proc.wait(timeout=15) != 0:
+            raise RuntimeError("systemd-run gagal")
+        unit = "artflow-gpt-login-job.service"
+    except Exception:
+        proc = subprocess.Popen(
+            ["/bin/bash", str(wrapper)],
+            cwd=str(APP), stdout=logf, stderr=subprocess.STDOUT,
+            start_new_session=True, env={**os.environ, "DISPLAY": ":99"})
+
+    STATUS.write_text(_json.dumps({
+        "running": True, "pid": proc.pid, "jumlah": len(kandidat),
+        "unit": unit, "mulai": int(time.time()),
+    }), encoding="utf-8")
+    lockfh.close()
+    return {"status": "mulai", "pid": proc.pid, "diproses": len(kandidat),
+            "message": f"login GPT {len(kandidat)} akun berjalan di latar"}
+
+
+@app.get("/v1/gptimage/accounts/login-status", dependencies=[Depends(verify_api_key)])
+async def api_gptimage_login_status():
+    """Keadaan job login GPT latar belakang."""
+    import json as _json
+    from pathlib import Path as _P
+
+    APP = _P("/root/api-google-flow")
+    STATUS = APP / "data" / "gpt_login_proses.json"
+    LOGF = APP / "data" / "gpt_login_last.log"
+
+    st = {}
+    if STATUS.exists():
+        try:
+            st = _json.loads(STATUS.read_text())
+        except Exception:
+            st = {}
+    hidup = False
+    try:
+        pid = int(st.get("pid") or 0)
+        if pid:
+            os.kill(pid, 0)
+            hidup = True
+    except (OSError, ValueError, TypeError):
+        hidup = False
+    if st and not hidup and not st.get("starting"):
+        st["running"] = False
+    baris = []
+    if LOGF.exists():
+        for l in LOGF.read_text(errors="replace").splitlines()[-40:]:
+            if ("-> " in l or "==" in l) and "@" in l:
+                baris.append(l.strip()[:120])
+    st["running"] = hidup or bool(st.get("starting"))
+    st["hasil_terakhir"] = baris[-10:]
+    return st
 
 
 async def _gptimage_worker():
@@ -3839,8 +4372,17 @@ async def _gptimage_worker():
                 conn.close()
 
             kel = f"/root/api-google-flow/output/gptimage/{job_id}.png"
+            # Referensi dari antrian (JSON). Kolom bisa tidak ada di DB lama,
+            # jadi dibaca defensif.
+            _ref = None
+            try:
+                _raw = row["referensi"]
+                if _raw:
+                    _ref = json.loads(_raw)
+            except Exception:
+                _ref = None
             r = await asyncio.to_thread(_g.jalankan, row["prompt"], row["account"] or None,
-                                        kel, 300)
+                                        kel, 300, _ref)
             st = r.get("status") or "gagal"
             status_job = {"ok": "completed", "limit": "limited",
                           "kuota_habis": "limited",
@@ -3870,6 +4412,243 @@ async def _gptimage_startup():
         _gptimage_db().close()
         asyncio.create_task(_gptimage_worker())
         logger.info("GPT Image API aktif (FLOW_ENABLE_GPTIMAGE_API=1)")
+
+
+# ══════════════════════════════════════════════════════════════════════
+# ══ BLOK # SUNO — fitur Suno AI (generate musik).                     ══
+# ══ Untuk MENGHAPUS fitur: hapus seluruh blok ini + rm suno_api.py     ══
+# ══ suno_login.py suno_worker.py. Semua kode Suno terkurung di sini.   ══
+# ══════════════════════════════════════════════════════════════════════
+
+def _suno_enabled() -> bool:
+    return os.environ.get("FLOW_ENABLE_SUNO_API", "1").strip() in ("1", "true", "yes")
+
+
+class SunoCreateRequest(BaseModel):
+    prompt: str
+    email: Optional[str] = None      # paksa akun tertentu (opsional)
+
+
+@app.post("/v1/suno/songs/create", dependencies=[Depends(verify_api_key)])
+async def api_suno_create(req: SunoCreateRequest):
+    """Masukkan job Suno ke antrian. Kembali cepat (anti-timeout)."""
+    if not _suno_enabled():
+        raise HTTPException(status_code=503,
+                            detail="Suno API nonaktif (set FLOW_ENABLE_SUNO_API=1)")
+    try:
+        import suno_worker as _sw
+    except Exception as _e:
+        raise HTTPException(status_code=500, detail=f"modul suno_worker gagal: {_e}")
+    prompt = (req.prompt or "").strip()
+    if not prompt:
+        raise HTTPException(status_code=400, detail="prompt kosong")
+    jid = _sw.buat_job(prompt)
+    logger.info(f"suno job queued: {jid} prompt={prompt[:60]!r}")
+    return {"jobId": jid, "status": "queued", "engine": "suno",
+            "queuedAt": int(time.time())}
+
+
+@app.get("/v1/suno/songs/{job_id}", dependencies=[Depends(verify_api_key)])
+async def api_suno_job(job_id: str):
+    if not _suno_enabled():
+        raise HTTPException(status_code=503, detail="Suno API nonaktif")
+    try:
+        import suno_worker as _sw
+    except Exception as _e:
+        raise HTTPException(status_code=500, detail=f"modul suno_worker gagal: {_e}")
+    job = _sw.baca_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="job tidak ditemukan")
+    # berkas dipisah '|' di kolom; ubah jadi daftar + url media
+    berkas = [b for b in (job.get("berkas") or "").split("|") if b]
+    ada = [b for b in berkas if os.path.exists(b)]
+    out = dict(job)
+    out["berkas"] = ada
+    if ada:
+        out["download_url"] = (
+            f"/v1/suno/songs/{job_id}/media?index=0")
+        out["download_urls"] = [
+            f"/v1/suno/songs/{job_id}/media?index={i}"
+            for i in range(len(ada))]
+    return out
+
+
+@app.get("/v1/suno/songs/{job_id}/media", dependencies=[Depends(verify_api_key)])
+async def api_suno_media(job_id: str, index: int = 0):
+    """Stream hasil audio (m4a/mp3)."""
+    if not _suno_enabled():
+        raise HTTPException(status_code=503, detail="Suno API nonaktif")
+    try:
+        import suno_worker as _sw
+    except Exception as _e:
+        raise HTTPException(status_code=500, detail=f"modul suno_worker gagal: {_e}")
+    job = _sw.baca_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="job tidak ditemukan")
+    berkas = [b for b in (job.get("berkas") or "").split("|")
+              if b and os.path.exists(b)]
+    if not berkas:
+        raise HTTPException(status_code=404, detail="hasil belum ada")
+    index = max(0, min(index, len(berkas) - 1))
+    path = berkas[index]
+    tipe = "audio/mp4" if path.endswith((".m4a", ".mp4")) else "audio/mpeg"
+    return FileResponse(path, media_type=tipe,
+                        filename=os.path.basename(path))
+
+
+@app.get("/v1/suno/accounts", dependencies=[Depends(verify_api_key)])
+async def api_suno_accounts():
+    """Akun Suno ber-cookie + kuota tercatat."""
+    if not _suno_enabled():
+        raise HTTPException(status_code=503, detail="Suno API nonaktif")
+    try:
+        import suno_worker as _sw
+        import suno_api as _sa
+    except Exception as _e:
+        raise HTTPException(status_code=500, detail=f"modul suno gagal: {_e}")
+    import json as _json
+    from pathlib import Path as _P
+    state = {}
+    try:
+        state = _json.loads((_P("/root/api-google-flow/data/suno_akun.json"))
+                            .read_text())
+    except Exception:
+        pass
+    akun = []
+    for email in _sa.daftar_akun_bercookie():
+        s = state.get(email) or {}
+        akun.append({"email": email, "cookie": True,
+                     "kuota_kiri": s.get("kuota_kiri"),
+                     "terakhir_pakai": s.get("terakhir_pakai"),
+                     "sukses": s.get("sukses", 0), "gagal": s.get("gagal", 0)})
+    return {"akun": akun, "jumlah": len(akun)}
+
+
+class SunoLoginRequest(BaseModel):
+    emails: Optional[List[str]] = None    # None = seluruh pool (JANGAN massal!)
+
+
+@app.post("/v1/suno/accounts/login", dependencies=[Depends(verify_api_key)])
+async def api_suno_login(req: SunoLoginRequest):
+    """Jalankan login Suno di latar belakang (systemd-run, anti-timeout).
+
+    Login browser berat (~60-120s/akun) dan mengetik password Google —
+    jalankan untuk akun TERPILIH saja, bukan 192 sekaligus."""
+    if not _suno_enabled():
+        raise HTTPException(status_code=503, detail="Suno API nonaktif")
+    import fcntl as _fcntl
+    from pathlib import Path as _P
+    APP = _P("/root/api-google-flow")
+    SCRIPT = APP / "suno_login.py"
+    STATUS = APP / "data" / "suno_login_proses.json"
+    LOGF = APP / "data" / "suno_login_last.log"
+    LOCKF = APP / "data" / "suno_login_job.lock"
+
+    if not SCRIPT.exists():
+        raise HTTPException(status_code=500, detail="suno_login.py tidak ada")
+
+    st = {}
+    if STATUS.exists():
+        try:
+            st = json.loads(STATUS.read_text())
+        except Exception:
+            st = {}
+    if st.get("running"):
+        try:
+            pid = int(st.get("pid") or 0)
+            os.kill(pid, 0)
+            return {"status": "sudah_jalan", "pid": pid,
+                    "message": "login Suno sedang berjalan"}
+        except (OSError, ValueError):
+            st = {}
+
+    if req.emails:
+        target = ",".join(e.strip() for e in req.emails if e and e.strip())
+    else:
+        raise HTTPException(status_code=400,
+                            detail="sebutkan emails — login massal seluruh pool "
+                                   "tidak disarankan (password diketik per akun)")
+
+    LOCKF.parent.mkdir(parents=True, exist_ok=True)
+    lockfh = open(LOCKF, "w")
+    try:
+        _fcntl.flock(lockfh, _fcntl.LOCK_EX | _fcntl.LOCK_NB)
+    except OSError:
+        return {"status": "sudah_jalan",
+                "message": "login Suno lain sedang dimulai"}
+
+    logf = open(LOGF, "w", encoding="utf-8")
+    proc = None
+    unit = None
+    try:
+        proc = subprocess.Popen(
+            ["systemd-run", "--collect", "--unit", "artflow-suno-login-job",
+             "--description", "ArtFlow login Suno",
+             "--setenv", "DISPLAY=:99",
+             "--working-directory", str(APP),
+             "/root/harbor/venv/bin/python", str(SCRIPT), target],
+            stdout=logf, stderr=subprocess.STDOUT)
+        if proc.wait(timeout=15) != 0:
+            raise RuntimeError("systemd-run gagal")
+        unit = "artflow-suno-login-job.service"
+    except Exception:
+        proc = subprocess.Popen(
+            ["/root/harbor/venv/bin/python", str(SCRIPT), target],
+            cwd=str(APP), stdout=logf, stderr=subprocess.STDOUT,
+            start_new_session=True, env={**os.environ, "DISPLAY": ":99"})
+
+    STATUS.write_text(json.dumps({
+        "running": True, "pid": proc.pid, "unit": unit,
+        "mulai": int(time.time()),
+    }), encoding="utf-8")
+    lockfh.close()
+    return {"status": "mulai", "pid": proc.pid,
+            "message": f"login Suno {target.split(',')[0]} "
+                       "(+ lainnya) berjalan di latar"}
+
+
+@app.get("/v1/suno/accounts/login-status", dependencies=[Depends(verify_api_key)])
+async def api_suno_login_status():
+    """Progress login Suno (dari suno_login_proses.json + job unit)."""
+    import json as _json
+    from pathlib import Path as _P
+    STATUS = _P("/root/api-google-flow/data/suno_login_proses.json")
+    st = {}
+    if STATUS.exists():
+        try:
+            st = _json.loads(STATUS.read_text())
+        except Exception:
+            st = {}
+    hidup = False
+    try:
+        pid = int(st.get("pid") or 0)
+        if pid:
+            os.kill(pid, 0)
+            hidup = True
+    except (OSError, ValueError, TypeError):
+        hidup = False
+    if st and not hidup:
+        st["running"] = False
+        try:
+            STATUS.write_text(json.dumps(st), encoding="utf-8")
+        except Exception:
+            pass
+    return st or {"running": False}
+
+
+@app.on_event("startup")
+async def _suno_startup():
+    if _suno_enabled():
+        try:
+            import suno_worker as _sw
+            _sw._db().close()
+            asyncio.create_task(_sw.kerja_latar())
+            logger.info("Suno API aktif (FLOW_ENABLE_SUNO_API=1)")
+        except Exception as _e:
+            logger.warning(f"Suno worker TIDAK jalan: {_e}")
+
+# ══ AKHIR BLOK # SUNO ══════════════════════════════════════════════════
+
 
 @app.get("/health")
 async def health():

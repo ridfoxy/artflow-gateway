@@ -29,6 +29,7 @@ import asyncio
 import base64
 import json
 import logging
+import os
 import random
 import re
 import sys
@@ -94,14 +95,19 @@ def status_akun() -> dict:
     keluar = []
     for em in akun:
         d = st.get(em) or {}
+        sampai = d.get("sampai") or 0
+        pulih = max(0, int((sampai - time.time()) / 60)) if sampai else 0
         keluar.append({
             "email": em,
             "state": d.get("state", "siap"),
-            "sisa_kuota": d.get("sisa_kuota"),
-            "reset": d.get("reset"),
+            # None aman untuk panel: pakai -1 sebagai "belum diketahui"
+            "sisa_kuota": d.get("sisa_kuota") if isinstance(
+                d.get("sisa_kuota"), int) else -1,
+            "reset": d.get("reset") or "",
             "dipakai": d.get("dipakai", 0),
             "pesan": d.get("pesan", ""),
-            "diperiksa": d.get("diperiksa"),
+            "diperiksa": d.get("diperiksa") or "",
+            "pulih_dalam_menit": pulih,
         })
     return {"total": len(akun), "akun": keluar}
 
@@ -218,14 +224,52 @@ async def _jalan_async(prompt: str, akun: str, keluaran: Path,
         await pg.route("**/backend-api/f/conversation", tukar)
         mode["tukar"] = True
 
-        sel = "#prompt-textarea"
-        try:
-            await pg.wait_for_selector(sel, timeout=25000)
-        except Exception:
+        # Kotak prompt: ChatGPT mengganti markup (dulu #prompt-textarea,
+        # sekarang ProseMirror contenteditable). Selector lama tetap
+        # didahulukan; SATU panggilan dengan daftar dipisah koma supaya semua
+        # kandidat ditunggu BERBARENGAN (kalau dicoba berurutan, kandidat
+        # pertama menghabiskan seluruh anggaran waktu).
+        SELECTOR_KOTAK = (
+            "#prompt-textarea, "
+            "div.ProseMirror[contenteditable='true'], "
+            "div[contenteditable='true'], "
+            "form div[contenteditable='true']"
+        )
+
+        async def _ambil_kotak(ms):
+            try:
+                h = await pg.wait_for_selector(SELECTOR_KOTAK, timeout=ms,
+                                               state="visible")
+                return h
+            except Exception:
+                return None
+
+        kotak = await _ambil_kotak(30000)
+        if kotak is None:
+            # kesempatan kedua: composer kadang belum selesai merender
+            logger.warning("kotak prompt belum ada — muat ulang sekali")
+            try:
+                await pg.reload(wait_until="domcontentloaded", timeout=90000)
+            except Exception as exc:
+                logger.warning("muat ulang gagal: %s", str(exc)[:90])
+            kotak = await _ambil_kotak(30000)
+        if kotak is None:
+            # catat kandidat DOM yang ada, supaya penyebabnya terlihat
+            try:
+                dom = await pg.evaluate("""() => ({
+                    promptTextarea: document.querySelectorAll('#prompt-textarea').length,
+                    proseMirror: document.querySelectorAll('.ProseMirror').length,
+                    editables: document.querySelectorAll('[contenteditable="true"]').length,
+                    textareas: document.querySelectorAll('textarea').length,
+                    url: location.href.slice(0, 80),
+                    judul: (document.title || '').slice(0, 50),
+                })""")
+                logger.warning("kotak prompt TIDAK muncul; keadaan DOM: %s", dom)
+            except Exception:
+                pass
             hasil["status"] = "ui_tidak_siap"
             hasil["pesan"] = "kotak prompt tidak muncul"
             return hasil
-        kotak = await pg.query_selector(sel)
 
         # pemicu seminim mungkin — isinya akan ditukar
         await kotak.click()
@@ -323,8 +367,83 @@ async def _jalan_async(prompt: str, akun: str, keluaran: Path,
         return hasil
 
 
+def _catat_hasil(target: str, r: dict) -> None:
+    """Simpan keadaan akun setelah satu percobaan (dipakai runner + daemon)."""
+    st = _baca_status()
+    d = st.get(target) or {}
+    d["diperiksa"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    if r.get("kuota"):
+        d["sisa_kuota"] = r["kuota"].get("sisa")
+        d["reset"] = r["kuota"].get("reset")
+    if r.get("status") == "ok":
+        d["state"] = "siap"
+        d["pesan"] = ""
+        d["dipakai"] = d.get("dipakai", 0) + 1
+        if isinstance(d.get("sisa_kuota"), int):
+            d["sisa_kuota"] = max(0, d["sisa_kuota"] - 1)
+    elif r.get("status") == "limit":
+        d["state"] = "limit"
+        d["sampai"] = time.time() + 3600      # throttle ~1 jam, bukan bulanan
+        d["pesan"] = r.get("pesan", "")
+    elif r.get("status") == "kuota_habis":
+        d["state"] = "kuota_habis"
+        d["sisa_kuota"] = 0
+        d["pesan"] = r.get("pesan", "")
+    else:
+        d["pesan"] = r.get("pesan", "")
+    st[target] = d
+    _tulis_status(st)
+
+
+
+# ───────────────────────────────────────────────────────────────
+# Jalur CEPAT: daemon memegang browser yang sudah hidup
+# ───────────────────────────────────────────────────────────────
+
+SOCK_DAEMON = "/tmp/gptimage.sock"
+
+
+def _lewat_daemon(prompt: str, akun, keluaran, timeout: int = 300,
+                  referensi: list[str] | None = None) -> dict | None:
+    """Kirim job ke daemon lewat UNIX socket. None bila daemon tidak ada/gagal.
+
+    Daemon menghilangkan ~13 detik buka browser: halaman sudah terbuka dan
+    profil akun sudah dimuat, jadi job berikutnya langsung mengirim prompt.
+    """
+    import socket as _s
+    if not os.path.exists(SOCK_DAEMON):
+        return None
+    try:
+        s = _s.socket(_s.AF_UNIX, _s.SOCK_STREAM)
+        s.settimeout(timeout)
+        s.connect(SOCK_DAEMON)
+        permintaan = {"aksi": "gambar", "prompt": prompt}
+        if akun:
+            permintaan["akun"] = akun
+        if keluaran:
+            permintaan["keluaran"] = str(keluaran)
+        # Tanpa ini, foto referensi tidak pernah sampai ke ChatGPT
+        # (gejala: "SSE tidak memuat gambar" untuk SEMUA job bergambar).
+        if referensi:
+            permintaan["referensi"] = [str(x) for x in referensi if x][:4]
+        s.sendall((json.dumps(permintaan, ensure_ascii=False) + "\n").encode())
+        buf = b""
+        while b"\n" not in buf:
+            potong = s.recv(65536)
+            if not potong:
+                break
+            buf += potong
+        s.close()
+        if not buf:
+            return None
+        return json.loads(buf.decode().splitlines()[0])
+    except Exception as exc:
+        logger.warning("daemon tidak terpakai (%s) — jatuh ke jalur biasa", exc)
+        return None
+
+
 def jalankan(prompt: str, akun: str | None = None, keluaran: str | Path | None = None,
-             timeout: int = 300) -> dict:
+             timeout: int = 300, referensi: list[str] | None = None) -> dict:
     """Jalankan satu job GPT Image. Blokir sampai selesai (dipakai runner).
 
     Mengembalikan dict: {status: ok|limit|kuota_habis|no_login|timeout|gagal|...,
@@ -333,6 +452,11 @@ def jalankan(prompt: str, akun: str | None = None, keluaran: str | Path | None =
     prompt = (prompt or "").strip()
     if not prompt:
         return {"status": "gagal", "pesan": "prompt kosong"}
+
+    # jalur cepat dulu: daemon dengan browser yang sudah hidup
+    lewat = _lewat_daemon(prompt, akun, keluaran, timeout, referensi)
+    if lewat is not None and lewat.get("status"):
+        return lewat
 
     dipakai: set[str] = set()
     terakhir: dict = {}
@@ -349,34 +473,9 @@ def jalankan(prompt: str, akun: str | None = None, keluaran: str | Path | None =
             r = {"akun": target, "status": "gagal", "pesan": str(exc)[:200]}
         terakhir = r
 
-        # ---- catat status akun ----
-        st = _baca_status()
-        d = st.get(target) or {}
-        d["diperiksa"] = time.strftime("%Y-%m-%d %H:%M:%S")
-        if r.get("kuota"):
-            d["sisa_kuota"] = r["kuota"].get("sisa")
-            d["reset"] = r["kuota"].get("reset")
+        _catat_hasil(target, r)
         if r["status"] == "ok":
-            d["state"] = "siap"
-            d["pesan"] = ""
-            d["dipakai"] = d.get("dipakai", 0) + 1
-            if isinstance(d.get("sisa_kuota"), int):
-                d["sisa_kuota"] = max(0, d["sisa_kuota"] - 1)
-            st[target] = d
-            _tulis_status(st)
             return r
-        if r["status"] == "limit":
-            d["state"] = "limit"
-            d["sampai"] = time.time() + 3600      # throttle ~1 jam, bukan bulanan
-            d["pesan"] = r.get("pesan", "")
-        elif r["status"] == "kuota_habis":
-            d["state"] = "kuota_habis"
-            d["sisa_kuota"] = 0
-            d["pesan"] = r.get("pesan", "")
-        else:
-            d["pesan"] = r.get("pesan", "")
-        st[target] = d
-        _tulis_status(st)
         logger.info("akun %s → %s (%s)", target, r["status"], r.get("pesan", ""))
         # status yang tidak layak dicoba ulang di akun berikutnya? justru itu
         # tujuannya: lempar ke akun sehat, sama seperti Vids.
